@@ -22,7 +22,7 @@ const CURRICULUM_GRADES = {
   Cambridge: ["Year 1","Year 2","Year 3","Year 4","Year 5","Year 6","Year 7","Year 8","Year 9","IGCSE","AS Level","A Level"],
 };
 
-const PALETTE = ["#94cbd1","#d7735a","#f6cb7e","#5a9fa6","#b5bec7","#22c55e","#8b5cf6"];
+const PALETTE = ["#94cbd1","#d7735a","#f6cb7e","#5a9fa6","#b5bec7","#22c55e","#f59e0b"];
 const NOTE_TYPES = ["compliment","complaint","general"];
 
 // Brand colours
@@ -100,8 +100,8 @@ const INIT_CENTRE_NOTES = [
 // ─── LMS SEED DATA ────────────────────────────────────────────────────────────
 
 const INIT_COURSES = [
-  { id: "cr1", title: "Mathematics Mastery — Grade 11", description: "A complete Grade 11 Mathematics course covering Algebra, Functions and Trigonometry.", subjectId: "s1", status: "Published", createdDate: "2025-01-01", color: "#6366f1" },
-  { id: "cr2", title: "English Language & Literature",  description: "Comprehensive English course covering reading comprehension, writing and literary analysis.", subjectId: "s3", status: "Published", createdDate: "2025-02-01", color: "#8b5cf6" },
+  { id: "cr1", title: "Mathematics Mastery — Grade 11", description: "A complete Grade 11 Mathematics course covering Algebra, Functions and Trigonometry.", subjectId: "s1", status: "Published", createdDate: "2025-01-01", color: "#94cbd1" },
+  { id: "cr2", title: "English Language & Literature",  description: "Comprehensive English course covering reading comprehension, writing and literary analysis.", subjectId: "s3", status: "Published", createdDate: "2025-02-01", color: "#d7735a" },
 ];
 
 const INIT_MODULES = [
@@ -201,7 +201,7 @@ const lastNMonths = (n) => {
 
 // ─── REPORT GENERATION ───────────────────────────────────────────────────────
 
-const CSS = `*{box-sizing:border-box}body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;color:#111;font-size:14px}h1{color:#4338ca;border-bottom:3px solid #4338ca;padding-bottom:8px;margin-bottom:4px}h2{color:#374151;margin-top:28px;margin-bottom:10px;font-size:15px;border-bottom:1px solid #e5e7eb;padding-bottom:4px}.meta{color:#6b7280;font-size:12px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin:8px 0 16px}th{background:#f3f4f6;padding:7px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#4b5563}td{padding:7px 12px;border-bottom:1px solid #f3f4f6}.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}.bg{background:#e0e7ff;color:#3730a3}.gg{background:#dcfce7;color:#166534}.gr{background:#f3f4f6;color:#374151}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}.label{font-size:11px;color:#6b7280;text-transform:uppercase;font-weight:600;margin-bottom:2px}.value{font-size:14px;color:#111827}.ni{padding:8px 12px;border-left:3px solid #6366f1;background:#f8f9ff;margin:6px 0}.ni.complaint{border-color:#ef4444;background:#fff8f8}.ni.compliment{border-color:#22c55e;background:#f8fff8}.nm{font-size:11px;color:#9ca3af;margin-top:3px}@media print{button{display:none}}`;
+const CSS = `*{box-sizing:border-box}body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;color:#111;font-size:14px}h1{color:#5a9fa6;border-bottom:3px solid #94cbd1;padding-bottom:8px;margin-bottom:4px}h2{color:#374151;margin-top:28px;margin-bottom:10px;font-size:15px;border-bottom:1px solid #e5e7eb;padding-bottom:4px}.meta{color:#6b7280;font-size:12px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin:8px 0 16px}th{background:#e8f5f7;padding:7px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#5a9fa6}td{padding:7px 12px;border-bottom:1px solid #f3f4f6}.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}.bg{background:#e8f5f7;color:#5a9fa6}.gg{background:#dcfce7;color:#166534}.gr{background:#f3f4f6;color:#374151}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}.label{font-size:11px;color:#6b7280;text-transform:uppercase;font-weight:600;margin-bottom:2px}.value{font-size:14px;color:#111827}.ni{padding:8px 12px;border-left:3px solid #94cbd1;background:#e8f5f7;margin:6px 0}.ni.complaint{border-color:#d7735a;background:#fdf0ed}.ni.compliment{border-color:#22c55e;background:#f8fff8}.nm{font-size:11px;color:#9ca3af;margin-top:3px}@media print{button{display:none}}`;
 
 const openReport = (title, html) => {
   const w = window.open("", "_blank");
@@ -274,14 +274,14 @@ const buildCentreReport = (centre, data) => {
 };
 
 const buildCertificate = (student, course, completedDate) => {
-  const html = `<div style="border:8px double #7c3aed;padding:70px 90px;text-align:center;min-height:560px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Georgia,serif">
+  const html = `<div style="border:8px double #94cbd1;padding:70px 90px;text-align:center;min-height:560px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Georgia,serif">
     <p style="font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:.3em;margin:0 0 20px">LEARN TO LINK Academy</p>
-    <div style="width:60px;height:4px;background:#7c3aed;margin:0 auto 28px"></div>
-    <h1 style="font-size:38px;color:#4338ca;margin:0 0 16px;font-weight:700;font-family:Georgia,serif">Certificate of Completion</h1>
+    <div style="width:60px;height:4px;background:#d7735a;margin:0 auto 28px"></div>
+    <h1 style="font-size:38px;color:#5a9fa6;margin:0 0 16px;font-weight:700;font-family:Georgia,serif">Certificate of Completion</h1>
     <p style="font-size:16px;color:#6b7280;margin:0 0 8px;font-family:Arial,sans-serif">This is to certify that</p>
-    <p style="font-size:32px;font-weight:bold;color:#111827;margin:14px 0;border-bottom:2px solid #7c3aed;padding-bottom:14px;min-width:320px;font-family:Georgia,serif">${student.firstName} ${student.lastName}</p>
+    <p style="font-size:32px;font-weight:bold;color:#111827;margin:14px 0;border-bottom:2px solid #94cbd1;padding-bottom:14px;min-width:320px;font-family:Georgia,serif">${student.firstName} ${student.lastName}</p>
     <p style="font-size:16px;color:#6b7280;margin:16px 0 8px;font-family:Arial,sans-serif">has successfully completed the course</p>
-    <p style="font-size:22px;font-weight:bold;color:#7c3aed;margin:8px 0 32px;font-family:Arial,sans-serif">${course.title}</p>
+    <p style="font-size:22px;font-weight:bold;color:#d7735a;margin:8px 0 32px;font-family:Arial,sans-serif">${course.title}</p>
     <p style="font-size:12px;color:#9ca3af;font-family:Arial,sans-serif">Completed ${fmtDate(completedDate)} &nbsp;·&nbsp; Issued by LEARN TO LINK Academy</p>
   </div>`;
   openReport(`Certificate — ${student.firstName} ${student.lastName}`, html);
@@ -289,25 +289,25 @@ const buildCertificate = (student, course, completedDate) => {
 
 // ─── LOGO MARK ────────────────────────────────────────────────────────────────
 
-const LogoMark = ({ size = 36 }) => (
-  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    {/* Gray loop — right side, sits behind */}
-    <path d="M62 14 C76 14 84 24 84 50 C84 76 74 86 60 86 C50 86 42 80 38 70"
-          stroke="#b5bec7" strokeWidth="13" strokeLinecap="round" fill="none"/>
-    {/* Teal loop — left side, sits in front */}
-    <path d="M38 86 C24 86 16 76 16 50 C16 24 26 14 40 14 C50 14 58 20 62 30"
-          stroke="#94cbd1" strokeWidth="13" strokeLinecap="round" fill="none"/>
-    {/* White crossover highlight */}
-    <path d="M38 70 C44 56 56 44 62 30"
-          stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
-    {/* Teal top cap to complete the loop feel */}
-    <path d="M62 30 C65 36 64 44 60 50"
-          stroke="#94cbd1" strokeWidth="10" strokeLinecap="round" fill="none"/>
-    {/* Gray bottom cap */}
-    <path d="M40 50 C36 56 37 64 38 70"
-          stroke="#b5bec7" strokeWidth="10" strokeLinecap="round" fill="none"/>
-  </svg>
-);
+const LogoMark = ({ size = 36 }) => {
+  // Two interlocked oval chain links — teal (left) weaves through grey (right)
+  // Overlap centre at x=50. Left oval: x 10–58, right oval: x 42–90
+  // teal back (right of x=50) drawn first, then full grey, then teal front (left of x=50)
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <clipPath id="lm-front"><rect x="0" y="0" width="50" height="100"/></clipPath>
+        <clipPath id="lm-back"><rect x="50" y="0" width="50" height="100"/></clipPath>
+      </defs>
+      {/* Teal oval — back half (right side, goes behind grey) */}
+      <rect x="10" y="22" width="48" height="56" rx="28" stroke="#94cbd1" strokeWidth="11" clipPath="url(#lm-back)"/>
+      {/* Grey oval — full (right link) */}
+      <rect x="42" y="22" width="48" height="56" rx="28" stroke="#b5bec7" strokeWidth="11"/>
+      {/* Teal oval — front half (left side, comes in front of grey) */}
+      <rect x="10" y="22" width="48" height="56" rx="28" stroke="#94cbd1" strokeWidth="11" clipPath="url(#lm-front)"/>
+    </svg>
+  );
+};
 
 // ─── SHARED UI ────────────────────────────────────────────────────────────────
 
@@ -489,7 +489,7 @@ function Dashboard({ data, onNav }) {
               <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip />
               <Legend />
-              <Bar dataKey="newStudents" fill="#6366f1" radius={[4,4,0,0]} name="New Students" />
+              <Bar dataKey="newStudents" fill="#94cbd1" radius={[4,4,0,0]} name="New Students" />
               <Bar dataKey="newSubjects" fill="#22c55e" radius={[4,4,0,0]} name="New Subjects" />
             </BarChart>
           </ResponsiveContainer>
@@ -534,7 +534,7 @@ function Dashboard({ data, onNav }) {
               <Tooltip formatter={v => fmtZAR(v)} />
               <Legend />
               <Area type="monotone" dataKey="Profit"   stroke="#22c55e" fill="url(#gp)" strokeWidth={2} />
-              <Line  type="monotone" dataKey="Turnover" stroke="#6366f1" strokeWidth={1.5} dot={false} />
+              <Line  type="monotone" dataKey="Turnover" stroke="#94cbd1" strokeWidth={1.5} dot={false} />
               <Line  type="monotone" dataKey="Expenses" stroke="#ef4444" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
             </AreaChart>
           </ResponsiveContainer>
@@ -1312,7 +1312,7 @@ function AccountingPage({ data, setData }) {
               <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `R${(v/1000).toFixed(0)}k`} />
               <Tooltip formatter={v => fmtZAR(v)} />
               <Legend />
-              <Bar dataKey="Turnover" fill="#6366f1" radius={[4,4,0,0]} />
+              <Bar dataKey="Turnover" fill="#94cbd1" radius={[4,4,0,0]} />
               <Bar dataKey="Expenses" fill="#ef4444" radius={[4,4,0,0]} />
               <Bar dataKey="Profit"   fill="#22c55e" radius={[4,4,0,0]} />
             </BarChart>
@@ -1454,7 +1454,7 @@ function StatsPage({ data }) {
               <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip />
               <Legend />
-              <Bar dataKey="active" fill="#6366f1" radius={[4,4,0,0]} name="Active Students" />
+              <Bar dataKey="active" fill="#94cbd1" radius={[4,4,0,0]} name="Active Students" />
               <Bar dataKey="total"  fill="#cbd5e1" radius={[4,4,0,0]} name="Total Students"  />
             </BarChart>
           </ResponsiveContainer>
@@ -1479,7 +1479,7 @@ function StatsPage({ data }) {
               <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
               <YAxis type="category" dataKey="name" tick={{ fontSize: 10 }} width={70} />
               <Tooltip />
-              <Bar dataKey="value" fill="#6366f1" radius={[0,4,4,0]} name="Students" />
+              <Bar dataKey="value" fill="#94cbd1" radius={[0,4,4,0]} name="Students" />
             </BarChart>
           </ResponsiveContainer>
         </Section>
@@ -1492,7 +1492,7 @@ function StatsPage({ data }) {
               <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
               <Tooltip />
               <Legend />
-              <Bar dataKey="lessons"  fill="#6366f1" radius={[4,4,0,0]} name="Lessons bought" />
+              <Bar dataKey="lessons"  fill="#94cbd1" radius={[4,4,0,0]} name="Lessons bought" />
               <Bar dataKey="students" fill="#22c55e" radius={[4,4,0,0]} name="Students buying" />
             </BarChart>
           </ResponsiveContainer>
@@ -1621,7 +1621,7 @@ function AcademyPage({ data, setData }) {
           </div>
           <div>
             <h1 className="text-2xl font-bold">LEARN TO LINK Academy</h1>
-            <p className="text-violet-200 text-sm mt-0.5">Learning Management System</p>
+            <p className="text-white text-opacity-80 text-sm mt-0.5">Learning Management System</p>
           </div>
         </div>
         <div className="grid grid-cols-4 gap-3">
@@ -1633,7 +1633,7 @@ function AcademyPage({ data, setData }) {
           ].map(k => (
             <div key={k.label} className="bg-white bg-opacity-15 rounded-xl p-3 text-center">
               <p className="text-2xl font-bold">{k.value}</p>
-              <p className="text-xs text-violet-200 mt-0.5">{k.label}</p>
+              <p className="text-xs text-white text-opacity-80 mt-0.5">{k.label}</p>
             </div>
           ))}
         </div>
@@ -1641,7 +1641,7 @@ function AcademyPage({ data, setData }) {
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-colors ${tab === t.id ? "bg-white shadow text-violet-700" : "text-gray-500 hover:text-gray-700"}`}>
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-colors ${tab === t.id ? "bg-white shadow text-teal-700" : "text-gray-500 hover:text-gray-700"}`}>
             <t.icon size={14} />{t.label}
           </button>
         ))}
@@ -1689,7 +1689,7 @@ function CoursesTab({ data, setData }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Btn onClick={() => { setForm({ title: "", description: "", subjectId: "", status: "Draft", color: "#7c3aed" }); setModal("add"); }}>
+        <Btn onClick={() => { setForm({ title: "", description: "", subjectId: "", status: "Draft", color: "#94cbd1" }); setModal("add"); }}>
           <Plus size={15} /> New Course
         </Btn>
       </div>
@@ -1701,7 +1701,7 @@ function CoursesTab({ data, setData }) {
           return (
             <div key={c.id} onClick={() => setDetail(c)}
               className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
-              <div className="h-1.5" style={{ background: c.color || "#7c3aed" }} />
+              <div className="h-1.5" style={{ background: c.color || "#94cbd1" }} />
               <div className="p-5">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1 min-w-0">
@@ -1737,7 +1737,7 @@ function CoursesTab({ data, setData }) {
             options={[{ value:"Draft",label:"Draft"},{value:"Published",label:"Published"},{value:"Archived",label:"Archived"}]}
             onChange={e => setForm(f => ({ ...f, status: e.target.value }))} />
           <Field label="Course Colour">
-            <input type="color" value={form.color || "#7c3aed"} onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+            <input type="color" value={form.color || "#94cbd1"} onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
               className="w-10 h-10 rounded cursor-pointer border border-gray-300" />
           </Field>
           <div className="flex items-center justify-between mt-4">
@@ -1819,12 +1819,12 @@ function CourseDetailModal({ course, data, setData, onClose }) {
 
   return (
     <Modal title={course.title} onClose={onClose} extraWide>
-      <div className="h-1.5 -mx-6 mb-5 rounded-sm" style={{ background: course.color || "#7c3aed", marginTop: "-20px" }} />
+      <div className="h-1.5 -mx-6 mb-5 rounded-sm" style={{ background: course.color || "#94cbd1", marginTop: "-20px" }} />
 
       <div className="flex gap-1 mb-5 bg-gray-100 p-1 rounded-lg">
         {["content","announcements","students"].map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${tab === t ? "bg-white shadow text-violet-700" : "text-gray-500 hover:text-gray-700"}`}>
+            className={`flex-1 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${tab === t ? "bg-white shadow text-teal-700" : "text-gray-500 hover:text-gray-700"}`}>
             {t === "content" ? `Content (${allLessons.length})` : t === "announcements" ? `Announcements (${announcements.length})` : `Enrolled (${enrolled.length})`}
           </button>
         ))}
@@ -1932,11 +1932,11 @@ function CourseDetailModal({ course, data, setData, onClose }) {
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1.5">
                     <div className="w-20 bg-gray-100 rounded-full h-1.5">
-                      <div className="bg-violet-500 h-1.5 rounded-full" style={{ width: `${pct}%` }} />
+                      <div className="bg-teal-400 h-1.5 rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                     <span className="text-xs text-gray-600">{pct}%</span>
                   </div>
-                  {avg != null && <Badge color="purple">{avg}% avg</Badge>}
+                  {avg != null && <Badge color="teal">{avg}% avg</Badge>}
                   {pct === 100 && <Badge color="green">✓ Complete</Badge>}
                 </div>
               </div>
@@ -2036,7 +2036,7 @@ function EnrolmentsTab({ data, setData }) {
                 <TD>
                   <div className="flex items-center gap-2">
                     <div className="w-16 bg-gray-100 rounded-full h-1.5">
-                      <div className="bg-violet-500 h-1.5 rounded-full" style={{ width: `${pct}%` }} />
+                      <div className="bg-teal-400 h-1.5 rounded-full" style={{ width: `${pct}%` }} />
                     </div>
                     <span className="text-xs text-gray-600">{pct}%</span>
                   </div>
@@ -2055,7 +2055,8 @@ function EnrolmentsTab({ data, setData }) {
           <div className="flex gap-2 mb-4">
             {[{ v: "student", l: "Individual Student" }, { v: "centre", l: "Whole Centre" }].map(t => (
               <button key={t.v} onClick={() => setForm(f => ({ ...f, type: t.v }))}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${form.type === t.v ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-300 text-gray-600 hover:border-gray-400"}`}>
+                className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${form.type === t.v ? "border-transparent" : "border-gray-300 text-gray-600 hover:border-teal-400"}`}
+                style={form.type === t.v ? { borderColor: B.teal, background: B.tealLight, color: B.tealDark } : undefined}>
                 {t.l}
               </button>
             ))}
@@ -2146,9 +2147,9 @@ function GradeBookTab({ data, setData }) {
           {enrolledStudents.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
         </select>
         {overallAvg != null && (
-          <div className="px-4 py-2 bg-violet-50 rounded-xl border border-violet-200">
-            <span className="text-sm text-violet-600 font-medium">Overall Average: </span>
-            <span className="text-lg font-bold text-violet-700">{overallAvg}%</span>
+          <div className="px-4 py-2 rounded-xl border" style={{ background: B.tealLight, borderColor: "#c2e5e9" }}>
+            <span className="text-sm font-medium" style={{ color: B.tealDark }}>Overall Average: </span>
+            <span className="text-lg font-bold" style={{ color: B.tealDark }}>{overallAvg}%</span>
           </div>
         )}
         {student && courseData.some(c => c.done === c.total && c.total > 0) && (
@@ -2168,9 +2169,9 @@ function GradeBookTab({ data, setData }) {
         <Section key={course.id} title={course.title} action={
           <div className="flex items-center gap-3">
             <span className="text-xs text-gray-500">{done}/{total} done</span>
-            {avg != null && <Badge color="purple">{avg}% avg</Badge>}
+            {avg != null && <Badge color="teal">{avg}% avg</Badge>}
             <div className="w-24 bg-gray-100 rounded-full h-2">
-              <div className="bg-violet-500 h-2 rounded-full" style={{ width: `${total ? (done/total)*100 : 0}%` }} />
+              <div className="bg-teal-400 h-2 rounded-full" style={{ width: `${total ? (done/total)*100 : 0}%` }} />
             </div>
           </div>
         }>
@@ -2269,12 +2270,12 @@ function CalendarTab({ data }) {
               <div key={i} className={`min-h-[80px] p-1.5 border-r border-b border-gray-100 ${(i + 1) % 7 === 0 ? "border-r-0" : ""} ${!d ? "bg-gray-50" : ""}`}>
                 {d && (
                   <>
-                    <span className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full mb-1 ${isToday ? "bg-violet-600 text-white" : "text-gray-600"}`}>{d}</span>
+                    <span className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full mb-1 ${isToday ? "text-white" : "text-gray-600"}`} style={isToday ? { background: B.coral } : undefined}>{d}</span>
                     {lessons.slice(0, 2).map(l => {
                       const course = data.courses.find(c => c.id === l.courseId);
                       return (
                         <div key={l.id} title={l.title} className="text-xs rounded px-1 py-0.5 mb-0.5 truncate text-white"
-                          style={{ background: course?.color || "#7c3aed" }}>
+                          style={{ background: course?.color || "#94cbd1" }}>
                           {l.title}
                         </div>
                       );
@@ -2295,7 +2296,7 @@ function CalendarTab({ data }) {
             const mod    = data.modules.find(m => m.id === l.moduleId);
             return (
               <div key={l.id} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
-                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: course?.color || "#7c3aed" }} />
+                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: course?.color || "#94cbd1" }} />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-800">{l.title}</p>
                   <p className="text-xs text-gray-400">{course?.title} · {mod?.title}</p>
