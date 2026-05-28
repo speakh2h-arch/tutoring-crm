@@ -4,7 +4,8 @@ import {
   Settings as SettingsIcon, Search, Plus, X, Edit2, Trash2,
   Link as LinkIcon, DollarSign, BookMarked, TrendingUp,
   CheckCircle, ThumbsUp, ThumbsDown, StickyNote,
-  Building2, FileText, MapPin, Printer
+  Building2, FileText, MapPin, Printer,
+  CalendarDays, ChevronLeft, ChevronRight, Award, Play
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -82,6 +83,58 @@ const INIT_TUTOR_NOTES = [
 const INIT_CENTRE_NOTES = [
   { id: "cn1", centreId: "c1", type: "general",   note: "Signed 12-month agreement in January 2025.",                date: "2025-01-10" },
   { id: "cn2", centreId: "c2", type: "complaint",  note: "Owner flagged timetable clashes in Week 3 of February.",    date: "2025-02-18" },
+];
+
+// ─── LMS SEED DATA ────────────────────────────────────────────────────────────
+
+const INIT_COURSES = [
+  { id: "cr1", title: "Mathematics Mastery — Grade 11", description: "A complete Grade 11 Mathematics course covering Algebra, Functions and Trigonometry.", subjectId: "s1", status: "Published", createdDate: "2025-01-01", color: "#6366f1" },
+  { id: "cr2", title: "English Language & Literature",  description: "Comprehensive English course covering reading comprehension, writing and literary analysis.", subjectId: "s3", status: "Published", createdDate: "2025-02-01", color: "#8b5cf6" },
+];
+
+const INIT_MODULES = [
+  { id: "mod1", courseId: "cr1", title: "Algebra & Equations",   order: 1 },
+  { id: "mod2", courseId: "cr1", title: "Functions & Graphs",    order: 2 },
+  { id: "mod3", courseId: "cr2", title: "Reading Comprehension", order: 1 },
+  { id: "mod4", courseId: "cr2", title: "Essay Writing",         order: 2 },
+];
+
+const INIT_LESSONS = [
+  { id: "les1", moduleId: "mod1", courseId: "cr1", title: "Introduction to Polynomials",  order: 1, content: "A polynomial is an expression consisting of variables and coefficients. For example: 3x² + 2x + 1.", videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", fileName: "", fileUrl: "", dueDate: "2025-06-10" },
+  { id: "les2", moduleId: "mod1", courseId: "cr1", title: "Solving Quadratic Equations",  order: 2, content: "Quadratic equations take the form ax² + bx + c = 0. We solve using factorisation or the quadratic formula.", videoUrl: "", fileName: "Quadratics_Worksheet.pdf", fileUrl: "#", dueDate: "2025-06-17" },
+  { id: "les3", moduleId: "mod2", courseId: "cr1", title: "Linear Functions",              order: 1, content: "A linear function has the form f(x) = mx + c where m is the gradient and c the y-intercept.", videoUrl: "", fileName: "", fileUrl: "", dueDate: "2025-07-03" },
+  { id: "les4", moduleId: "mod3", courseId: "cr2", title: "Identifying the Main Idea",    order: 1, content: "The main idea is the central point the author wants to communicate in a passage.", videoUrl: "", fileName: "", fileUrl: "", dueDate: "2025-06-12" },
+  { id: "les5", moduleId: "mod4", courseId: "cr2", title: "Essay Structure",              order: 1, content: "A well-structured essay has an introduction, body paragraphs and a conclusion.", videoUrl: "", fileName: "Essay_Template.pdf", fileUrl: "#", dueDate: "2025-06-24" },
+];
+
+const INIT_QUIZZES = [
+  { id: "qz1", lessonId: "les1", courseId: "cr1", title: "Polynomials Quiz", questions: [
+    { id: "qq1", question: "What is the degree of 3x² + 2x + 1?", type: "multiple", options: ["1","2","3","4"], correctIndex: 1 },
+    { id: "qq2", question: "A polynomial can have negative exponents.", type: "truefalse", options: ["True","False"], correctIndex: 1 },
+  ]},
+  { id: "qz2", lessonId: "les2", courseId: "cr1", title: "Quadratics Quiz", questions: [
+    { id: "qq3", question: "Which formula solves quadratic equations?", type: "multiple", options: ["Quadratic Formula","Sine Rule","BODMAS","Pythagoras"], correctIndex: 0 },
+  ]},
+];
+
+const INIT_ENROLMENTS = [
+  { id: "en1", studentId: "st1", courseId: "cr1", enrolledDate: "2025-01-15", status: "Active" },
+  { id: "en2", studentId: "st3", courseId: "cr1", enrolledDate: "2025-01-15", status: "Active" },
+  { id: "en3", studentId: "st2", courseId: "cr2", enrolledDate: "2025-02-05", status: "Active" },
+  { id: "en4", studentId: "st1", courseId: "cr2", enrolledDate: "2025-02-05", status: "Active" },
+];
+
+const INIT_PROGRESS = [
+  { id: "pg1", studentId: "st1", lessonId: "les1", courseId: "cr1", completed: true,  completedDate: "2025-06-11", quizScore: 90 },
+  { id: "pg2", studentId: "st1", lessonId: "les2", courseId: "cr1", completed: true,  completedDate: "2025-06-18", quizScore: 75 },
+  { id: "pg3", studentId: "st1", lessonId: "les3", courseId: "cr1", completed: false, completedDate: null,         quizScore: null },
+  { id: "pg4", studentId: "st3", lessonId: "les1", courseId: "cr1", completed: true,  completedDate: "2025-06-12", quizScore: 85 },
+  { id: "pg5", studentId: "st2", lessonId: "les4", courseId: "cr2", completed: true,  completedDate: "2025-06-13", quizScore: 80 },
+];
+
+const INIT_ANNOUNCEMENTS = [
+  { id: "ann1", courseId: "cr1", title: "Welcome to Mathematics Mastery!", body: "We are excited to have you on this course. Please complete all lessons before their due dates and reach out if you need help.", date: "2025-01-15" },
+  { id: "ann2", courseId: "cr1", title: "Module 1 Revision Session",      body: "There will be a live revision session this Friday at 14:00. Please come prepared with questions on Algebra.", date: "2025-06-07" },
 ];
 
 // Lesson purchases — stats only, not accounting
@@ -206,6 +259,20 @@ const buildCentreReport = (centre, data) => {
     <h2>Students (${students.length})</h2>
     ${students.length>0?`<table><tr><th>Name</th><th>Curriculum</th><th>Grade</th><th>Status</th><th>Subjects</th><th>Tutors</th></tr>${stRows}</table>`:"<p>No students in this centre.</p>"}
     <h2>Notes (${notes.length})</h2>${notesList(notes)}`;
+};
+
+const buildCertificate = (student, course, completedDate) => {
+  const html = `<div style="border:8px double #7c3aed;padding:70px 90px;text-align:center;min-height:560px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Georgia,serif">
+    <p style="font-size:12px;color:#9ca3af;text-transform:uppercase;letter-spacing:.3em;margin:0 0 20px">LEARN TO LINK Academy</p>
+    <div style="width:60px;height:4px;background:#7c3aed;margin:0 auto 28px"></div>
+    <h1 style="font-size:38px;color:#4338ca;margin:0 0 16px;font-weight:700;font-family:Georgia,serif">Certificate of Completion</h1>
+    <p style="font-size:16px;color:#6b7280;margin:0 0 8px;font-family:Arial,sans-serif">This is to certify that</p>
+    <p style="font-size:32px;font-weight:bold;color:#111827;margin:14px 0;border-bottom:2px solid #7c3aed;padding-bottom:14px;min-width:320px;font-family:Georgia,serif">${student.firstName} ${student.lastName}</p>
+    <p style="font-size:16px;color:#6b7280;margin:16px 0 8px;font-family:Arial,sans-serif">has successfully completed the course</p>
+    <p style="font-size:22px;font-weight:bold;color:#7c3aed;margin:8px 0 32px;font-family:Arial,sans-serif">${course.title}</p>
+    <p style="font-size:12px;color:#9ca3af;font-family:Arial,sans-serif">Completed ${fmtDate(completedDate)} &nbsp;·&nbsp; Issued by LEARN TO LINK Academy</p>
+  </div>`;
+  openReport(`Certificate — ${student.firstName} ${student.lastName}`, html);
 };
 
 // ─── SHARED UI ────────────────────────────────────────────────────────────────
@@ -1495,6 +1562,717 @@ function SettingsPage({ data, setData }) {
   );
 }
 
+// ─── PAGE: ACADEMY (LMS) ─────────────────────────────────────────────────────
+
+function AcademyPage({ data, setData }) {
+  const [tab, setTab] = useState("courses");
+  const TABS = [
+    { id: "courses",    label: "Courses",    icon: BookOpen     },
+    { id: "enrolments", label: "Enrolments", icon: Users        },
+    { id: "gradebook",  label: "Grade Book", icon: Award        },
+    { id: "calendar",   label: "Calendar",   icon: CalendarDays },
+  ];
+  const activeEnrolments = data.enrolments.filter(e => e.status === "Active").length;
+  const completions      = data.progress.filter(p => p.completed).length;
+  return (
+    <div className="space-y-5">
+      <div className="bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl p-6 text-white">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-11 h-11 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+            <BookOpen size={22} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">LEARN TO LINK Academy</h1>
+            <p className="text-violet-200 text-sm mt-0.5">Learning Management System</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-4 gap-3">
+          {[
+            { label: "Courses",     value: data.courses.length },
+            { label: "Lessons",     value: data.lessons.length },
+            { label: "Enrolments",  value: activeEnrolments },
+            { label: "Completions", value: completions },
+          ].map(k => (
+            <div key={k.label} className="bg-white bg-opacity-15 rounded-xl p-3 text-center">
+              <p className="text-2xl font-bold">{k.value}</p>
+              <p className="text-xs text-violet-200 mt-0.5">{k.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-colors ${tab === t.id ? "bg-white shadow text-violet-700" : "text-gray-500 hover:text-gray-700"}`}>
+            <t.icon size={14} />{t.label}
+          </button>
+        ))}
+      </div>
+      {tab === "courses"    && <CoursesTab    data={data} setData={setData} />}
+      {tab === "enrolments" && <EnrolmentsTab data={data} setData={setData} />}
+      {tab === "gradebook"  && <GradeBookTab  data={data} setData={setData} />}
+      {tab === "calendar"   && <CalendarTab   data={data} />}
+    </div>
+  );
+}
+
+// ── Courses Tab ───────────────────────────────────────────────────────────────
+
+function CoursesTab({ data, setData }) {
+  const [modal, setModal]           = useState(null);
+  const [form,  setForm]            = useState({});
+  const [detailCourse, setDetail]   = useState(null);
+
+  const save = () => {
+    if (!form.title) return;
+    setData(d => ({
+      ...d,
+      courses: modal === "add"
+        ? [...d.courses, { ...form, id: "cr" + uid(), createdDate: today() }]
+        : d.courses.map(c => c.id === form.id ? form : c),
+    }));
+    setModal(null);
+  };
+
+  const remove = (id) => {
+    setData(d => ({
+      ...d,
+      courses: d.courses.filter(c => c.id !== id),
+      modules: d.modules.filter(m => m.courseId !== id),
+      lessons: d.lessons.filter(l => l.courseId !== id),
+      quizzes: d.quizzes.filter(q => q.courseId !== id),
+      enrolments: d.enrolments.filter(e => e.courseId !== id),
+      progress:   d.progress.filter(p => p.courseId !== id),
+      announcements: d.announcements.filter(a => a.courseId !== id),
+    }));
+    setModal(null);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Btn onClick={() => { setForm({ title: "", description: "", subjectId: "", status: "Draft", color: "#7c3aed" }); setModal("add"); }}>
+          <Plus size={15} /> New Course
+        </Btn>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {data.courses.map(c => {
+          const lessons    = data.lessons.filter(l => l.courseId === c.id);
+          const enrolCount = data.enrolments.filter(e => e.courseId === c.id && e.status === "Active").length;
+          const subject    = data.subjects.find(s => s.id === c.subjectId);
+          return (
+            <div key={c.id} onClick={() => setDetail(c)}
+              className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
+              <div className="h-1.5" style={{ background: c.color || "#7c3aed" }} />
+              <div className="p-5">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900">{c.title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{c.description}</p>
+                  </div>
+                  <div className="flex items-center gap-1 ml-2 shrink-0">
+                    <Badge color={c.status === "Published" ? "green" : c.status === "Archived" ? "gray" : "yellow"}>{c.status}</Badge>
+                    <Btn size="sm" variant="ghost" onClick={e => { e.stopPropagation(); setForm({ ...c }); setModal("edit"); }}><Edit2 size={13} /></Btn>
+                  </div>
+                </div>
+                {subject && <div className="mb-2"><Badge color="indigo">{subject.name}</Badge></div>}
+                <div className="flex gap-4 text-xs text-gray-500 border-t border-gray-100 pt-3">
+                  <span><strong className="text-gray-900">{lessons.length}</strong> lessons</span>
+                  <span><strong className="text-gray-900">{enrolCount}</strong> enrolled</span>
+                  <span><strong className="text-gray-900">{data.announcements.filter(a => a.courseId === c.id).length}</strong> announcements</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {data.courses.length === 0 && <div className="col-span-2 text-center text-sm text-gray-400 py-10">No courses yet — create your first course!</div>}
+      </div>
+
+      {(modal === "add" || modal === "edit") && (
+        <Modal title={modal === "add" ? "New Course" : "Edit Course"} onClose={() => setModal(null)}>
+          <Inp label="Course Title" value={form.title || ""} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+          <Txt label="Description" value={form.description || ""} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+          <Sel label="Subject (optional)" value={form.subjectId || ""}
+            options={[{ value: "", label: "No subject" }, ...data.subjects.map(s => ({ value: s.id, label: s.name }))]}
+            onChange={e => setForm(f => ({ ...f, subjectId: e.target.value }))} />
+          <Sel label="Status" value={form.status || "Draft"}
+            options={[{ value:"Draft",label:"Draft"},{value:"Published",label:"Published"},{value:"Archived",label:"Archived"}]}
+            onChange={e => setForm(f => ({ ...f, status: e.target.value }))} />
+          <Field label="Course Colour">
+            <input type="color" value={form.color || "#7c3aed"} onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+              className="w-10 h-10 rounded cursor-pointer border border-gray-300" />
+          </Field>
+          <div className="flex items-center justify-between mt-4">
+            {modal === "edit" && <Btn variant="danger" size="sm" onClick={() => remove(form.id)}><Trash2 size={13} /> Delete</Btn>}
+            <div className="flex gap-3 ml-auto">
+              <Btn variant="secondary" onClick={() => setModal(null)}>Cancel</Btn>
+              <Btn onClick={save} disabled={!form.title}>Save</Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {detailCourse && (
+        <CourseDetailModal course={detailCourse} data={data} setData={setData} onClose={() => setDetail(null)} />
+      )}
+    </div>
+  );
+}
+
+// ── Course Detail Modal ───────────────────────────────────────────────────────
+
+function CourseDetailModal({ course, data, setData, onClose }) {
+  const [tab,      setTab]      = useState("content");
+  const [modModal, setModModal] = useState(null);
+  const [modForm,  setModForm]  = useState({});
+  const [lesModal, setLesModal] = useState(null);
+  const [lesForm,  setLesForm]  = useState({});
+  const [annModal, setAnnModal] = useState(false);
+  const [annForm,  setAnnForm]  = useState({ title: "", body: "", date: today() });
+  const [expanded, setExpanded] = useState(null);
+
+  const modules       = data.modules.filter(m => m.courseId === course.id).sort((a,b) => a.order - b.order);
+  const announcements = data.announcements.filter(a => a.courseId === course.id).sort((a,b) => b.date.localeCompare(a.date));
+  const enrolled      = data.enrolments.filter(e => e.courseId === course.id && e.status === "Active");
+  const allLessons    = data.lessons.filter(l => l.courseId === course.id);
+
+  const saveModule = () => {
+    if (!modForm.title) return;
+    setData(d => ({
+      ...d,
+      modules: modModal === "addMod"
+        ? [...d.modules, { ...modForm, id: "mod" + uid(), courseId: course.id, order: d.modules.filter(m => m.courseId === course.id).length + 1 }]
+        : d.modules.map(m => m.id === modForm.id ? modForm : m),
+    }));
+    setModModal(null);
+  };
+
+  const removeModule = (id) => setData(d => ({
+    ...d,
+    modules: d.modules.filter(m => m.id !== id),
+    lessons: d.lessons.filter(l => l.moduleId !== id),
+    progress: d.progress.filter(p => !d.lessons.filter(l => l.moduleId === id).some(l => l.id === p.lessonId)),
+  }));
+
+  const saveLesson = () => {
+    if (!lesForm.title) return;
+    setData(d => ({
+      ...d,
+      lessons: lesModal === "addLes"
+        ? [...d.lessons, { ...lesForm, id: "les" + uid(), courseId: course.id }]
+        : d.lessons.map(l => l.id === lesForm.id ? lesForm : l),
+    }));
+    setLesModal(null);
+  };
+
+  const removeLesson = (id) => setData(d => ({
+    ...d,
+    lessons:  d.lessons.filter(l => l.id !== id),
+    quizzes:  d.quizzes.filter(q => q.lessonId !== id),
+    progress: d.progress.filter(p => p.lessonId !== id),
+  }));
+
+  const addAnn = () => {
+    if (!annForm.title) return;
+    setData(d => ({ ...d, announcements: [...d.announcements, { ...annForm, id: "ann" + uid(), courseId: course.id }] }));
+    setAnnForm({ title: "", body: "", date: today() });
+    setAnnModal(false);
+  };
+
+  return (
+    <Modal title={course.title} onClose={onClose} extraWide>
+      <div className="h-1.5 -mx-6 mb-5 rounded-sm" style={{ background: course.color || "#7c3aed", marginTop: "-20px" }} />
+
+      <div className="flex gap-1 mb-5 bg-gray-100 p-1 rounded-lg">
+        {["content","announcements","students"].map(t => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`flex-1 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${tab === t ? "bg-white shadow text-violet-700" : "text-gray-500 hover:text-gray-700"}`}>
+            {t === "content" ? `Content (${allLessons.length})` : t === "announcements" ? `Announcements (${announcements.length})` : `Enrolled (${enrolled.length})`}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Content tab */}
+      {tab === "content" && (
+        <div className="space-y-3">
+          <div className="flex justify-end">
+            <Btn size="sm" onClick={() => { setModForm({ title: "" }); setModModal("addMod"); }}><Plus size={13} /> Add Module</Btn>
+          </div>
+          {modules.length === 0 && <p className="text-sm text-gray-400 text-center py-8">No modules yet. Add a module to get started.</p>}
+          {modules.map(mod => {
+            const lessons = data.lessons.filter(l => l.moduleId === mod.id).sort((a,b) => a.order - b.order);
+            const isOpen  = expanded === mod.id || expanded === null;
+            return (
+              <div key={mod.id} className="border border-gray-200 rounded-xl overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer select-none"
+                  onClick={() => setExpanded(expanded === mod.id ? null : mod.id)}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-gray-400">{mod.order}.</span>
+                    <p className="font-semibold text-gray-800 text-sm">{mod.title}</p>
+                    <Badge color="gray">{lessons.length} lesson{lessons.length !== 1 ? "s" : ""}</Badge>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Btn size="sm" variant="ghost" onClick={e => { e.stopPropagation(); setLesForm({ title: "", content: "", videoUrl: "", fileName: "", fileUrl: "", dueDate: "", order: lessons.length + 1, moduleId: mod.id }); setLesModal("addLes"); }}><Plus size={13} /></Btn>
+                    <Btn size="sm" variant="ghost" onClick={e => { e.stopPropagation(); setModForm({ ...mod }); setModModal("editMod"); }}><Edit2 size={13} /></Btn>
+                    <Btn size="sm" variant="ghost" onClick={e => { e.stopPropagation(); removeModule(mod.id); }}><Trash2 size={13} className="text-red-400" /></Btn>
+                  </div>
+                </div>
+                {isOpen && (
+                  <div className="divide-y divide-gray-100">
+                    {lessons.map(l => {
+                      const hasQuiz = data.quizzes.some(q => q.lessonId === l.id);
+                      return (
+                        <div key={l.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 group">
+                          <span className="text-xs text-gray-400 w-4">{l.order}.</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-800 font-medium truncate">{l.title}</p>
+                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                              {l.videoUrl  && <Badge color="blue"><Play size={9} className="inline mr-0.5" />Video</Badge>}
+                              {l.fileName  && <Badge color="orange">📎 {l.fileName}</Badge>}
+                              {hasQuiz     && <Badge color="purple">✎ Quiz</Badge>}
+                              {l.dueDate   && <span className="text-xs text-gray-400">Due {fmtDate(l.dueDate)}</span>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                            <Btn size="sm" variant="ghost" onClick={() => { setLesForm({ ...l }); setLesModal("editLes"); }}><Edit2 size={13} /></Btn>
+                            <Btn size="sm" variant="ghost" onClick={() => removeLesson(l.id)}><Trash2 size={13} className="text-red-400" /></Btn>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {lessons.length === 0 && <p className="text-xs text-gray-400 text-center py-4">No lessons — click + to add one.</p>}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Announcements tab */}
+      {tab === "announcements" && (
+        <div className="space-y-3">
+          <div className="flex justify-end">
+            <Btn size="sm" onClick={() => { setAnnForm({ title: "", body: "", date: today() }); setAnnModal(true); }}><Plus size={13} /> Post</Btn>
+          </div>
+          {announcements.length === 0 && <p className="text-sm text-gray-400 text-center py-8">No announcements yet.</p>}
+          {announcements.map(a => (
+            <div key={a.id} className="p-4 border border-gray-200 rounded-xl">
+              <div className="flex items-start justify-between mb-1">
+                <div>
+                  <p className="font-semibold text-gray-900">{a.title}</p>
+                  <p className="text-xs text-gray-400">{fmtDate(a.date)}</p>
+                </div>
+                <Btn size="sm" variant="ghost" onClick={() => setData(d => ({ ...d, announcements: d.announcements.filter(x => x.id !== a.id) }))}><Trash2 size={13} className="text-red-400" /></Btn>
+              </div>
+              <p className="text-sm text-gray-600 mt-2">{a.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Enrolled students tab */}
+      {tab === "students" && (
+        <div className="space-y-2">
+          {enrolled.length === 0 && <p className="text-sm text-gray-400 text-center py-8">No students enrolled in this course.</p>}
+          {enrolled.map(e => {
+            const st     = data.students.find(s => s.id === e.studentId);
+            const done   = data.progress.filter(p => p.studentId === e.studentId && p.courseId === course.id && p.completed).length;
+            const pct    = allLessons.length ? Math.round((done / allLessons.length) * 100) : 0;
+            const scores = data.progress.filter(p => p.studentId === e.studentId && p.courseId === course.id && p.quizScore != null).map(p => p.quizScore);
+            const avg    = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+            const centre = st?.centreId ? data.centres?.find(c => c.id === st.centreId) : null;
+            return (
+              <div key={e.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl">
+                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                  {st?.firstName[0]}{st?.lastName[0]}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{st?.firstName} {st?.lastName}</p>
+                  <p className="text-xs text-gray-400">{st?.curriculum} · {st?.grade}{centre ? ` · ${centre.name}` : ""}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-20 bg-gray-100 rounded-full h-1.5">
+                      <div className="bg-violet-500 h-1.5 rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs text-gray-600">{pct}%</span>
+                  </div>
+                  {avg != null && <Badge color="purple">{avg}% avg</Badge>}
+                  {pct === 100 && <Badge color="green">✓ Complete</Badge>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Module modal */}
+      {(modModal === "addMod" || modModal === "editMod") && (
+        <Modal title={modModal === "addMod" ? "Add Module" : "Edit Module"} onClose={() => setModModal(null)}>
+          <Inp label="Module Title" value={modForm.title || ""} onChange={e => setModForm(f => ({ ...f, title: e.target.value }))} />
+          <div className="flex justify-end gap-3 mt-2">
+            <Btn variant="secondary" onClick={() => setModModal(null)}>Cancel</Btn>
+            <Btn onClick={saveModule} disabled={!modForm.title}>Save</Btn>
+          </div>
+        </Modal>
+      )}
+
+      {/* Lesson modal */}
+      {(lesModal === "addLes" || lesModal === "editLes") && (
+        <Modal title={lesModal === "addLes" ? "Add Lesson" : "Edit Lesson"} onClose={() => setLesModal(null)} wide>
+          <Inp label="Lesson Title" value={lesForm.title || ""} onChange={e => setLesForm(f => ({ ...f, title: e.target.value }))} />
+          <Txt label="Content / Notes" value={lesForm.content || ""} onChange={e => setLesForm(f => ({ ...f, content: e.target.value }))} hint="Lesson notes, theory text or instructions" />
+          <Inp label="Video URL (YouTube / Vimeo)" value={lesForm.videoUrl || ""} onChange={e => setLesForm(f => ({ ...f, videoUrl: e.target.value }))} placeholder="https://youtube.com/watch?v=…" />
+          <div className="grid grid-cols-2 gap-x-4">
+            <Inp label="File name (display)" value={lesForm.fileName || ""} onChange={e => setLesForm(f => ({ ...f, fileName: e.target.value }))} placeholder="Worksheet.pdf" />
+            <Inp label="File URL (link)" value={lesForm.fileUrl || ""} onChange={e => setLesForm(f => ({ ...f, fileUrl: e.target.value }))} placeholder="https://…" />
+          </div>
+          <Inp label="Due Date" type="date" value={lesForm.dueDate || ""} onChange={e => setLesForm(f => ({ ...f, dueDate: e.target.value }))} />
+          <div className="flex justify-end gap-3 mt-2">
+            <Btn variant="secondary" onClick={() => setLesModal(null)}>Cancel</Btn>
+            <Btn onClick={saveLesson} disabled={!lesForm.title}>Save</Btn>
+          </div>
+        </Modal>
+      )}
+
+      {/* Announcement modal */}
+      {annModal && (
+        <Modal title="Post Announcement" onClose={() => setAnnModal(false)}>
+          <Inp label="Title" value={annForm.title || ""} onChange={e => setAnnForm(f => ({ ...f, title: e.target.value }))} />
+          <Txt label="Message" value={annForm.body || ""} onChange={e => setAnnForm(f => ({ ...f, body: e.target.value }))} />
+          <Inp label="Date" type="date" value={annForm.date || ""} onChange={e => setAnnForm(f => ({ ...f, date: e.target.value }))} />
+          <div className="flex justify-end gap-3 mt-2">
+            <Btn variant="secondary" onClick={() => setAnnModal(false)}>Cancel</Btn>
+            <Btn onClick={addAnn} disabled={!annForm.title}>Post</Btn>
+          </div>
+        </Modal>
+      )}
+    </Modal>
+  );
+}
+
+// ── Enrolments Tab ────────────────────────────────────────────────────────────
+
+function EnrolmentsTab({ data, setData }) {
+  const [modal, setModal] = useState(false);
+  const [form,  setForm]  = useState({ type: "student", studentId: "", centreId: "", courseId: "" });
+
+  const enrol = () => {
+    if (!form.courseId) return;
+    const ids = form.type === "centre"
+      ? data.students.filter(s => s.centreId === form.centreId).map(s => s.id)
+      : [form.studentId].filter(Boolean);
+    const newEnrols = ids
+      .filter(sid => !data.enrolments.some(e => e.studentId === sid && e.courseId === form.courseId))
+      .map(sid => ({ id: "en" + uid(), studentId: sid, courseId: form.courseId, enrolledDate: today(), status: "Active" }));
+    setData(d => ({ ...d, enrolments: [...d.enrolments, ...newEnrols] }));
+    setModal(false);
+    setForm({ type: "student", studentId: "", centreId: "", courseId: "" });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">{data.enrolments.length} total enrolment{data.enrolments.length !== 1 ? "s" : ""}</p>
+        <Btn onClick={() => setModal(true)}><Plus size={15} /> Enrol</Btn>
+      </div>
+      <TableWrap>
+        <thead><tr><TH>Student</TH><TH>Course</TH><TH>Centre</TH><TH>Enrolled</TH><TH>Progress</TH><TH>Avg Score</TH><TH></TH></tr></thead>
+        <tbody>
+          {data.enrolments.map(e => {
+            const st      = data.students.find(s => s.id === e.studentId);
+            const course  = data.courses.find(c => c.id === e.courseId);
+            const centre  = st?.centreId ? data.centres?.find(c => c.id === st.centreId) : null;
+            const lessons = data.lessons.filter(l => l.courseId === e.courseId);
+            const done    = data.progress.filter(p => p.studentId === e.studentId && p.courseId === e.courseId && p.completed).length;
+            const pct     = lessons.length ? Math.round((done / lessons.length) * 100) : 0;
+            const scores  = data.progress.filter(p => p.studentId === e.studentId && p.courseId === e.courseId && p.quizScore != null).map(p => p.quizScore);
+            const avg     = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+            return (
+              <TR key={e.id}>
+                <TD className="font-medium">{st?.firstName} {st?.lastName}</TD>
+                <TD className="text-sm">{course?.title}</TD>
+                <TD className="text-xs text-gray-500">{centre?.name || "Individual"}</TD>
+                <TD className="text-xs text-gray-400">{fmtDate(e.enrolledDate)}</TD>
+                <TD>
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 bg-gray-100 rounded-full h-1.5">
+                      <div className="bg-violet-500 h-1.5 rounded-full" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="text-xs text-gray-600">{pct}%</span>
+                  </div>
+                </TD>
+                <TD>{avg != null ? <span className={`text-sm font-semibold ${avg >= 75 ? "text-green-600" : avg >= 50 ? "text-amber-600" : "text-red-600"}`}>{avg}%</span> : <span className="text-xs text-gray-400">—</span>}</TD>
+                <TD><Btn size="sm" variant="ghost" onClick={() => setData(d => ({ ...d, enrolments: d.enrolments.filter(x => x.id !== e.id) }))}><Trash2 size={13} className="text-red-400" /></Btn></TD>
+              </TR>
+            );
+          })}
+          {data.enrolments.length === 0 && <tr><td colSpan={7} className="text-center text-sm text-gray-400 py-8">No enrolments yet.</td></tr>}
+        </tbody>
+      </TableWrap>
+
+      {modal && (
+        <Modal title="Enrol Student(s)" onClose={() => setModal(false)}>
+          <div className="flex gap-2 mb-4">
+            {[{ v: "student", l: "Individual Student" }, { v: "centre", l: "Whole Centre" }].map(t => (
+              <button key={t.v} onClick={() => setForm(f => ({ ...f, type: t.v }))}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${form.type === t.v ? "border-violet-500 bg-violet-50 text-violet-700" : "border-gray-300 text-gray-600 hover:border-gray-400"}`}>
+                {t.l}
+              </button>
+            ))}
+          </div>
+          {form.type === "student" && (
+            <Sel label="Student" placeholder="Select student…" value={form.studentId}
+              options={data.students.map(s => ({ value: s.id, label: `${s.firstName} ${s.lastName}` }))}
+              onChange={e => setForm(f => ({ ...f, studentId: e.target.value }))} />
+          )}
+          {form.type === "centre" && (
+            <>
+              <Sel label="Centre" placeholder="Select centre…" value={form.centreId}
+                options={data.centres.map(c => ({ value: c.id, label: c.name }))}
+                onChange={e => setForm(f => ({ ...f, centreId: e.target.value }))} />
+              {form.centreId && <p className="text-xs text-gray-500 -mt-2 mb-3">{data.students.filter(s => s.centreId === form.centreId).length} students will be enrolled.</p>}
+            </>
+          )}
+          <Sel label="Course" placeholder="Select course…" value={form.courseId}
+            options={data.courses.map(c => ({ value: c.id, label: c.title }))}
+            onChange={e => setForm(f => ({ ...f, courseId: e.target.value }))} />
+          <div className="flex justify-end gap-3 mt-4">
+            <Btn variant="secondary" onClick={() => setModal(false)}>Cancel</Btn>
+            <Btn onClick={enrol} disabled={!form.courseId || (form.type === "student" ? !form.studentId : !form.centreId)}>Enrol</Btn>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ── Grade Book Tab ────────────────────────────────────────────────────────────
+
+function GradeBookTab({ data, setData }) {
+  const [studentId, setStudentId] = useState("");
+  const [editScore, setEditScore] = useState(null); // { lessonId, courseId, value }
+
+  const student = data.students.find(s => s.id === studentId);
+  const enrolledCourses = studentId
+    ? data.enrolments.filter(e => e.studentId === studentId && e.status === "Active").map(e => data.courses.find(c => c.id === e.courseId)).filter(Boolean)
+    : [];
+
+  const toggleComplete = (lessonId, courseId) => {
+    const existing = data.progress.find(p => p.studentId === studentId && p.lessonId === lessonId);
+    if (existing) {
+      setData(d => ({ ...d, progress: d.progress.map(p => p.id === existing.id ? { ...p, completed: !p.completed, completedDate: !p.completed ? today() : null } : p) }));
+    } else {
+      setData(d => ({ ...d, progress: [...d.progress, { id: "pg" + uid(), studentId, lessonId, courseId, completed: true, completedDate: today(), quizScore: null }] }));
+    }
+  };
+
+  const saveScore = () => {
+    if (!editScore) return;
+    const { lessonId, courseId, value } = editScore;
+    const score = value === "" ? null : Math.min(100, Math.max(0, Number(value)));
+    const existing = data.progress.find(p => p.studentId === studentId && p.lessonId === lessonId);
+    if (existing) {
+      setData(d => ({ ...d, progress: d.progress.map(p => p.id === existing.id ? { ...p, quizScore: score } : p) }));
+    } else {
+      setData(d => ({ ...d, progress: [...d.progress, { id: "pg" + uid(), studentId, lessonId, courseId, completed: false, completedDate: null, quizScore: score }] }));
+    }
+    setEditScore(null);
+  };
+
+  const courseData = enrolledCourses.map(course => {
+    const lessons    = data.lessons.filter(l => l.courseId === course.id);
+    const rows       = lessons.map(l => {
+      const prog  = data.progress.find(p => p.studentId === studentId && p.lessonId === l.id);
+      const hasQz = data.quizzes.some(q => q.lessonId === l.id);
+      return { ...l, completed: prog?.completed || false, completedDate: prog?.completedDate, quizScore: prog?.quizScore ?? null, hasQuiz: hasQz };
+    });
+    const done   = rows.filter(r => r.completed).length;
+    const scores = rows.filter(r => r.quizScore != null).map(r => r.quizScore);
+    const avg    = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : null;
+    return { course, rows, done, total: lessons.length, avg };
+  });
+
+  const overallAvg = courseData.filter(c => c.avg != null).length
+    ? Math.round(courseData.filter(c => c.avg != null).reduce((a,c)=>a+c.avg,0) / courseData.filter(c=>c.avg!=null).length)
+    : null;
+
+  const enrolledStudents = data.students.filter(s => data.enrolments.some(e => e.studentId === s.id));
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <select className={`${inp} w-64`} value={studentId} onChange={e => setStudentId(e.target.value)}>
+          <option value="">Select a student…</option>
+          {enrolledStudents.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
+        </select>
+        {overallAvg != null && (
+          <div className="px-4 py-2 bg-violet-50 rounded-xl border border-violet-200">
+            <span className="text-sm text-violet-600 font-medium">Overall Average: </span>
+            <span className="text-lg font-bold text-violet-700">{overallAvg}%</span>
+          </div>
+        )}
+        {student && courseData.some(c => c.done === c.total && c.total > 0) && (
+          <Btn size="sm" variant="secondary" onClick={() => {
+            const c = courseData.find(x => x.done === x.total && x.total > 0);
+            const e = data.enrolments.find(x => x.studentId === studentId && x.courseId === c.course.id);
+            buildCertificate(student, c.course, e?.enrolledDate || today());
+          }}>
+            <Award size={14} /> Certificate
+          </Btn>
+        )}
+      </div>
+
+      {!studentId && <p className="text-sm text-gray-400 text-center py-12">Select a student to view their grade book.</p>}
+
+      {courseData.map(({ course, rows, done, total, avg }) => (
+        <Section key={course.id} title={course.title} action={
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-500">{done}/{total} done</span>
+            {avg != null && <Badge color="purple">{avg}% avg</Badge>}
+            <div className="w-24 bg-gray-100 rounded-full h-2">
+              <div className="bg-violet-500 h-2 rounded-full" style={{ width: `${total ? (done/total)*100 : 0}%` }} />
+            </div>
+          </div>
+        }>
+          <TableWrap>
+            <thead><tr><TH>Lesson</TH><TH>Due</TH><TH>Status</TH><TH>Quiz Score</TH><TH>Completed</TH></tr></thead>
+            <tbody>
+              {rows.map(r => (
+                <TR key={r.id}>
+                  <TD className="font-medium">{r.title}</TD>
+                  <TD className="text-xs">{r.dueDate ? fmtDate(r.dueDate) : "—"}</TD>
+                  <TD>
+                    <button onClick={() => toggleComplete(r.id, course.id)} className="focus:outline-none">
+                      {r.completed
+                        ? <Badge color="green">✓ Done</Badge>
+                        : r.dueDate && r.dueDate < today()
+                          ? <Badge color="red">Overdue</Badge>
+                          : <Badge color="gray">Pending</Badge>
+                      }
+                    </button>
+                  </TD>
+                  <TD>
+                    {r.hasQuiz ? (
+                      editScore?.lessonId === r.id
+                        ? <div className="flex items-center gap-1">
+                            <input type="number" min={0} max={100} className="w-16 border border-gray-300 rounded px-2 py-1 text-xs"
+                              value={editScore.value} onChange={e => setEditScore(s => ({ ...s, value: e.target.value }))} />
+                            <Btn size="sm" onClick={saveScore}>✓</Btn>
+                            <Btn size="sm" variant="ghost" onClick={() => setEditScore(null)}>✕</Btn>
+                          </div>
+                        : <button onClick={() => setEditScore({ lessonId: r.id, courseId: course.id, value: r.quizScore ?? "" })}
+                            className={`text-sm font-semibold hover:underline ${r.quizScore != null ? (r.quizScore >= 75 ? "text-green-600" : r.quizScore >= 50 ? "text-amber-600" : "text-red-600") : "text-gray-400"}`}>
+                            {r.quizScore != null ? `${r.quizScore}%` : "Enter score"}
+                          </button>
+                    ) : <span className="text-xs text-gray-400">No quiz</span>}
+                  </TD>
+                  <TD className="text-xs text-gray-400">{r.completedDate ? fmtDate(r.completedDate) : "—"}</TD>
+                </TR>
+              ))}
+              {rows.length === 0 && <tr><td colSpan={5} className="text-center text-sm text-gray-400 py-4">No lessons yet.</td></tr>}
+            </tbody>
+          </TableWrap>
+        </Section>
+      ))}
+    </div>
+  );
+}
+
+// ── Calendar Tab ──────────────────────────────────────────────────────────────
+
+function CalendarTab({ data }) {
+  const [viewDate,       setViewDate]       = useState(new Date());
+  const [filterStudent,  setFilterStudent]  = useState("");
+
+  const year  = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDow    = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells = [...Array(firstDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+  const dayKey = d => `${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+
+  const dueLessons = data.lessons.filter(l => {
+    if (!l.dueDate) return false;
+    if (!filterStudent) return true;
+    return data.enrolments.some(e => e.studentId === filterStudent && e.courseId === l.courseId);
+  });
+
+  const onDay = d => dueLessons.filter(l => l.dueDate === dayKey(d));
+
+  const enrolledStudents = data.students.filter(s => data.enrolments.some(e => e.studentId === s.id));
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 flex-wrap">
+        <select className={`${inp} w-56`} value={filterStudent} onChange={e => setFilterStudent(e.target.value)}>
+          <option value="">All students</option>
+          {enrolledStudents.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
+        </select>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+          <button onClick={() => setViewDate(new Date(year, month - 1, 1))} className="p-1.5 hover:bg-gray-100 rounded-lg"><ChevronLeft size={18} /></button>
+          <h3 className="font-semibold text-gray-900">{viewDate.toLocaleString("en-ZA", { month: "long", year: "numeric" })}</h3>
+          <button onClick={() => setViewDate(new Date(year, month + 1, 1))} className="p-1.5 hover:bg-gray-100 rounded-lg"><ChevronRight size={18} /></button>
+        </div>
+        <div className="grid grid-cols-7 border-b border-gray-100">
+          {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => (
+            <div key={d} className="py-2 text-center text-xs font-semibold text-gray-400 uppercase">{d}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7">
+          {cells.map((d, i) => {
+            const lessons   = d ? onDay(d) : [];
+            const isToday   = d && dayKey(d) === today();
+            return (
+              <div key={i} className={`min-h-[80px] p-1.5 border-r border-b border-gray-100 ${(i + 1) % 7 === 0 ? "border-r-0" : ""} ${!d ? "bg-gray-50" : ""}`}>
+                {d && (
+                  <>
+                    <span className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full mb-1 ${isToday ? "bg-violet-600 text-white" : "text-gray-600"}`}>{d}</span>
+                    {lessons.slice(0, 2).map(l => {
+                      const course = data.courses.find(c => c.id === l.courseId);
+                      return (
+                        <div key={l.id} title={l.title} className="text-xs rounded px-1 py-0.5 mb-0.5 truncate text-white"
+                          style={{ background: course?.color || "#7c3aed" }}>
+                          {l.title}
+                        </div>
+                      );
+                    })}
+                    {lessons.length > 2 && <div className="text-xs text-gray-400">+{lessons.length - 2}</div>}
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <Section title="Upcoming Due Dates">
+        <div className="space-y-2">
+          {dueLessons.filter(l => l.dueDate >= today()).sort((a,b) => a.dueDate.localeCompare(b.dueDate)).slice(0, 10).map(l => {
+            const course = data.courses.find(c => c.id === l.courseId);
+            const mod    = data.modules.find(m => m.id === l.moduleId);
+            return (
+              <div key={l.id} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
+                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: course?.color || "#7c3aed" }} />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-800">{l.title}</p>
+                  <p className="text-xs text-gray-400">{course?.title} · {mod?.title}</p>
+                </div>
+                <Badge color="purple">{fmtDate(l.dueDate)}</Badge>
+              </div>
+            );
+          })}
+          {dueLessons.filter(l => l.dueDate >= today()).length === 0 && <p className="text-sm text-gray-400 text-center py-4">No upcoming due dates.</p>}
+        </div>
+      </Section>
+    </div>
+  );
+}
+
 // ─── PAGE: CENTRES ───────────────────────────────────────────────────────────
 
 function CentresPage({ data, setData }) {
@@ -1857,21 +2635,29 @@ const NAV = [
   { id: "stats",      label: "Stats",       icon: BarChart2       },
   { id: "reports",    label: "Reports",     icon: FileText        },
   { id: "settings",   label: "Settings",    icon: SettingsIcon    },
+  { id: "academy",    label: "Academy",     icon: BookOpen, divider: true },
 ];
 
 export default function App() {
   const [page, setPage] = useState("dashboard");
   const [data, setData] = useState({
-    students:    INIT_STUDENTS,
-    tutors:      INIT_TUTORS,
-    subjects:    INIT_SUBJECTS,
-    links:       INIT_LINKS,
-    siblings:    INIT_SIBLINGS,
-    tutorNotes:  INIT_TUTOR_NOTES,
-    centres:     INIT_CENTRES,
-    centreNotes: INIT_CENTRE_NOTES,
-    purchases:   INIT_PURCHASES,
-    financials:  INIT_FINANCIALS,
+    students:      INIT_STUDENTS,
+    tutors:        INIT_TUTORS,
+    subjects:      INIT_SUBJECTS,
+    links:         INIT_LINKS,
+    siblings:      INIT_SIBLINGS,
+    tutorNotes:    INIT_TUTOR_NOTES,
+    centres:       INIT_CENTRES,
+    centreNotes:   INIT_CENTRE_NOTES,
+    purchases:     INIT_PURCHASES,
+    financials:    INIT_FINANCIALS,
+    courses:       INIT_COURSES,
+    modules:       INIT_MODULES,
+    lessons:       INIT_LESSONS,
+    quizzes:       INIT_QUIZZES,
+    enrolments:    INIT_ENROLMENTS,
+    progress:      INIT_PROGRESS,
+    announcements: INIT_ANNOUNCEMENTS,
   });
 
   const unassigned = useMemo(
@@ -1889,6 +2675,7 @@ export default function App() {
     stats:      <StatsPage    data={data} />,
     reports:    <ReportsPage  data={data} />,
     settings:   <SettingsPage data={data} setData={setData} />,
+    academy:    <AcademyPage  data={data} setData={setData} />,
   };
 
   return (
@@ -1908,15 +2695,20 @@ export default function App() {
 
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           {NAV.map(n => (
-            <button key={n.id} onClick={() => setPage(n.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${
-                page === n.id ? "bg-indigo-50 text-indigo-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
-              <n.icon size={17} />
-              {n.label}
-              {n.id === "links" && unassigned > 0 && (
-                <span className="ml-auto bg-gray-300 text-gray-700 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{unassigned}</span>
-              )}
-            </button>
+            <div key={n.id}>
+              {n.divider && <div className="my-2 border-t border-gray-100" />}
+              <button onClick={() => setPage(n.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${
+                  page === n.id
+                    ? n.id === "academy" ? "bg-violet-50 text-violet-700" : "bg-indigo-50 text-indigo-700"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
+                <n.icon size={17} />
+                {n.label}
+                {n.id === "links" && unassigned > 0 && (
+                  <span className="ml-auto bg-gray-300 text-gray-700 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{unassigned}</span>
+                )}
+              </button>
+            </div>
           ))}
         </nav>
 
