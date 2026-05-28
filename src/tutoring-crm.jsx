@@ -2,10 +2,9 @@ import { useState, useMemo } from "react";
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen, BarChart2,
   Settings as SettingsIcon, Search, Plus, X, Edit2, Trash2,
-  Link as LinkIcon, MessageSquare, DollarSign,
-  ShoppingCart, BookMarked, TrendingUp,
-  AlertCircle, CheckCircle, ThumbsUp, ThumbsDown, StickyNote,
-  Layers
+  Link as LinkIcon, DollarSign, BookMarked, TrendingUp,
+  CheckCircle, ThumbsUp, ThumbsDown, StickyNote,
+  Building2, FileText, MapPin, Printer
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -36,14 +35,19 @@ const INIT_SUBJECTS = [
   { id: "s6", name: "Geography"        },
 ];
 
+const INIT_CENTRES = [
+  { id: "c1", name: "Northside Learning Centre", ownerFirstName: "Patricia", ownerLastName: "Nkosi",   email: "patricia@northside.co.za", phone: "011 555 1234", address: "12 Oak Ave, Sandton",    status: "Active" },
+  { id: "c2", name: "Southgate Academy",         ownerFirstName: "David",    ownerLastName: "van Wyk", email: "david@southgate.co.za",    phone: "021 555 5678", address: "45 Main Rd, Claremont",  status: "Active" },
+];
+
 const INIT_STUDENTS = [
-  { id: "st1", firstName: "Siyanda", lastName: "Dlamini",       curriculum: "IEB",       grade: "Grade 11", status: "Active",   enrolledDate: "2025-01-15" },
-  { id: "st2", firstName: "Mia",     lastName: "van der Merwe", curriculum: "CAPS",      grade: "Grade 10", status: "Active",   enrolledDate: "2025-02-01" },
-  { id: "st3", firstName: "Langa",   lastName: "Nkosi",         curriculum: "IEB",       grade: "Grade 12", status: "Active",   enrolledDate: "2024-11-10" },
-  { id: "st4", firstName: "Priya",   lastName: "Patel",         curriculum: "Cambridge", grade: "IGCSE",    status: "Active",   enrolledDate: "2025-03-05" },
-  { id: "st5", firstName: "Nomsa",   lastName: "Dlamini",       curriculum: "IEB",       grade: "Grade 9",  status: "Active",   enrolledDate: "2025-04-01" },
-  { id: "st6", firstName: "James",   lastName: "Chen",          curriculum: "Cambridge", grade: "AS Level", status: "Active",   enrolledDate: "2025-04-20" },
-  { id: "st7", firstName: "Aisha",   lastName: "Moosa",         curriculum: "CAPS",      grade: "Grade 8",  status: "Active",   enrolledDate: "2025-05-10" },
+  { id: "st1", firstName: "Siyanda", lastName: "Dlamini",       curriculum: "IEB",       grade: "Grade 11", status: "Active",   enrolledDate: "2025-01-15", centreId: ""   },
+  { id: "st2", firstName: "Mia",     lastName: "van der Merwe", curriculum: "CAPS",      grade: "Grade 10", status: "Active",   enrolledDate: "2025-02-01", centreId: "c1" },
+  { id: "st3", firstName: "Langa",   lastName: "Nkosi",         curriculum: "IEB",       grade: "Grade 12", status: "Active",   enrolledDate: "2024-11-10", centreId: "c1" },
+  { id: "st4", firstName: "Priya",   lastName: "Patel",         curriculum: "Cambridge", grade: "IGCSE",    status: "Active",   enrolledDate: "2025-03-05", centreId: "c2" },
+  { id: "st5", firstName: "Nomsa",   lastName: "Dlamini",       curriculum: "IEB",       grade: "Grade 9",  status: "Active",   enrolledDate: "2025-04-01", centreId: ""   },
+  { id: "st6", firstName: "James",   lastName: "Chen",          curriculum: "Cambridge", grade: "AS Level", status: "Active",   enrolledDate: "2025-04-20", centreId: "c2" },
+  { id: "st7", firstName: "Aisha",   lastName: "Moosa",         curriculum: "CAPS",      grade: "Grade 8",  status: "Active",   enrolledDate: "2025-05-10", centreId: ""   },
 ];
 
 const INIT_TUTORS = [
@@ -73,6 +77,11 @@ const INIT_SIBLINGS = [
 const INIT_TUTOR_NOTES = [
   { id: "tn1", tutorId: "t1", type: "compliment", note: "Parent of Siyanda said Ayanda is excellent — very patient and clear.", date: "2025-04-15" },
   { id: "tn2", tutorId: "t2", type: "complaint",  note: "Ruan was 15 minutes late to session on 3 May without notice.",        date: "2025-05-03" },
+];
+
+const INIT_CENTRE_NOTES = [
+  { id: "cn1", centreId: "c1", type: "general",   note: "Signed 12-month agreement in January 2025.",                date: "2025-01-10" },
+  { id: "cn2", centreId: "c2", type: "complaint",  note: "Owner flagged timetable clashes in Week 3 of February.",    date: "2025-02-18" },
 ];
 
 // Lesson purchases — stats only, not accounting
@@ -123,6 +132,80 @@ const lastNMonths = (n) => {
     });
   }
   return months;
+};
+
+// ─── REPORT GENERATION ───────────────────────────────────────────────────────
+
+const CSS = `*{box-sizing:border-box}body{font-family:Arial,sans-serif;max-width:800px;margin:40px auto;color:#111;font-size:14px}h1{color:#4338ca;border-bottom:3px solid #4338ca;padding-bottom:8px;margin-bottom:4px}h2{color:#374151;margin-top:28px;margin-bottom:10px;font-size:15px;border-bottom:1px solid #e5e7eb;padding-bottom:4px}.meta{color:#6b7280;font-size:12px;margin-bottom:20px}table{width:100%;border-collapse:collapse;margin:8px 0 16px}th{background:#f3f4f6;padding:7px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#4b5563}td{padding:7px 12px;border-bottom:1px solid #f3f4f6}.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}.bg{background:#e0e7ff;color:#3730a3}.gg{background:#dcfce7;color:#166534}.gr{background:#f3f4f6;color:#374151}.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}.label{font-size:11px;color:#6b7280;text-transform:uppercase;font-weight:600;margin-bottom:2px}.value{font-size:14px;color:#111827}.ni{padding:8px 12px;border-left:3px solid #6366f1;background:#f8f9ff;margin:6px 0}.ni.complaint{border-color:#ef4444;background:#fff8f8}.ni.compliment{border-color:#22c55e;background:#f8fff8}.nm{font-size:11px;color:#9ca3af;margin-top:3px}@media print{button{display:none}}`;
+
+const openReport = (title, html) => {
+  const w = window.open("", "_blank");
+  if (!w) { alert("Allow pop-ups to generate reports."); return; }
+  w.document.write(`<!DOCTYPE html><html><head><title>${title}</title><style>${CSS}</style></head><body><div class="meta">Generated ${new Date().toLocaleDateString("en-ZA")} · TutorOps CRM</div>${html}<script>window.onload=function(){window.print()}<\/script></body></html>`);
+  w.document.close();
+};
+
+const badge = (text, cls) => `<span class="badge ${cls}">${text}</span>`;
+const infoGrid = (items) => `<div class="info-grid">${items.map(([l,v]) => v ? `<div><div class="label">${l}</div><div class="value">${v}</div></div>` : "").join("")}</div>`;
+const notesList = (notes) => notes.length === 0 ? "<p>No notes yet.</p>" : [...notes].sort((a,b) => b.date.localeCompare(a.date)).map(n =>
+  `<div class="ni ${n.type}"><strong>${n.type.charAt(0).toUpperCase()+n.type.slice(1)}</strong> · ${fmtDate(n.date)}<div>${n.note}</div></div>`
+).join("");
+
+const buildStudentReport = (student, data) => {
+  const centre   = student.centreId ? data.centres.find(c => c.id === student.centreId) : null;
+  const lks      = data.links.filter(l => l.studentId === student.id);
+  const siblings = data.siblings.filter(s => s.studentId1 === student.id || s.studentId2 === student.id)
+    .map(p => data.students.find(s => s.id === (p.studentId1 === student.id ? p.studentId2 : p.studentId1))).filter(Boolean);
+  const purchases = data.purchases.filter(p => p.studentId === student.id);
+  const total = purchases.reduce((a,p) => a + p.quantity, 0);
+  const linkRows = lks.map(lk => {
+    const t = data.tutors.find(x => x.id === lk.tutorId);
+    const s = data.subjects.find(x => x.id === lk.subjectId);
+    return `<tr><td>${s?.name||"—"}</td><td>${t ? t.firstName+" "+t.lastName : "—"}</td><td>${fmtDate(lk.createdDate)}</td></tr>`;
+  }).join("");
+  const purRows = [...purchases].sort((a,b)=>b.date.localeCompare(a.date)).map(p =>
+    `<tr><td>${fmtDate(p.date)}</td><td>${p.quantity}</td><td>${p.note||"—"}</td></tr>`
+  ).join("");
+  return `<h1>Student Report</h1><h2>${student.firstName} ${student.lastName}</h2>
+    ${infoGrid([["Status",badge(student.status, student.status==="Active"?"gg":"gr")],["Curriculum",student.curriculum],["Grade / Level",student.grade],["Date Enrolled",fmtDate(student.enrolledDate)],["Centre",centre?.name||"Individual"],[siblings.length?"Siblings":"",siblings.map(s=>s.firstName+" "+s.lastName).join(", ")]])}
+    <h2>Tutor & Subject Links (${lks.length})</h2>
+    ${lks.length>0?`<table><tr><th>Subject</th><th>Tutor</th><th>Since</th></tr>${linkRows}</table>`:"<p>No links yet.</p>"}
+    <h2>Lesson Purchases — Total: ${total}</h2>
+    ${purchases.length>0?`<table><tr><th>Date</th><th>Qty</th><th>Note</th></tr>${purRows}</table>`:"<p>No purchases recorded.</p>"}`;
+};
+
+const buildTutorReport = (tutor, data) => {
+  const subjects = data.subjects.filter(s => tutor.subjectIds?.includes(s.id));
+  const lks = data.links.filter(l => l.tutorId === tutor.id);
+  const activeIds = [...new Set(lks.filter(l => data.students.find(s => s.id===l.studentId)?.status==="Active").map(l=>l.studentId))];
+  const notes = data.tutorNotes.filter(n => n.tutorId === tutor.id);
+  const stRows = activeIds.map(sid => {
+    const st = data.students.find(s=>s.id===sid);
+    const c  = st?.centreId ? data.centres.find(x=>x.id===st.centreId) : null;
+    const subjs = [...new Set(lks.filter(l=>l.studentId===sid).map(l=>l.subjectId))].map(id=>data.subjects.find(s=>s.id===id)?.name).filter(Boolean).join(", ");
+    return `<tr><td>${st?.firstName} ${st?.lastName}</td><td>${st?.curriculum}</td><td>${st?.grade}</td><td>${c?c.name:"<em>Individual</em>"}</td><td>${subjs}</td></tr>`;
+  }).join("");
+  return `<h1>Tutor Report</h1><h2>${tutor.firstName} ${tutor.lastName}</h2>
+    ${infoGrid([["Status",badge(tutor.status,tutor.status==="Active"?"gg":"gr")],["Email",tutor.email],["Phone",tutor.phone],["Subjects",subjects.map(s=>s.name).join(", ")||"—"]])}
+    <h2>Active Students (${activeIds.length})</h2>
+    ${activeIds.length>0?`<table><tr><th>Name</th><th>Curriculum</th><th>Grade</th><th>Centre</th><th>Subjects</th></tr>${stRows}</table>`:"<p>No active students.</p>"}
+    <h2>Notes (${notes.length})</h2>${notesList(notes)}`;
+};
+
+const buildCentreReport = (centre, data) => {
+  const students = data.students.filter(s => s.centreId === centre.id);
+  const notes = data.centreNotes.filter(n => n.centreId === centre.id);
+  const stRows = students.map(st => {
+    const lks = data.links.filter(l=>l.studentId===st.id);
+    const subjs = [...new Set(lks.map(l=>l.subjectId))].map(id=>data.subjects.find(s=>s.id===id)?.name).filter(Boolean).join(", ");
+    const tutors = [...new Set(lks.map(l=>l.tutorId))].map(id=>{const t=data.tutors.find(x=>x.id===id);return t?`${t.firstName} ${t.lastName}`:null;}).filter(Boolean).join(", ");
+    return `<tr><td>${st.firstName} ${st.lastName}</td><td>${st.curriculum}</td><td>${st.grade}</td><td>${badge(st.status,st.status==="Active"?"gg":"gr")}</td><td>${subjs||"—"}</td><td>${tutors||"—"}</td></tr>`;
+  }).join("");
+  return `<h1>Centre Report</h1><h2>${centre.name}</h2>
+    ${infoGrid([["Status",badge(centre.status,centre.status==="Active"?"gg":"gr")],["Owner",`${centre.ownerFirstName} ${centre.ownerLastName}`],["Email",centre.email],["Phone",centre.phone],["Address",centre.address||"—"],["Total Students",""+students.length]])}
+    <h2>Students (${students.length})</h2>
+    ${students.length>0?`<table><tr><th>Name</th><th>Curriculum</th><th>Grade</th><th>Status</th><th>Subjects</th><th>Tutors</th></tr>${stRows}</table>`:"<p>No students in this centre.</p>"}
+    <h2>Notes (${notes.length})</h2>${notesList(notes)}`;
 };
 
 // ─── SHARED UI ────────────────────────────────────────────────────────────────
@@ -385,7 +468,7 @@ function StudentsPage({ data, setData }) {
     return [{ key: "all", label: "", items: filtered }];
   }, [filtered, groupBy]);
 
-  const openAdd  = () => { setForm({ firstName: "", lastName: "", curriculum: "IEB", grade: "Grade 10", status: "Active", enrolledDate: today() }); setModal("add"); };
+  const openAdd  = () => { setForm({ firstName: "", lastName: "", curriculum: "IEB", grade: "Grade 10", status: "Active", enrolledDate: today(), centreId: "" }); setModal("add"); };
   const openEdit = (s, e) => { e?.stopPropagation(); setForm({ ...s }); setModal("edit"); };
   const openView = (s) => { setForm({ ...s }); setModal("view"); };
 
@@ -411,10 +494,11 @@ function StudentsPage({ data, setData }) {
     setModal(null);
   };
 
-  const currOpts  = CURRICULA.map(c => ({ value: c, label: c }));
-  const gradeOpts = (form.curriculum ? CURRICULUM_GRADES[form.curriculum] || [] : CURRICULUM_GRADES.IEB)
+  const currOpts   = CURRICULA.map(c => ({ value: c, label: c }));
+  const gradeOpts  = (form.curriculum ? CURRICULUM_GRADES[form.curriculum] || [] : CURRICULUM_GRADES.IEB)
     .map(g => ({ value: g, label: g }));
-  const statusOpts = [{ value: "Active", label: "Active" }, { value: "Inactive", label: "Inactive" }];
+  const statusOpts  = [{ value: "Active", label: "Active" }, { value: "Inactive", label: "Inactive" }];
+  const centreOpts  = [{ value: "", label: "Individual (no centre)" }, ...(data.centres || []).map(c => ({ value: c.id, label: c.name }))];
 
   const studentLinks     = (id) => data.links.filter(l => l.studentId === id);
   const studentSiblings  = (id) => {
@@ -427,9 +511,13 @@ function StudentsPage({ data, setData }) {
     const lks     = studentLinks(s.id);
     const subjIds = [...new Set(lks.map(l => l.subjectId))];
     const total   = studentPurchases(s.id).reduce((a, p) => a + p.quantity, 0);
+    const centre  = s.centreId ? data.centres?.find(c => c.id === s.centreId) : null;
     return (
       <TR onClick={() => openView(s)}>
-        <TD className="font-medium">{s.firstName} {s.lastName}</TD>
+        <TD className="font-medium">
+          {s.firstName} {s.lastName}
+          {centre && <span className="ml-2"><Badge color="teal"><Building2 size={10} className="inline mr-0.5" />{centre.name}</Badge></span>}
+        </TD>
         <TD><Badge color={CURR_COLOR[s.curriculum]}>{s.curriculum}</Badge></TD>
         <TD>{s.grade}</TD>
         <TD><Badge color={s.status === "Active" ? "green" : "gray"}>{s.status}</Badge></TD>
@@ -516,6 +604,8 @@ function StudentsPage({ data, setData }) {
             onChange={e => setForm(f => ({ ...f, status: e.target.value }))} />
           <Inp label="Date Enrolled" type="date" value={form.enrolledDate || ""}
             onChange={e => setForm(f => ({ ...f, enrolledDate: e.target.value }))} />
+          <Sel label="Centre" options={centreOpts} value={form.centreId || ""}
+            onChange={e => setForm(f => ({ ...f, centreId: e.target.value }))} />
           <div className="flex items-center justify-between mt-2">
             {modal === "edit" && <Btn variant="danger" size="sm" onClick={() => remove(form.id)}><Trash2 size={13} /> Delete</Btn>}
             <div className="flex gap-3 ml-auto">
@@ -596,6 +686,11 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
             <Badge color={CURR_COLOR[student.curriculum]}>{student.curriculum}</Badge>
           </div>
           <p className="text-sm text-gray-500">{student.grade} · Enrolled {fmtDate(student.enrolledDate)}</p>
+          {student.centreId && data.centres?.find(c => c.id === student.centreId) && (
+            <p className="text-xs text-teal-600 mt-0.5 flex items-center gap-1">
+              <Building2 size={11} /> {data.centres.find(c => c.id === student.centreId).name}
+            </p>
+          )}
           {siblings.length > 0 && (
             <p className="text-xs text-gray-400 mt-0.5">
               Sibling{siblings.length > 1 ? "s" : ""}: {siblings.map(s => s.firstName).join(", ")}
@@ -1400,6 +1495,356 @@ function SettingsPage({ data, setData }) {
   );
 }
 
+// ─── PAGE: CENTRES ───────────────────────────────────────────────────────────
+
+function CentresPage({ data, setData }) {
+  const [search, setSearch] = useState("");
+  const [modal,  setModal]  = useState(null);
+  const [form,   setForm]   = useState({});
+
+  const filtered = data.centres.filter(c =>
+    `${c.name} ${c.ownerFirstName} ${c.ownerLastName} ${c.email}`.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const openAdd  = () => { setForm({ name: "", ownerFirstName: "", ownerLastName: "", email: "", phone: "", address: "", status: "Active" }); setModal("add"); };
+  const openEdit = (c, e) => { e?.stopPropagation(); setForm({ ...c }); setModal("edit"); };
+  const openView = (c) => { setForm({ ...c }); setModal("view"); };
+
+  const save = () => {
+    if (!form.name) return;
+    setData(d => ({
+      ...d,
+      centres: modal === "add"
+        ? [...d.centres, { ...form, id: "c" + uid() }]
+        : d.centres.map(c => c.id === form.id ? form : c),
+    }));
+    setModal(null);
+  };
+
+  const remove = (id) => {
+    setData(d => ({
+      ...d,
+      centres:     d.centres.filter(c => c.id !== id),
+      centreNotes: d.centreNotes.filter(n => n.centreId !== id),
+      students:    d.students.map(s => s.centreId === id ? { ...s, centreId: "" } : s),
+    }));
+    setModal(null);
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Centres</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{data.centres.filter(c => c.status === "Active").length} active</p>
+        </div>
+        <Btn onClick={openAdd}><Plus size={15} /> Add Centre</Btn>
+      </div>
+
+      <SearchBar value={search} onChange={setSearch} placeholder="Search centres…" />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {filtered.map(c => {
+          const students     = data.students.filter(s => s.centreId === c.id);
+          const activeCount  = students.filter(s => s.status === "Active").length;
+          const subjIds      = [...new Set(data.links.filter(l => students.some(s => s.id === l.studentId)).map(l => l.subjectId))];
+          const notes        = data.centreNotes.filter(n => n.centreId === c.id);
+          const hasComplaint = notes.some(n => n.type === "complaint");
+          return (
+            <div key={c.id} onClick={() => openView(c)}
+              className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
+              <div className="flex items-start justify-between mb-3">
+                <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center text-teal-700">
+                  <Building2 size={20} />
+                </div>
+                <div className="flex items-center gap-1">
+                  <Badge color={c.status === "Active" ? "green" : "gray"}>{c.status}</Badge>
+                  {hasComplaint && <Badge color="red">⚠ Note</Badge>}
+                  <Btn size="sm" variant="ghost" onClick={e => openEdit(c, e)}><Edit2 size={13} /></Btn>
+                </div>
+              </div>
+              <p className="font-semibold text-gray-900 text-base">{c.name}</p>
+              <p className="text-sm text-gray-500 mb-1">{c.ownerFirstName} {c.ownerLastName}</p>
+              {c.address && <p className="text-xs text-gray-400 flex items-center gap-1 mb-3"><MapPin size={10} /> {c.address}</p>}
+              <div className="border-t border-gray-100 pt-3 flex gap-5 text-xs text-gray-500">
+                <span><span className="text-xl font-bold text-gray-900">{activeCount}</span> active student{activeCount !== 1 ? "s" : ""}</span>
+                <span>{subjIds.length} subject{subjIds.length !== 1 ? "s" : ""}</span>
+                <span>{notes.length} note{notes.length !== 1 ? "s" : ""}</span>
+              </div>
+            </div>
+          );
+        })}
+        {filtered.length === 0 && <div className="col-span-2 text-center text-sm text-gray-400 py-10">No centres found.</div>}
+      </div>
+
+      {/* Add / Edit */}
+      {(modal === "add" || modal === "edit") && (
+        <Modal title={modal === "add" ? "Add Centre" : "Edit Centre"} onClose={() => setModal(null)}>
+          <Inp label="Centre Name" value={form.name || ""} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+          <div className="grid grid-cols-2 gap-x-4">
+            <Inp label="Owner First Name" value={form.ownerFirstName || ""} onChange={e => setForm(f => ({ ...f, ownerFirstName: e.target.value }))} />
+            <Inp label="Owner Last Name"  value={form.ownerLastName  || ""} onChange={e => setForm(f => ({ ...f, ownerLastName:  e.target.value }))} />
+          </div>
+          <Inp label="Email"   type="email" value={form.email   || ""} onChange={e => setForm(f => ({ ...f, email:   e.target.value }))} />
+          <Inp label="Phone"               value={form.phone   || ""} onChange={e => setForm(f => ({ ...f, phone:   e.target.value }))} />
+          <Inp label="Address"             value={form.address || ""} onChange={e => setForm(f => ({ ...f, address: e.target.value }))} />
+          <Sel label="Status" options={[{ value:"Active",label:"Active"},{ value:"Inactive",label:"Inactive"}]}
+            value={form.status || "Active"} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} />
+          <div className="flex items-center justify-between mt-4">
+            {modal === "edit" && <Btn variant="danger" size="sm" onClick={() => remove(form.id)}><Trash2 size={13} /> Delete</Btn>}
+            <div className="flex gap-3 ml-auto">
+              <Btn variant="secondary" onClick={() => setModal(null)}>Cancel</Btn>
+              <Btn onClick={save} disabled={!form.name}>Save</Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {modal === "view" && form.id && (
+        <CentreDetailModal centre={form} data={data} setData={setData}
+          onClose={() => setModal(null)} onEdit={() => openEdit(form)} />
+      )}
+    </div>
+  );
+}
+
+function CentreDetailModal({ centre, data, setData, onClose, onEdit }) {
+  const [tab, setTab] = useState("students");
+  const [noteForm, setNoteForm] = useState({ type: "general", note: "", date: today() });
+
+  const students = data.students.filter(s => s.centreId === centre.id);
+  const notes    = data.centreNotes.filter(n => n.centreId === centre.id);
+
+  const addNote = () => {
+    if (!noteForm.note) return;
+    setData(d => ({ ...d, centreNotes: [...d.centreNotes, { ...noteForm, id: "cn" + uid(), centreId: centre.id }] }));
+    setNoteForm({ type: "general", note: "", date: today() });
+  };
+  const removeNote = (id) => setData(d => ({ ...d, centreNotes: d.centreNotes.filter(n => n.id !== id) }));
+
+  const noteIcon  = { compliment: <ThumbsUp size={14} className="text-green-500" />, complaint: <ThumbsDown size={14} className="text-red-500" />, general: <StickyNote size={14} className="text-gray-400" /> };
+  const noteColor = { compliment: "green", complaint: "red", general: "gray" };
+
+  return (
+    <Modal title={centre.name} onClose={onClose} wide>
+      {/* Header */}
+      <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl mb-5">
+        <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center text-teal-700">
+          <Building2 size={24} />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="font-semibold text-gray-900">{centre.ownerFirstName} {centre.ownerLastName}</p>
+            <Badge color={centre.status === "Active" ? "green" : "gray"}>{centre.status}</Badge>
+          </div>
+          <p className="text-sm text-gray-500">{centre.email} · {centre.phone}</p>
+          {centre.address && <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5"><MapPin size={10} /> {centre.address}</p>}
+        </div>
+        <div className="text-right">
+          <p className="text-3xl font-bold text-teal-600">{students.filter(s => s.status === "Active").length}</p>
+          <p className="text-xs text-gray-400">active students</p>
+          <Btn size="sm" variant="ghost" className="mt-1" onClick={onEdit}><Edit2 size={13} /> Edit</Btn>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-lg">
+        {["students","notes"].map(t => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`flex-1 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${tab === t ? "bg-white shadow text-teal-700" : "text-gray-500 hover:text-gray-700"}`}>
+            {t} ({t === "students" ? students.length : notes.length})
+          </button>
+        ))}
+      </div>
+
+      {tab === "students" && (
+        <div className="space-y-2">
+          {students.length === 0 && <p className="text-sm text-gray-400 text-center py-6">No students in this centre yet.</p>}
+          {students.map(st => {
+            const lks   = data.links.filter(l => l.studentId === st.id);
+            const subjs = [...new Set(lks.map(l => l.subjectId))].map(id => data.subjects.find(s => s.id === id)).filter(Boolean);
+            const tutors = [...new Set(lks.map(l => l.tutorId))].map(id => data.tutors.find(t => t.id === id)).filter(Boolean);
+            return (
+              <div key={st.id} className="p-3 border border-gray-200 rounded-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                      {st.firstName[0]}{st.lastName[0]}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{st.firstName} {st.lastName}</p>
+                      <p className="text-xs text-gray-400">{st.curriculum} · {st.grade}</p>
+                    </div>
+                  </div>
+                  <Badge color={st.status === "Active" ? "green" : "gray"}>{st.status}</Badge>
+                </div>
+                {lks.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {lks.map(lk => {
+                      const subj  = data.subjects.find(s => s.id === lk.subjectId);
+                      const tutor = data.tutors.find(t => t.id === lk.tutorId);
+                      return (
+                        <div key={lk.id} className="flex items-center gap-2 text-xs text-gray-600 pl-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-teal-400 shrink-0" />
+                          <Badge color="indigo">{subj?.name}</Badge>
+                          <span className="text-gray-400">with</span>
+                          <span>{tutor?.firstName} {tutor?.lastName}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {lks.length === 0 && <p className="text-xs text-gray-400 pl-2 mt-1">No subject links yet.</p>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === "notes" && (
+        <div>
+          <div className="flex gap-2 mb-4 p-3 bg-gray-50 rounded-xl flex-wrap">
+            <select className={`${inp} w-36`} value={noteForm.type} onChange={e => setNoteForm(f => ({ ...f, type: e.target.value }))}>
+              {NOTE_TYPES.map(t => <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+            </select>
+            <input className={`${inp} flex-1`} placeholder="Write note…" value={noteForm.note} onChange={e => setNoteForm(f => ({ ...f, note: e.target.value }))} />
+            <input className={`${inp} w-36`} type="date" value={noteForm.date} onChange={e => setNoteForm(f => ({ ...f, date: e.target.value }))} />
+            <Btn onClick={addNote} disabled={!noteForm.note}><Plus size={14} /> Add</Btn>
+          </div>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {notes.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No notes yet.</p>}
+            {[...notes].sort((a,b) => b.date.localeCompare(a.date)).map(n => (
+              <div key={n.id} className="flex items-start gap-3 p-3 border border-gray-200 rounded-xl">
+                <div className="mt-0.5">{noteIcon[n.type]}</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge color={noteColor[n.type]}>{n.type}</Badge>
+                    <span className="text-xs text-gray-400">{fmtDate(n.date)}</span>
+                  </div>
+                  <p className="text-sm text-gray-700">{n.note}</p>
+                </div>
+                <Btn size="sm" variant="ghost" onClick={() => removeNote(n.id)}><Trash2 size={12} className="text-red-400" /></Btn>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+
+// ─── PAGE: REPORTS ────────────────────────────────────────────────────────────
+
+function ReportsPage({ data }) {
+  const [type,     setType]     = useState("student");
+  const [entityId, setEntityId] = useState("");
+
+  const entityOpts = {
+    student: data.students.map(s => ({ value: s.id, label: `${s.firstName} ${s.lastName} (${s.curriculum} · ${s.grade})` })),
+    tutor:   data.tutors.map(t   => ({ value: t.id, label: `${t.firstName} ${t.lastName}` })),
+    centre:  data.centres.map(c  => ({ value: c.id, label: c.name })),
+  };
+
+  const generate = () => {
+    if (!entityId) return;
+    if (type === "student") {
+      const s = data.students.find(x => x.id === entityId);
+      if (s) openReport(`Student — ${s.firstName} ${s.lastName}`, buildStudentReport(s, data));
+    } else if (type === "tutor") {
+      const t = data.tutors.find(x => x.id === entityId);
+      if (t) openReport(`Tutor — ${t.firstName} ${t.lastName}`, buildTutorReport(t, data));
+    } else {
+      const c = data.centres.find(x => x.id === entityId);
+      if (c) openReport(`Centre — ${c.name}`, buildCentreReport(c, data));
+    }
+  };
+
+  const labels = { student: "Student", tutor: "Tutor", centre: "Centre" };
+  const icons  = { student: Users, tutor: GraduationCap, centre: Building2 };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Generate a PDF report for any student, tutor, or centre</p>
+      </div>
+
+      {/* Type selector */}
+      <div className="grid grid-cols-3 gap-4 max-w-lg">
+        {["student","tutor","centre"].map(t => {
+          const Icon = icons[t];
+          return (
+            <button key={t} onClick={() => { setType(t); setEntityId(""); }}
+              className={`flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-colors ${type === t ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-200 bg-white text-gray-600 hover:border-indigo-300"}`}>
+              <Icon size={24} />
+              <span className="text-sm font-medium">{labels[t]}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Entity selector */}
+      <div className="max-w-lg space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Select {labels[type]}</label>
+          <select className={inp} value={entityId} onChange={e => setEntityId(e.target.value)}>
+            <option value="">— choose —</option>
+            {entityOpts[type].map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </div>
+
+        <Btn onClick={generate} disabled={!entityId} size="lg">
+          <Printer size={16} /> Generate & Download PDF
+        </Btn>
+
+        {!entityId && (
+          <p className="text-xs text-gray-400">Select a {labels[type].toLowerCase()} above, then click Generate. Your browser's print dialog will open — choose "Save as PDF" to download.</p>
+        )}
+      </div>
+
+      {/* Quick-access cards */}
+      <div className="pt-4 border-t border-gray-100">
+        <p className="text-sm font-semibold text-gray-700 mb-3">Quick access</p>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+            <p className="text-xs font-semibold text-indigo-600 uppercase mb-2">Students</p>
+            <div className="space-y-1 max-h-40 overflow-y-auto">
+              {data.students.map(s => (
+                <button key={s.id} onClick={() => openReport(`Student — ${s.firstName} ${s.lastName}`, buildStudentReport(s, data))}
+                  className="w-full text-left text-xs text-indigo-800 hover:underline truncate block">
+                  {s.firstName} {s.lastName}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+            <p className="text-xs font-semibold text-emerald-600 uppercase mb-2">Tutors</p>
+            <div className="space-y-1 max-h-40 overflow-y-auto">
+              {data.tutors.map(t => (
+                <button key={t.id} onClick={() => openReport(`Tutor — ${t.firstName} ${t.lastName}`, buildTutorReport(t, data))}
+                  className="w-full text-left text-xs text-emerald-800 hover:underline truncate block">
+                  {t.firstName} {t.lastName}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="bg-teal-50 rounded-xl p-4 border border-teal-100">
+            <p className="text-xs font-semibold text-teal-600 uppercase mb-2">Centres</p>
+            <div className="space-y-1 max-h-40 overflow-y-auto">
+              {data.centres.map(c => (
+                <button key={c.id} onClick={() => openReport(`Centre — ${c.name}`, buildCentreReport(c, data))}
+                  className="w-full text-left text-xs text-teal-800 hover:underline truncate block">
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── APP ──────────────────────────────────────────────────────────────────────
 
 const NAV = [
@@ -1407,22 +1852,26 @@ const NAV = [
   { id: "students",   label: "Students",    icon: Users           },
   { id: "tutors",     label: "Tutors",      icon: GraduationCap   },
   { id: "links",      label: "Links",       icon: LinkIcon        },
+  { id: "centres",    label: "Centres",     icon: Building2       },
   { id: "accounting", label: "Accounting",  icon: DollarSign      },
   { id: "stats",      label: "Stats",       icon: BarChart2       },
+  { id: "reports",    label: "Reports",     icon: FileText        },
   { id: "settings",   label: "Settings",    icon: SettingsIcon    },
 ];
 
 export default function App() {
   const [page, setPage] = useState("dashboard");
   const [data, setData] = useState({
-    students:   INIT_STUDENTS,
-    tutors:     INIT_TUTORS,
-    subjects:   INIT_SUBJECTS,
-    links:      INIT_LINKS,
-    siblings:   INIT_SIBLINGS,
-    tutorNotes: INIT_TUTOR_NOTES,
-    purchases:  INIT_PURCHASES,
-    financials: INIT_FINANCIALS,
+    students:    INIT_STUDENTS,
+    tutors:      INIT_TUTORS,
+    subjects:    INIT_SUBJECTS,
+    links:       INIT_LINKS,
+    siblings:    INIT_SIBLINGS,
+    tutorNotes:  INIT_TUTOR_NOTES,
+    centres:     INIT_CENTRES,
+    centreNotes: INIT_CENTRE_NOTES,
+    purchases:   INIT_PURCHASES,
+    financials:  INIT_FINANCIALS,
   });
 
   const unassigned = useMemo(
@@ -1435,8 +1884,10 @@ export default function App() {
     students:   <StudentsPage data={data} setData={setData} />,
     tutors:     <TutorsPage   data={data} setData={setData} />,
     links:      <LinksPage    data={data} setData={setData} />,
+    centres:    <CentresPage  data={data} setData={setData} />,
     accounting: <AccountingPage data={data} setData={setData} />,
     stats:      <StatsPage    data={data} />,
+    reports:    <ReportsPage  data={data} />,
     settings:   <SettingsPage data={data} setData={setData} />,
   };
 
