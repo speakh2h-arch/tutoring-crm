@@ -28,12 +28,12 @@ const NOTE_TYPES = ["compliment","complaint","general"];
 // ─── SEED DATA ────────────────────────────────────────────────────────────────
 
 const INIT_SUBJECTS = [
-  { id: "s1", name: "Mathematics",      level: "Senior" },
-  { id: "s2", name: "Physical Science", level: "Senior" },
-  { id: "s3", name: "English",          level: "Senior" },
-  { id: "s4", name: "Life Sciences",    level: "Senior" },
-  { id: "s5", name: "Accounting",       level: "Senior" },
-  { id: "s6", name: "Geography",        level: "Senior" },
+  { id: "s1", name: "Mathematics"      },
+  { id: "s2", name: "Physical Science" },
+  { id: "s3", name: "English"          },
+  { id: "s4", name: "Life Sciences"    },
+  { id: "s5", name: "Accounting"       },
+  { id: "s6", name: "Geography"        },
 ];
 
 const INIT_STUDENTS = [
@@ -1345,8 +1345,6 @@ function SettingsPage({ data, setData }) {
     links:    d.links.filter(l => l.subjectId !== id),
   }));
 
-  const levelOpts = ["Junior","Intermediate","Senior","FET","Cambridge"].map(l => ({ value: l, label: l }));
-
   return (
     <div className="space-y-6">
       <div>
@@ -1355,7 +1353,7 @@ function SettingsPage({ data, setData }) {
       </div>
 
       <Section title="Subjects" action={
-        <Btn size="sm" onClick={() => { setForm({ name: "", level: "Senior" }); setModal("subject"); }}>
+        <Btn size="sm" onClick={() => { setForm({ name: "" }); setModal("subject"); }}>
           <Plus size={14} /> Add
         </Btn>
       }>
@@ -1364,7 +1362,6 @@ function SettingsPage({ data, setData }) {
             <div key={s.id} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl">
               <div>
                 <p className="text-sm font-medium text-gray-800">{s.name}</p>
-                <p className="text-xs text-gray-400">{s.level}</p>
               </div>
               <div className="flex gap-1">
                 <Btn size="sm" variant="ghost" onClick={() => { setForm(s); setModal("subject"); }}><Edit2 size={13} /></Btn>
@@ -1393,7 +1390,6 @@ function SettingsPage({ data, setData }) {
       {modal === "subject" && (
         <Modal title={form.id ? "Edit Subject" : "Add Subject"} onClose={() => setModal(null)}>
           <Inp label="Name" value={form.name || ""} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
-          <Sel label="Level" options={levelOpts} value={form.level || "Senior"} onChange={e => setForm(f => ({ ...f, level: e.target.value }))} />
           <div className="flex justify-end gap-3 mt-2">
             <Btn variant="secondary" onClick={() => setModal(null)}>Cancel</Btn>
             <Btn onClick={saveSubject} disabled={!form.name}>Save</Btn>
