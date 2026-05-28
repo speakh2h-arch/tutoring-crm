@@ -22,8 +22,20 @@ const CURRICULUM_GRADES = {
   Cambridge: ["Year 1","Year 2","Year 3","Year 4","Year 5","Year 6","Year 7","Year 8","Year 9","IGCSE","AS Level","A Level"],
 };
 
-const PALETTE = ["#6366f1","#22c55e","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#ec4899"];
+const PALETTE = ["#94cbd1","#d7735a","#f6cb7e","#5a9fa6","#b5bec7","#22c55e","#8b5cf6"];
 const NOTE_TYPES = ["compliment","complaint","general"];
+
+// Brand colours
+const B = {
+  teal:       "#94cbd1",
+  tealDark:   "#5a9fa6",
+  tealLight:  "#e8f5f7",
+  coral:      "#d7735a",
+  coralDark:  "#b85d44",
+  coralLight: "#fdf0ed",
+  gold:       "#f6cb7e",
+  goldLight:  "#fef7eb",
+};
 
 // ─── SEED DATA ────────────────────────────────────────────────────────────────
 
@@ -275,6 +287,28 @@ const buildCertificate = (student, course, completedDate) => {
   openReport(`Certificate — ${student.firstName} ${student.lastName}`, html);
 };
 
+// ─── LOGO MARK ────────────────────────────────────────────────────────────────
+
+const LogoMark = ({ size = 36 }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Gray loop — right side, sits behind */}
+    <path d="M62 14 C76 14 84 24 84 50 C84 76 74 86 60 86 C50 86 42 80 38 70"
+          stroke="#b5bec7" strokeWidth="13" strokeLinecap="round" fill="none"/>
+    {/* Teal loop — left side, sits in front */}
+    <path d="M38 86 C24 86 16 76 16 50 C16 24 26 14 40 14 C50 14 58 20 62 30"
+          stroke="#94cbd1" strokeWidth="13" strokeLinecap="round" fill="none"/>
+    {/* White crossover highlight */}
+    <path d="M38 70 C44 56 56 44 62 30"
+          stroke="white" strokeWidth="7" strokeLinecap="round" fill="none"/>
+    {/* Teal top cap to complete the loop feel */}
+    <path d="M62 30 C65 36 64 44 60 50"
+          stroke="#94cbd1" strokeWidth="10" strokeLinecap="round" fill="none"/>
+    {/* Gray bottom cap */}
+    <path d="M40 50 C36 56 37 64 38 70"
+          stroke="#b5bec7" strokeWidth="10" strokeLinecap="round" fill="none"/>
+  </svg>
+);
+
 // ─── SHARED UI ────────────────────────────────────────────────────────────────
 
 const Badge = ({ children, color = "gray" }) => {
@@ -285,7 +319,7 @@ const Badge = ({ children, color = "gray" }) => {
     yellow: "bg-yellow-100 text-yellow-800",
     red:    "bg-red-100 text-red-700",
     purple: "bg-purple-100 text-purple-700",
-    indigo: "bg-indigo-100 text-indigo-700",
+    indigo: "bg-teal-100 text-teal-700",
     orange: "bg-orange-100 text-orange-700",
     teal:   "bg-teal-100 text-teal-700",
     rose:   "bg-rose-100 text-rose-700",
@@ -293,7 +327,7 @@ const Badge = ({ children, color = "gray" }) => {
   return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[color] || map.gray}`}>{children}</span>;
 };
 
-const CURR_COLOR = { IEB: "indigo", CAPS: "green", Cambridge: "purple" };
+const CURR_COLOR = { IEB: "teal", CAPS: "green", Cambridge: "purple" };
 
 const Modal = ({ title, onClose, children, wide, extraWide }) => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
@@ -315,7 +349,7 @@ const Field = ({ label, children, hint }) => (
   </div>
 );
 
-const inp = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white";
+const inp = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white";
 const Inp = ({ label, hint, ...p }) => <Field label={label} hint={hint}><input className={inp} {...p} /></Field>;
 const Sel = ({ label, options, placeholder, hint, ...p }) => (
   <Field label={label} hint={hint}>
@@ -329,27 +363,30 @@ const Txt = ({ label, hint, ...p }) => <Field label={label} hint={hint}><textare
 
 const Btn = ({ children, onClick, variant = "primary", size = "md", className = "", type = "button", disabled }) => {
   const sz = { sm: "px-3 py-1.5 text-xs", md: "px-4 py-2 text-sm", lg: "px-5 py-2.5 text-sm" }[size];
-  const vr = {
-    primary:   "bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40",
+  const vrMap = {
     secondary: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50",
     danger:    "bg-red-600 text-white hover:bg-red-700",
     ghost:     "text-gray-600 hover:bg-gray-100",
     success:   "bg-emerald-600 text-white hover:bg-emerald-700",
-  }[variant];
+  };
+  const vr = vrMap[variant] || "";
   return (
     <button type={type} disabled={disabled} onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-lg font-medium transition-colors focus:outline-none ${sz} ${vr} ${className}`}>
+      className={`inline-flex items-center gap-2 rounded-lg font-medium transition-colors focus:outline-none disabled:opacity-40 ${sz} ${vr} ${className}`}
+      style={variant === "primary" ? { background: B.coral, color: "white" } : undefined}>
       {children}
     </button>
   );
 };
 
-const KPI = ({ title, value, sub, icon: Icon, color = "indigo" }) => {
+const KPI = ({ title, value, sub, icon: Icon, color = "teal" }) => {
   const ic = {
-    indigo: "bg-indigo-50 text-indigo-600", green: "bg-green-50 text-green-600",
-    amber:  "bg-amber-50 text-amber-600",   purple: "bg-purple-50 text-purple-600",
-    teal:   "bg-teal-50 text-teal-600",     rose:   "bg-rose-50 text-rose-600",
-  }[color] || "bg-indigo-50 text-indigo-600";
+    teal:   "text-white", coral: "text-white",
+    gold:   "text-white", green: "bg-green-50 text-green-600",
+    indigo: "text-white", amber: "bg-amber-50 text-amber-600",
+    purple: "bg-purple-50 text-purple-600", rose: "bg-rose-50 text-rose-600",
+  }[color] || "text-white";
+  const bg = { teal: B.teal, coral: B.coral, gold: B.gold, indigo: B.tealDark }[color];
   return (
     <div className="rounded-xl p-5 shadow-sm border border-gray-200 bg-white">
       <div className="flex items-start justify-between">
@@ -358,7 +395,7 @@ const KPI = ({ title, value, sub, icon: Icon, color = "indigo" }) => {
           <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
           {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
         </div>
-        <div className={`p-2 rounded-lg ${ic}`}><Icon size={22} /></div>
+        <div className={`p-2 rounded-lg ${ic}`} style={bg ? { background: bg } : undefined}><Icon size={22} /></div>
       </div>
     </div>
   );
@@ -375,7 +412,7 @@ const TH = ({ children, className = "" }) => (
 const TD = ({ children, className = "" }) => <td className={`px-4 py-3 text-gray-700 ${className}`}>{children}</td>;
 const TR = ({ children, onClick, className = "" }) => (
   <tr onClick={onClick}
-    className={`border-b border-gray-100 last:border-0 ${onClick ? "cursor-pointer hover:bg-indigo-50 transition-colors" : ""} ${className}`}>
+    className={`border-b border-gray-100 last:border-0 ${onClick ? "cursor-pointer hover:bg-teal-50 transition-colors" : ""} ${className}`}>
     {children}
   </tr>
 );
@@ -383,7 +420,7 @@ const TR = ({ children, onClick, className = "" }) => (
 const SearchBar = ({ value, onChange, placeholder }) => (
   <div className="relative">
     <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-    <input className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    <input className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
       placeholder={placeholder || "Search…"} value={value} onChange={e => onChange(e.target.value)} />
   </div>
 );
@@ -464,8 +501,8 @@ function Dashboard({ data, onNav }) {
               <div key={s.name} className="flex items-center gap-3">
                 <span className="text-sm text-gray-700 w-36 truncate">{s.name}</span>
                 <div className="flex-1 bg-gray-100 rounded-full h-2">
-                  <div className="bg-indigo-500 h-2 rounded-full transition-all"
-                    style={{ width: `${activeStudents ? (s.count / activeStudents) * 100 : 0}%` }} />
+                  <div className="h-2 rounded-full transition-all"
+                    style={{ width: `${activeStudents ? (s.count / activeStudents) * 100 : 0}%`, background: B.teal }} />
                 </div>
                 <span className="text-sm font-semibold text-gray-800 w-6 text-right">{s.count}</span>
               </div>
@@ -621,12 +658,12 @@ function StudentsPage({ data, setData }) {
         <div className="flex gap-1 bg-gray-100 p-1 rounded-xl">
           {["none","curriculum","grade"].map(g => (
             <button key={g} onClick={() => setGroupBy(g)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${groupBy === g ? "bg-white shadow text-indigo-700" : "text-gray-500 hover:text-gray-700"}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${groupBy === g ? "bg-white shadow text-teal-700" : "text-gray-500 hover:text-gray-700"}`}>
               {g === "none" ? "List" : `By ${g}`}
             </button>
           ))}
         </div>
-        <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+        <select className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
           value={filterCurr} onChange={e => setFilterCurr(e.target.value)}>
           <option value="">All curricula</option>
           {CURRICULA.map(c => <option key={c} value={c}>{c}</option>)}
@@ -743,7 +780,7 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
     <Modal title={`${student.firstName} ${student.lastName}`} onClose={onClose} wide>
       {/* Header */}
       <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl mb-5">
-        <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-lg">
+        <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg text-white" style={{ background: B.teal }}>
           {student.firstName[0]}{student.lastName[0]}
         </div>
         <div className="flex-1">
@@ -766,7 +803,7 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
         </div>
         <div className="text-right">
           <p className="text-xs text-gray-400">Lessons Bought</p>
-          <p className="text-2xl font-bold text-indigo-600">{totalLessons}</p>
+          <p className="text-2xl font-bold" style={{ color: B.tealDark }}>{totalLessons}</p>
           <Btn size="sm" variant="ghost" onClick={onEdit}><Edit2 size={13} /> Edit</Btn>
         </div>
       </div>
@@ -775,7 +812,7 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
       <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-lg">
         {["links","lessons","siblings"].map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${tab === t ? "bg-white shadow text-indigo-700" : "text-gray-500 hover:text-gray-700"}`}>
+            className={`flex-1 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${tab === t ? "bg-white shadow text-teal-700" : "text-gray-500 hover:text-gray-700"}`}>
             {t} {t === "links" && `(${lks.length})`}
             {t === "lessons" && `(${purchases.length})`}
             {t === "siblings" && `(${siblings.length})`}
@@ -845,7 +882,7 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
           {siblings.map(s => (
             <div key={s.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-xl">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style={{ background: B.teal }}>
                   {s.firstName[0]}{s.lastName[0]}
                 </div>
                 <div>
@@ -977,7 +1014,8 @@ function TutorsPage({ data, setData }) {
               {data.subjects.map(s => (
                 <button key={s.id} type="button" onClick={() => toggleSubject(s.id)}
                   className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                    form.subjectIds?.includes(s.id) ? "bg-indigo-600 text-white border-indigo-600" : "bg-white text-gray-600 border-gray-300 hover:border-indigo-400"}`}>
+                    form.subjectIds?.includes(s.id) ? "text-white border-transparent" : "bg-white text-gray-600 border-gray-300 hover:border-teal-400"}`}
+                  style={form.subjectIds?.includes(s.id) ? { background: B.teal, borderColor: B.teal } : undefined}>
                   {s.name}
                 </button>
               ))}
@@ -1036,7 +1074,7 @@ function TutorDetailModal({ tutor, data, setData, onClose, onEdit }) {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-bold text-indigo-600">{activeStudents.length}</p>
+          <p className="text-3xl font-bold" style={{ color: B.tealDark }}>{activeStudents.length}</p>
           <p className="text-xs text-gray-400">active students</p>
           <Btn size="sm" variant="ghost" className="mt-1" onClick={onEdit}><Edit2 size={13} /> Edit</Btn>
         </div>
@@ -1397,8 +1435,8 @@ function StatsPage({ data }) {
             <div key={s.name} className="flex items-center gap-3">
               <span className="text-sm text-gray-700 w-40 truncate">{s.name}</span>
               <div className="flex-1 bg-gray-100 rounded-full h-2.5">
-                <div className="bg-indigo-500 h-2.5 rounded-full"
-                  style={{ width: `${activeStudents.length ? (s.active / activeStudents.length) * 100 : 0}%` }} />
+                <div className="h-2.5 rounded-full"
+                  style={{ width: `${activeStudents.length ? (s.active / activeStudents.length) * 100 : 0}%`, background: B.teal }} />
               </div>
               <span className="text-sm font-bold text-gray-900 w-8 text-right">{s.active}</span>
               <span className="text-xs text-gray-400 w-16">of {activeStudents.length}</span>
@@ -1471,7 +1509,7 @@ function StatsPage({ data }) {
               return (
                 <TR key={s.name}>
                   <TD className="font-medium">{s.name}</TD>
-                  <TD><span className="font-semibold text-indigo-700">{s.active}</span></TD>
+                  <TD><span className="font-semibold" style={{ color: B.tealDark }}>{s.active}</span></TD>
                   <TD>{s.total}</TD>
                   <TD>{tutorCount}</TD>
                 </TR>
@@ -1576,7 +1614,7 @@ function AcademyPage({ data, setData }) {
   const completions      = data.progress.filter(p => p.completed).length;
   return (
     <div className="space-y-5">
-      <div className="bg-gradient-to-br from-violet-600 to-purple-700 rounded-2xl p-6 text-white">
+      <div className="rounded-2xl p-6 text-white" style={{ background: `linear-gradient(135deg, ${B.tealDark} 0%, ${B.coral} 100%)` }}>
         <div className="flex items-center gap-3 mb-4">
           <div className="w-11 h-11 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
             <BookOpen size={22} />
@@ -1884,7 +1922,7 @@ function CourseDetailModal({ course, data, setData, onClose }) {
             const centre = st?.centreId ? data.centres?.find(c => c.id === st.centreId) : null;
             return (
               <div key={e.id} className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl">
-                <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style={{ background: B.teal }}>
                   {st?.firstName[0]}{st?.lastName[0]}
                 </div>
                 <div className="flex-1">
@@ -2446,7 +2484,7 @@ function CentreDetailModal({ centre, data, setData, onClose, onEdit }) {
               <div key={st.id} className="p-3 border border-gray-200 rounded-xl">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs text-white" style={{ background: B.teal }}>
                       {st.firstName[0]}{st.lastName[0]}
                     </div>
                     <div>
@@ -2553,7 +2591,8 @@ function ReportsPage({ data }) {
           const Icon = icons[t];
           return (
             <button key={t} onClick={() => { setType(t); setEntityId(""); }}
-              className={`flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-colors ${type === t ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-200 bg-white text-gray-600 hover:border-indigo-300"}`}>
+              className={`flex flex-col items-center gap-2 p-5 rounded-xl border-2 transition-colors ${type === t ? "border-transparent" : "border-gray-200 bg-white text-gray-600 hover:border-teal-300"}`}
+              style={type === t ? { borderColor: B.teal, background: B.tealLight, color: B.tealDark } : undefined}>
               <Icon size={24} />
               <span className="text-sm font-medium">{labels[t]}</span>
             </button>
@@ -2584,12 +2623,12 @@ function ReportsPage({ data }) {
       <div className="pt-4 border-t border-gray-100">
         <p className="text-sm font-semibold text-gray-700 mb-3">Quick access</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
-            <p className="text-xs font-semibold text-indigo-600 uppercase mb-2">Students</p>
+          <div className="rounded-xl p-4 border" style={{ background: B.tealLight, borderColor: "#c2e5e9" }}>
+            <p className="text-xs font-semibold uppercase mb-2" style={{ color: B.tealDark }}>Students</p>
             <div className="space-y-1 max-h-40 overflow-y-auto">
               {data.students.map(s => (
                 <button key={s.id} onClick={() => openReport(`Student — ${s.firstName} ${s.lastName}`, buildStudentReport(s, data))}
-                  className="w-full text-left text-xs text-indigo-800 hover:underline truncate block">
+                  className="w-full text-left text-xs hover:underline truncate block" style={{ color: B.tealDark }}>
                   {s.firstName} {s.lastName}
                 </button>
               ))}
@@ -2681,14 +2720,12 @@ export default function App() {
   return (
     <div className="flex h-screen bg-gray-50 font-sans">
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
-        <div className="px-5 py-5 border-b border-gray-100">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-              <BookMarked size={16} className="text-white" />
-            </div>
+        <div className="px-4 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <LogoMark size={38} />
             <div>
-              <p className="text-sm font-bold text-gray-900 leading-none">TutorOps</p>
-              <p className="text-xs text-gray-400 mt-0.5">CRM Platform</p>
+              <p className="text-xs font-bold tracking-widest uppercase leading-none" style={{ color: B.tealDark }}>LEARN TO LINK</p>
+              <p className="text-xs text-gray-400 mt-0.5 tracking-wide">CRM + Academy</p>
             </div>
           </div>
         </div>
@@ -2696,12 +2733,14 @@ export default function App() {
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
           {NAV.map(n => (
             <div key={n.id}>
-              {n.divider && <div className="my-2 border-t border-gray-100" />}
+              {n.divider && (
+                <div className="my-2 pt-1">
+                  <div className="border-t border-gray-100" />
+                </div>
+              )}
               <button onClick={() => setPage(n.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${
-                  page === n.id
-                    ? n.id === "academy" ? "bg-violet-50 text-violet-700" : "bg-indigo-50 text-indigo-700"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}>
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${page === n.id ? "" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}
+                style={page === n.id ? { background: n.id === "academy" ? B.coralLight : B.tealLight, color: n.id === "academy" ? B.coral : B.tealDark } : undefined}>
                 <n.icon size={17} />
                 {n.label}
                 {n.id === "links" && unassigned > 0 && (
@@ -2714,7 +2753,7 @@ export default function App() {
 
         <div className="px-4 py-4 border-t border-gray-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">AD</div>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style={{ background: B.teal }}>AD</div>
             <div>
               <p className="text-xs font-semibold text-gray-800">Admin</p>
               <p className="text-xs text-gray-400">Administrator</p>
