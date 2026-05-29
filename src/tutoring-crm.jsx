@@ -4,7 +4,7 @@ import {
   Settings as SettingsIcon, Search, Plus, X, Edit2, Trash2,
   Link as LinkIcon, DollarSign, BookMarked, TrendingUp,
   CheckCircle, ThumbsUp, ThumbsDown, StickyNote,
-  Building2, FileText, MapPin, Printer,
+  Building2, FileText, MapPin, Printer, AlertTriangle, Eye,
   CalendarDays, ChevronLeft, ChevronRight, Award, Play
 } from "lucide-react";
 import {
@@ -4143,71 +4143,12 @@ function TutorView({ data, setData, tutorRef }) {
       )}
 
       {tab==="logbook" && (
-        <div className="space-y-3">
-          {assignedStudents.map(s=>{
-            const bal = getLessonBalance(s.id, data);
-            const open = selStudentId===s.id;
-            return (
-              <div key={s.id} className="rounded-2xl overflow-hidden" style={{border:`1px solid ${open?"#94cbd1":"#eef2f1"}`}}>
-                {/* Collapsed header — always visible */}
-                <button className="w-full flex items-center justify-between p-4 transition-colors text-left"
-                  style={{background:open?"#f0f9fa":"#f8faf9"}}
-                  onClick={()=>setSelStudentId(open?null:s.id)}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0" style={{background:"#5a9fa6"}}>
-                      {s.firstName[0]}{s.lastName[0]}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{s.firstName} {s.lastName}</p>
-                      <p className="text-xs mt-0.5" style={{color:"#9ca3af"}}>{s.curriculum} · {s.grade}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {/* Lesson balance pills */}
-                    <div className="flex gap-2 text-xs">
-                      <span className="px-2 py-1 rounded-lg font-semibold" style={{background:"#dcfce7",color:"#166534"}}>
-                        {bal.remaining} left
-                      </span>
-                      <span className="px-2 py-1 rounded-lg font-semibold" style={{background:"#f1f5f9",color:"#475569"}}>
-                        {bal.used} used
-                      </span>
-                      <span className="px-2 py-1 rounded-lg font-semibold" style={{background:"#eff6ff",color:"#1d4ed8"}}>
-                        {bal.bought} bought
-                      </span>
-                    </div>
-                    <ChevronRight size={16} style={{color:"#9ca3af",transform:open?"rotate(90deg)":"none",transition:"transform 0.2s"}}/>
-                  </div>
-                </button>
-                {/* Expanded body */}
-                {open && (
-                  <div className="p-4 border-t" style={{borderColor:"#eef2f1"}}>
-                    {bal.isSiblingGroup && (
-                      <p className="text-xs mb-3 px-3 py-2 rounded-lg" style={{background:"#fef3c7",color:"#92400e"}}>
-                        ⚠ Balance shared with siblings across {bal.groupIds.length} students
-                      </p>
-                    )}
-                    {/* Logbook / Reports toggle */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
-                        {[["logbook","Logbook"],["reports","Reports"]].map(([t,l])=>(
-                          <button key={t} onClick={()=>setSelStudentTab(t)}
-                            className="px-3 py-1 rounded-md text-xs font-medium transition-colors"
-                            style={selStudentTab===t?{background:"white",color:"#5a9fa6",boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
-                            {l}
-                          </button>
-                        ))}
-                      </div>
-                      {selStudentTab==="logbook" && (
-                        <Btn size="sm" onClick={()=>setLogModal(s.id)}><BookMarked size={12}/> Log Lesson</Btn>
-                      )}
-                    </div>
-                    {selStudentTab==="logbook" && <LogbookView studentId={s.id} data={data} currentTutorId={tutor.id}/>}
-                    {selStudentTab==="reports" && <StudentReportsTab studentId={s.id} data={data} setData={setData} tutorId={tutor.id}/>}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+        <div className="space-y-4">
+          {assignedStudents.map(s=>(
+            <Section key={s.id} title={`Lesson Logbook — ${s.firstName} ${s.lastName}`}>
+              <LogbookView studentId={s.id} data={data} currentTutorId={tutor.id}/>
+            </Section>
+          ))}
         </div>
       )}
 
