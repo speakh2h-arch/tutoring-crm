@@ -316,28 +316,43 @@ const LogoMark = ({ size = 36 }) => {
 
 const Badge = ({ children, color = "gray" }) => {
   const map = {
-    gray:   "bg-gray-100 text-gray-700",
-    green:  "bg-green-100 text-green-700",
-    blue:   "bg-blue-100 text-blue-700",
-    yellow: "bg-yellow-100 text-yellow-800",
-    red:    "bg-red-100 text-red-700",
-    purple: "bg-purple-100 text-purple-700",
-    indigo: "bg-teal-100 text-teal-700",
-    orange: "bg-orange-100 text-orange-700",
-    teal:   "bg-teal-100 text-teal-700",
-    rose:   "bg-rose-100 text-rose-700",
+    gray:   { bg: "#f1f5f4", text: "#4a5568" },
+    green:  { bg: "#d1fae5", text: "#065f46" },
+    blue:   { bg: "#dbeafe", text: "#1e40af" },
+    yellow: { bg: "#fef3c7", text: "#92400e" },
+    red:    { bg: "#fee2e2", text: "#991b1b" },
+    purple: { bg: "#ede9fe", text: "#5b21b6" },
+    indigo: { bg: "#e8f5f7", text: "#5a9fa6" },
+    orange: { bg: "#ffedd5", text: "#9a3412" },
+    teal:   { bg: "#e8f5f7", text: "#5a9fa6" },
+    rose:   { bg: "#ffe4e6", text: "#9f1239" },
   };
-  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[color] || map.gray}`}>{children}</span>;
+  const c = map[color] || map.gray;
+  return (
+    <span style={{ background: c.bg, color: c.text }}
+      className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold tracking-wide">
+      {children}
+    </span>
+  );
 };
 
 const CURR_COLOR = { IEB: "teal", CAPS: "green", Cambridge: "purple" };
 
 const Modal = ({ title, onClose, children, wide, extraWide }) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
-    <div className={`bg-white rounded-2xl shadow-2xl w-full ${extraWide ? "max-w-3xl" : wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto`}>
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    style={{ background: "rgba(8,18,26,0.65)", backdropFilter: "blur(4px)" }}>
+    <div className={`bg-white rounded-2xl w-full ${extraWide ? "max-w-3xl" : wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto`}
+      style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.25)", border: "1px solid rgba(0,0,0,0.07)" }}>
+      <div className="flex items-center justify-between px-6 py-4 sticky top-0 bg-white z-10 rounded-t-2xl"
+        style={{ borderBottom: "1px solid #eef2f1" }}>
+        <h2 className="text-sm font-bold tracking-tight" style={{ color: "#0d1e2a" }}>{title}</h2>
+        <button onClick={onClose}
+          className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+          style={{ color: "#6b7280" }}
+          onMouseEnter={e => e.currentTarget.style.background="#f3f4f6"}
+          onMouseLeave={e => e.currentTarget.style.background="transparent"}>
+          <X size={18} />
+        </button>
       </div>
       <div className="px-6 py-5">{children}</div>
     </div>
@@ -346,92 +361,119 @@ const Modal = ({ title, onClose, children, wide, extraWide }) => (
 
 const Field = ({ label, children, hint }) => (
   <div className="mb-4">
-    {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+    {label && <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "#9ca3af" }}>{label}</label>}
     {children}
-    {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
+    {hint && <p className="text-xs mt-1" style={{ color: "#9ca3af" }}>{hint}</p>}
   </div>
 );
 
-const inp = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white";
-const Inp = ({ label, hint, ...p }) => <Field label={label} hint={hint}><input className={inp} {...p} /></Field>;
+const inp = "w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-all bg-white";
+const Inp = ({ label, hint, ...p }) => (
+  <Field label={label} hint={hint}>
+    <input className={inp} style={{ borderColor: "#e5e7eb", color: "#111827" }} {...p}
+      onFocus={e => { e.target.style.borderColor = B.teal; e.target.style.boxShadow = "0 0 0 3px #e8f5f7"; }}
+      onBlur={e => { e.target.style.borderColor = "#e5e7eb"; e.target.style.boxShadow = "none"; }} />
+  </Field>
+);
 const Sel = ({ label, options, placeholder, hint, ...p }) => (
   <Field label={label} hint={hint}>
-    <select className={inp} {...p}>
+    <select className={inp} style={{ borderColor: "#e5e7eb", color: "#111827" }} {...p}>
       {placeholder && <option value="">{placeholder}</option>}
       {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
   </Field>
 );
-const Txt = ({ label, hint, ...p }) => <Field label={label} hint={hint}><textarea className={inp} rows={3} {...p} /></Field>;
+const Txt = ({ label, hint, ...p }) => (
+  <Field label={label} hint={hint}>
+    <textarea className={inp} style={{ borderColor: "#e5e7eb", color: "#111827" }} rows={3} {...p}
+      onFocus={e => { e.target.style.borderColor = B.teal; e.target.style.boxShadow = "0 0 0 3px #e8f5f7"; }}
+      onBlur={e => { e.target.style.borderColor = "#e5e7eb"; e.target.style.boxShadow = "none"; }} />
+  </Field>
+);
 
 const Btn = ({ children, onClick, variant = "primary", size = "md", className = "", type = "button", disabled }) => {
   const sz = { sm: "px-3 py-1.5 text-xs", md: "px-4 py-2 text-sm", lg: "px-5 py-2.5 text-sm" }[size];
-  const vrMap = {
-    secondary: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50",
-    danger:    "bg-red-600 text-white hover:bg-red-700",
-    ghost:     "text-gray-600 hover:bg-gray-100",
-    success:   "bg-emerald-600 text-white hover:bg-emerald-700",
+  const vrStyle = {
+    primary:   { background: B.coral,   color: "white",    border: "none" },
+    secondary: { background: "white",   color: "#374151",  border: "1px solid #d1d5db" },
+    danger:    { background: "#dc2626", color: "white",    border: "none" },
+    ghost:     { background: "transparent", color: "#4b5563", border: "none" },
+    success:   { background: "#059669", color: "white",    border: "none" },
   };
-  const vr = vrMap[variant] || "";
   return (
     <button type={type} disabled={disabled} onClick={onClick}
-      className={`inline-flex items-center gap-2 rounded-lg font-medium transition-colors focus:outline-none disabled:opacity-40 ${sz} ${vr} ${className}`}
-      style={variant === "primary" ? { background: B.coral, color: "white" } : undefined}>
+      style={vrStyle[variant] || vrStyle.primary}
+      className={`inline-flex items-center gap-2 rounded-xl font-semibold transition-all focus:outline-none disabled:opacity-40 hover:opacity-85 active:scale-95 ${sz} ${className}`}>
       {children}
     </button>
   );
 };
 
 const KPI = ({ title, value, sub, icon: Icon, color = "teal" }) => {
-  const ic = {
-    teal:   "text-white", coral: "text-white",
-    gold:   "text-white", green: "bg-green-50 text-green-600",
-    indigo: "text-white", amber: "bg-amber-50 text-amber-600",
-    purple: "bg-purple-50 text-purple-600", rose: "bg-rose-50 text-rose-600",
-  }[color] || "text-white";
-  const bg = { teal: B.teal, coral: B.coral, gold: B.gold, indigo: B.tealDark }[color];
+  const colors = {
+    teal:   { accent: B.teal,      bg: B.tealLight,  text: B.tealDark  },
+    coral:  { accent: B.coral,     bg: B.coralLight, text: B.coralDark },
+    gold:   { accent: B.gold,      bg: B.goldLight,  text: "#b45309"   },
+    indigo: { accent: B.tealDark,  bg: B.tealLight,  text: B.tealDark  },
+    green:  { accent: "#10b981",   bg: "#d1fae5",    text: "#065f46"   },
+    purple: { accent: "#8b5cf6",   bg: "#ede9fe",    text: "#5b21b6"   },
+    amber:  { accent: "#f59e0b",   bg: "#fef3c7",    text: "#92400e"   },
+    rose:   { accent: "#f43f5e",   bg: "#ffe4e6",    text: "#9f1239"   },
+  };
+  const c = colors[color] || colors.teal;
   return (
-    <div className="rounded-xl p-5 shadow-sm border border-gray-200 bg-white">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-gray-500 font-medium">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
-          {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
-        </div>
-        <div className={`p-2 rounded-lg ${ic}`} style={bg ? { background: bg } : undefined}><Icon size={22} /></div>
+    <div className="rounded-2xl p-5 bg-white flex items-start gap-4"
+      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)", border: "1px solid #eef2f1" }}>
+      <div className="rounded-xl p-2.5 shrink-0" style={{ background: c.bg }}>
+        <Icon size={20} style={{ color: c.accent }} />
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#9ca3af" }}>{title}</p>
+        <p className="text-2xl font-bold mt-0.5 leading-none" style={{ color: "#0d1e2a" }}>{value}</p>
+        {sub && <p className="text-xs mt-1" style={{ color: "#6b7280" }}>{sub}</p>}
       </div>
     </div>
   );
 };
 
 const TableWrap = ({ children }) => (
-  <div className="overflow-x-auto rounded-xl border border-gray-200">
-    <table className="min-w-full divide-y divide-gray-200 text-sm">{children}</table>
+  <div className="overflow-x-auto rounded-2xl" style={{ border: "1px solid #eef2f1" }}>
+    <table className="min-w-full divide-y text-sm" style={{ borderColor: "#eef2f1" }}>{children}</table>
   </div>
 );
 const TH = ({ children, className = "" }) => (
-  <th className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 ${className}`}>{children}</th>
+  <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-widest ${className}`}
+    style={{ background: "#f8faf9", color: "#9ca3af", borderBottom: "1px solid #eef2f1" }}>{children}</th>
 );
-const TD = ({ children, className = "" }) => <td className={`px-4 py-3 text-gray-700 ${className}`}>{children}</td>;
+const TD = ({ children, className = "" }) => (
+  <td className={`px-4 py-3 ${className}`} style={{ color: "#374151" }}>{children}</td>
+);
 const TR = ({ children, onClick, className = "" }) => (
   <tr onClick={onClick}
-    className={`border-b border-gray-100 last:border-0 ${onClick ? "cursor-pointer hover:bg-teal-50 transition-colors" : ""} ${className}`}>
+    className={`border-b last:border-0 transition-colors ${onClick ? "cursor-pointer" : ""} ${className}`}
+    style={{ borderColor: "#f5f8f7" }}
+    onMouseEnter={onClick ? (e => { e.currentTarget.style.background = "#f0faf8"; }) : undefined}
+    onMouseLeave={onClick ? (e => { e.currentTarget.style.background = ""; }) : undefined}>
     {children}
   </tr>
 );
 
 const SearchBar = ({ value, onChange, placeholder }) => (
   <div className="relative">
-    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-    <input className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
-      placeholder={placeholder || "Search…"} value={value} onChange={e => onChange(e.target.value)} />
+    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "#9ca3af" }} />
+    <input
+      className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none transition-all bg-white"
+      style={{ border: "1px solid #e5e7eb", color: "#111827" }}
+      placeholder={placeholder || "Search…"} value={value} onChange={e => onChange(e.target.value)}
+      onFocus={e => { e.target.style.borderColor = B.teal; e.target.style.boxShadow = "0 0 0 3px #e8f5f7"; }}
+      onBlur={e => { e.target.style.borderColor = "#e5e7eb"; e.target.style.boxShadow = "none"; }} />
   </div>
 );
 
 const Section = ({ title, children, action }) => (
-  <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-    <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-      <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
+  <div className="bg-white rounded-2xl" style={{ border: "1px solid #eef2f1", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+    <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid #f5f8f7" }}>
+      <h3 className="text-sm font-bold tracking-tight" style={{ color: "#0d1e2a" }}>{title}</h3>
       {action}
     </div>
     <div className="p-5">{children}</div>
@@ -2666,6 +2708,7 @@ function ReportsPage({ data }) {
   );
 }
 
+
 // ─── APP ──────────────────────────────────────────────────────────────────────
 
 const NAV = [
@@ -2709,68 +2752,107 @@ export default function App() {
   );
 
   const pages = {
-    dashboard:  <Dashboard    data={data} onNav={setPage} />,
-    students:   <StudentsPage data={data} setData={setData} />,
-    tutors:     <TutorsPage   data={data} setData={setData} />,
-    links:      <LinksPage    data={data} setData={setData} />,
-    centres:    <CentresPage  data={data} setData={setData} />,
+    dashboard:  <Dashboard      data={data} onNav={setPage} />,
+    students:   <StudentsPage   data={data} setData={setData} />,
+    tutors:     <TutorsPage     data={data} setData={setData} />,
+    links:      <LinksPage      data={data} setData={setData} />,
+    centres:    <CentresPage    data={data} setData={setData} />,
     accounting: <AccountingPage data={data} setData={setData} />,
-    stats:      <StatsPage    data={data} />,
-    reports:    <ReportsPage  data={data} />,
-    settings:   <SettingsPage data={data} setData={setData} />,
-    academy:    <AcademyPage  data={data} setData={setData} />,
+    stats:      <StatsPage      data={data} />,
+    reports:    <ReportsPage    data={data} />,
+    settings:   <SettingsPage   data={data} setData={setData} />,
+    academy:    <AcademyPage    data={data} setData={setData} />,
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 font-sans">
-      <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
-        <div className="px-4 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <LogoMark size={38} />
-            <div>
-              <p className="text-xs font-bold tracking-widest uppercase leading-none" style={{ color: B.tealDark }}>LEARN TO LINK</p>
-              <p className="text-xs text-gray-400 mt-0.5 tracking-wide">CRM + Academy</p>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
+        .to-root, .to-root * { font-family: 'Sora', sans-serif; box-sizing: border-box; }
+        .to-root .recharts-cartesian-axis-tick-value tspan,
+        .to-root .recharts-legend-item-text { font-family: 'Sora', sans-serif !important; font-size: 11px; }
+        .to-nav-item { transition: background 0.15s, color 0.15s; }
+        .to-nav-item:hover { background: rgba(148,203,209,0.1) !important; color: rgba(255,255,255,0.8) !important; }
+      `}</style>
+      <div className="to-root flex h-screen overflow-hidden" style={{ background: "#f4f8f7" }}>
+
+        {/* ── Sidebar ── */}
+        <aside className="w-60 flex flex-col shrink-0 overflow-hidden"
+          style={{ background: "#0d1e2a", borderRight: "1px solid rgba(255,255,255,0.05)" }}>
+
+          {/* Logo area */}
+          <div className="px-5 py-5 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: "rgba(148,203,209,0.15)", border: "1px solid rgba(148,203,209,0.3)" }}>
+                <LogoMark size={24} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold tracking-[0.14em] uppercase leading-none" style={{ color: B.teal }}>LEARN TO LINK</p>
+                <p className="text-xs mt-1 font-medium" style={{ color: "rgba(255,255,255,0.28)", letterSpacing: "0.03em" }}>TutorOps · CRM+LMS</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {NAV.map(n => (
-            <div key={n.id}>
-              {n.divider && (
-                <div className="my-2 pt-1">
-                  <div className="border-t border-gray-100" />
+          {/* Navigation */}
+          <nav className="flex-1 px-3 py-4 overflow-y-auto">
+            {NAV.map(n => {
+              const active = page === n.id;
+              const isAc = n.id === "academy";
+              return (
+                <div key={n.id}>
+                  {n.divider && (
+                    <div className="my-3 px-1 flex items-center gap-2">
+                      <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.18)" }}>Academy</span>
+                      <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setPage(n.id)}
+                    className="to-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-left mb-0.5"
+                    style={active ? {
+                      background: isAc ? "rgba(215,115,90,0.15)" : "rgba(148,203,209,0.15)",
+                      color:      isAc ? B.coral : B.teal,
+                      boxShadow:  `inset 3px 0 0 ${isAc ? B.coral : B.teal}`,
+                    } : { color: "rgba(255,255,255,0.45)" }}>
+                    <n.icon size={16} />
+                    <span>{n.label}</span>
+                    {n.id === "links" && unassigned > 0 && (
+                      <span className="ml-auto text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
+                        style={{ background: B.coral, color: "white" }}>
+                        {unassigned}
+                      </span>
+                    )}
+                  </button>
                 </div>
-              )}
-              <button onClick={() => setPage(n.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${page === n.id ? "" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}
-                style={page === n.id ? { background: n.id === "academy" ? B.coralLight : B.tealLight, color: n.id === "academy" ? B.coral : B.tealDark } : undefined}>
-                <n.icon size={17} />
-                {n.label}
-                {n.id === "links" && unassigned > 0 && (
-                  <span className="ml-auto bg-gray-300 text-gray-700 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{unassigned}</span>
-                )}
-              </button>
-            </div>
-          ))}
-        </nav>
+              );
+            })}
+          </nav>
 
-        <div className="px-4 py-4 border-t border-gray-100">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style={{ background: B.teal }}>AD</div>
-            <div>
-              <p className="text-xs font-semibold text-gray-800">Admin</p>
-              <p className="text-xs text-gray-400">Administrator</p>
+          {/* Admin footer */}
+          <div className="px-4 py-4 shrink-0" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0"
+                style={{ background: "rgba(148,203,209,0.2)", color: B.teal, border: "1px solid rgba(148,203,209,0.3)" }}>
+                AD
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold truncate" style={{ color: "rgba(255,255,255,0.75)" }}>Admin</p>
+                <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.28)" }}>Administrator</p>
+              </div>
             </div>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-6 py-6">
-          {pages[page]}
-        </div>
-      </main>
-    </div>
+        {/* ── Main content ── */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-5xl mx-auto px-6 py-6">
+            {pages[page]}
+          </div>
+        </main>
+
+      </div>
+    </>
   );
 }
