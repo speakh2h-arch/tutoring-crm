@@ -2543,9 +2543,33 @@ function CentresPage({ data, setData }) {
 function CentreDetailModal({ centre, data, setData, onClose, onEdit }) {
   const [tab, setTab] = useState("students");
   const [noteForm, setNoteForm] = useState({ type: "general", note: "", date: today() });
+  const [topupModal, setTopupModal] = useState(false);
+  const [topupForm, setTopupForm] = useState({ qty:"", note:"" });
+  const [usageModal, setUsageModal] = useState(null);
+  const [usageForm, setUsageForm] = useState({ qty:"", note:"" });
 
   const students = data.students.filter(s => s.centreId === centre.id);
   const notes    = data.centreNotes.filter(n => n.centreId === centre.id);
+  const pools    = (data.centrePools||[]).filter(p => p.centreId === centre.id);
+  const allUsage = (data.centreLessonUsage||[]).filter(u => u.centreId === centre.id);
+  const totalBought = pools.reduce((s,p) => s+p.totalBought, 0);
+  const totalUsed   = allUsage.reduce((s,u) => s+u.quantity, 0);
+  const remaining   = totalBought - totalUsed;
+  const getStudentUsed = (sid) => allUsage.filter(u=>u.studentId===sid).reduce((s,u)=>s+u.quantity,0);
+
+  const logTopup = () => {
+    const qty = parseInt(topupForm.qty)||0;
+    if (!qty) return;
+    setData(d=>({...d, centrePools:[...(d.centrePools||[]), { id:"cp"+uid(), centreId:centre.id, totalBought:qty, date:today(), note:topupForm.note }]}));
+    setTopupModal(false); setTopupForm({qty:"",note:""});
+  };
+
+  const logUsage = () => {
+    const qty = parseInt(usageForm.qty)||0;
+    if (!qty||!usageModal) return;
+    setData(d=>({...d, centreLessonUsage:[...(d.centreLessonUsage||[]), { id:"clu"+uid(), centreId:centre.id, studentId:usageModal, quantity:qty, date:today(), note:usageForm.note }]}));
+    setUsageModal(null); setUsageForm({qty:"",note:""});
+  };
 
   const addNote = () => {
     if (!noteForm.note) return;
@@ -2581,10 +2605,10 @@ function CentreDetailModal({ centre, data, setData, onClose, onEdit }) {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-lg">
-        {["students","notes"].map(t => (
+        {[["students",students.length],["lessons",pools.length],["notes",notes.length]].map(([t,count]) => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${tab === t ? "bg-white shadow text-teal-700" : "text-gray-500 hover:text-gray-700"}`}>
-            {t} ({t === "students" ? students.length : notes.length})
+            {t} ({count})
           </button>
         ))}
       </div>
@@ -2661,6 +2685,84 @@ function CentreDetailModal({ centre, data, setData, onClose, onEdit }) {
           </div>
         </div>
       )}
+
+      {tab === "lessons" && (
+        <div className="space-y-4">
+          {/* Pool summary */}
+          <div className="grid grid-cols-3 gap-3">
+            {[["Bought",totalBought,B.teal],["Used",totalUsed,B.coral],["Remaining",remaining,remaining<=20?"#d97706":"#059669"]].map(([k,v,c])=>(
+              <div key={k} className="rounded-xl p-3 text-center" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+                <p className="text-2xl font-bold" style={{color:c}}>{v}</p>
+                <p className="text-xs font-bold uppercase tracking-wider mt-1" style={{color:"#9ca3af"}}>{k}</p>
+              </div>
+            ))}
+          </div>
+          {remaining <= 20 && totalBought > 0 && (
+            <div className="rounded-xl px-4 py-3 flex items-center gap-2" style={{background:"#fef3c7",border:"1px solid #fde68a"}}>
+              <span>⚠️</span>
+              <p className="text-xs font-semibold" style={{color:"#92400e"}}>Lesson pool running low — consider topping up.</p>
+            </div>
+          )}
+          {/* Top-up history + add button */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-bold uppercase tracking-wider" style={{color:"#9ca3af"}}>Top-up History</p>
+              <Btn size="sm" onClick={()=>setTopupModal(true)}><Plus size={13}/> Log Top-up</Btn>
+            </div>
+            {pools.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No top-ups recorded.</p>:(
+              <TableWrap><thead><tr><TH>Date</TH><TH>Lessons Added</TH><TH>Note</TH></tr></thead>
+              <tbody>{pools.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>(
+                <TR key={p.id}><TD>{fmtDate(p.date)}</TD><TD><span className="font-semibold">+{p.totalBought}</span></TD><TD>{p.note||"—"}</TD></TR>
+              ))}</tbody></TableWrap>
+            )}
+          </div>
+          {/* Per-student usage */}
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>Student Usage</p>
+            {students.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No students at this centre.</p>:(
+              <TableWrap>
+                <thead><tr><TH>Student</TH><TH>Lessons Used</TH><TH></TH></tr></thead>
+                <tbody>{students.map(s=>{
+                  const used=getStudentUsed(s.id);
+                  return (
+                    <TR key={s.id}>
+                      <TD><span className="font-semibold">{s.firstName} {s.lastName}</span><br/><span className="text-xs" style={{color:"#6b7280"}}>{s.curriculum} · {s.grade}</span></TD>
+                      <TD><span className="font-bold text-lg" style={{color:"#0d1e2a"}}>{used}</span><span className="text-xs ml-1" style={{color:"#9ca3af"}}>lessons</span></TD>
+                      <TD><Btn size="sm" variant="secondary" onClick={()=>{setUsageModal(s.id);setUsageForm({qty:"",note:""});}}>Log Usage</Btn></TD>
+                    </TR>
+                  );
+                })}</tbody>
+              </TableWrap>
+            )}
+          </div>
+        </div>
+      )}
+
+      {topupModal&&(
+        <Modal title="Log Lesson Top-up" onClose={()=>setTopupModal(false)}>
+          <p className="text-sm mb-4" style={{color:"#6b7280"}}>Add lessons to <strong>{centre.name}</strong>'s pool.</p>
+          <Inp label="Lessons Purchased" type="number" value={topupForm.qty} onChange={e=>setTopupForm(f=>({...f,qty:e.target.value}))}/>
+          <Inp label="Note (optional)" value={topupForm.note} onChange={e=>setTopupForm(f=>({...f,note:e.target.value}))}/>
+          <div className="flex gap-2 justify-end">
+            <Btn variant="secondary" onClick={()=>setTopupModal(false)}>Cancel</Btn>
+            <Btn onClick={logTopup} disabled={!topupForm.qty}><CheckCircle size={15}/> Save</Btn>
+          </div>
+        </Modal>
+      )}
+      {usageModal&&(()=>{
+        const s=data.students.find(s=>s.id===usageModal);
+        return (
+          <Modal title="Log Lesson Usage" onClose={()=>setUsageModal(null)}>
+            <p className="text-sm mb-4" style={{color:"#6b7280"}}>Recording usage for <strong>{s?.firstName} {s?.lastName}</strong></p>
+            <Inp label="Lessons Used" type="number" value={usageForm.qty} onChange={e=>setUsageForm(f=>({...f,qty:e.target.value}))}/>
+            <Inp label="Note (optional)" value={usageForm.note} onChange={e=>setUsageForm(f=>({...f,note:e.target.value}))}/>
+            <div className="flex gap-2 justify-end">
+              <Btn variant="secondary" onClick={()=>setUsageModal(null)}>Cancel</Btn>
+              <Btn onClick={logUsage} disabled={!usageForm.qty}>Save</Btn>
+            </div>
+          </Modal>
+        );
+      })()}
     </Modal>
   );
 }
@@ -2911,49 +3013,25 @@ function ParentView({ data, setData, parentRef }) {
 }
 
 // ── CENTRE OWNER VIEW ────────────────────────────────────────────────────────
-function CentreOwnerView({ data, setData, ownerRef }) {
+function CentreOwnerView({ data, ownerRef }) {
   const owner = data.centreOwners?.find(o=>o.id===ownerRef);
   const centre = owner ? data.centres.find(c=>c.id===owner.centreId) : null;
   if (!owner||!centre) return <div className="p-8 text-center" style={{color:"#9ca3af"}}>Centre owner record not found.</div>;
 
-  const [usageModal, setUsageModal] = useState(null); // studentId
-  const [usageForm, setUsageForm] = useState({ qty:"", note:"" });
-  const [topupModal, setTopupModal] = useState(false);
-  const [topupForm, setTopupForm] = useState({ qty:"", note:"" });
-
   const centreStudents = data.students.filter(s=>s.centreId===centre.id);
   const pools = (data.centrePools||[]).filter(p=>p.centreId===centre.id);
   const allUsage = (data.centreLessonUsage||[]).filter(u=>u.centreId===centre.id);
-
   const totalBought = pools.reduce((s,p)=>s+p.totalBought,0);
   const totalUsed = allUsage.reduce((s,u)=>s+u.quantity,0);
   const remaining = totalBought - totalUsed;
   const low = remaining <= 20 && totalBought > 0;
-
-  const getStudentUsed = (studentId) => allUsage.filter(u=>u.studentId===studentId).reduce((s,u)=>s+u.quantity,0);
-
-  const logUsage = () => {
-    const qty = parseInt(usageForm.qty)||0;
-    if (!qty||!usageModal) return;
-    setData(d=>({...d, centreLessonUsage:[...(d.centreLessonUsage||[]), { id:"clu"+uid(), centreId:centre.id, studentId:usageModal, quantity:qty, date:today(), note:usageForm.note }]}));
-    setUsageModal(null); setUsageForm({qty:"",note:""});
-  };
-
-  const logTopup = () => {
-    const qty = parseInt(topupForm.qty)||0;
-    if (!qty) return;
-    setData(d=>({...d, centrePools:[...(d.centrePools||[]), { id:"cp"+uid(), centreId:centre.id, totalBought:qty, date:today(), note:topupForm.note }]}));
-    setTopupModal(false); setTopupForm({qty:"",note:""});
-  };
+  const getStudentUsed = (sid) => allUsage.filter(u=>u.studentId===sid).reduce((s,u)=>s+u.quantity,0);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>{centre.name}</h1>
-          <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>Centre lesson pool and student overview</p>
-        </div>
-        <Btn onClick={()=>setTopupModal(true)}><Plus size={15}/> Record Top-up</Btn>
+      <div>
+        <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>{centre.name}</h1>
+        <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>Your centre's lesson pool — contact admin to make any changes</p>
       </div>
 
       {low && (
@@ -2961,7 +3039,7 @@ function CentreOwnerView({ data, setData, ownerRef }) {
           <span className="text-xl">⚠️</span>
           <div>
             <p className="text-sm font-bold" style={{color:"#92400e"}}>Lesson pool running low — only {remaining} lessons remaining!</p>
-            <p className="text-xs mt-0.5" style={{color:"#b45309"}}>Consider purchasing a top-up block soon.</p>
+            <p className="text-xs mt-0.5" style={{color:"#b45309"}}>Please contact your LEARN TO LINK admin to top up your centre's lessons.</p>
           </div>
         </div>
       )}
@@ -2972,12 +3050,11 @@ function CentreOwnerView({ data, setData, ownerRef }) {
         <KPI title="Remaining" value={remaining} sub={low?"⚠ Running low":undefined} icon={TrendingUp} color={low?"amber":"green"}/>
       </div>
 
-      <Section title="Lesson Pool Purchases"
-        action={<Btn size="sm" onClick={()=>setTopupModal(true)}><Plus size={13}/> Top Up</Btn>}>
-        {pools.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No purchases recorded.</p>:(
-          <TableWrap><thead><tr><TH>Date</TH><TH>Qty</TH><TH>Note</TH></tr></thead>
+      <Section title="Lesson Pool History">
+        {pools.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No purchases recorded yet.</p>:(
+          <TableWrap><thead><tr><TH>Date</TH><TH>Lessons Added</TH><TH>Note</TH></tr></thead>
           <tbody>{pools.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>(
-            <TR key={p.id}><TD>{fmtDate(p.date)}</TD><TD className="font-semibold">{p.totalBought}</TD><TD>{p.note||"—"}</TD></TR>
+            <TR key={p.id}><TD>{fmtDate(p.date)}</TD><TD><span className="font-semibold">+{p.totalBought}</span></TD><TD>{p.note||"—"}</TD></TR>
           ))}</tbody></TableWrap>
         )}
       </Section>
@@ -2985,17 +3062,16 @@ function CentreOwnerView({ data, setData, ownerRef }) {
       <Section title="Students & Lesson Usage">
         {centreStudents.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No students at this centre.</p>:(
           <TableWrap>
-            <thead><tr><TH>Student</TH><TH>Curriculum</TH><TH>Grade</TH><TH>Lessons Used</TH><TH></TH></tr></thead>
+            <thead><tr><TH>Student</TH><TH>Curriculum</TH><TH>Grade</TH><TH>Lessons Used</TH></tr></thead>
             <tbody>
               {centreStudents.map(s=>{
                 const used = getStudentUsed(s.id);
-                const tutorLinks = data.links.filter(l=>l.studentId===s.id);
-                const subjects = [...new Set(tutorLinks.map(l=>data.subjects.find(sub=>sub.id===l.subjectId)?.name).filter(Boolean))];
+                const subs = [...new Set(data.links.filter(l=>l.studentId===s.id).map(l=>data.subjects.find(sub=>sub.id===l.subjectId)?.name).filter(Boolean))];
                 return (
                   <TR key={s.id}>
                     <TD>
                       <p className="font-semibold" style={{color:"#0d1e2a"}}>{s.firstName} {s.lastName}</p>
-                      <p className="text-xs" style={{color:"#6b7280"}}>{subjects.join(", ")||"No subjects"}</p>
+                      <p className="text-xs" style={{color:"#6b7280"}}>{subs.join(", ")||"—"}</p>
                     </TD>
                     <TD><Badge color={CURR_COLOR[s.curriculum]||"gray"}>{s.curriculum}</Badge></TD>
                     <TD>{s.grade}</TD>
@@ -3003,7 +3079,6 @@ function CentreOwnerView({ data, setData, ownerRef }) {
                       <span className="font-bold text-lg" style={{color:"#0d1e2a"}}>{used}</span>
                       <span className="text-xs ml-1" style={{color:"#9ca3af"}}>lessons</span>
                     </TD>
-                    <TD><Btn size="sm" variant="secondary" onClick={()=>{setUsageModal(s.id);setUsageForm({qty:"",note:""});}}>Log Usage</Btn></TD>
                   </TR>
                 );
               })}
@@ -3011,29 +3086,6 @@ function CentreOwnerView({ data, setData, ownerRef }) {
           </TableWrap>
         )}
       </Section>
-
-      {usageModal&&(
-        <Modal title="Log Lesson Usage" onClose={()=>setUsageModal(null)}>
-          {(()=>{const s=data.students.find(s=>s.id===usageModal); return <p className="text-sm mb-4" style={{color:"#6b7280"}}>Recording usage for <strong>{s?.firstName} {s?.lastName}</strong></p>; })()}
-          <Inp label="Lessons Used" type="number" value={usageForm.qty} onChange={e=>setUsageForm(f=>({...f,qty:e.target.value}))}/>
-          <Inp label="Note (optional)" value={usageForm.note} onChange={e=>setUsageForm(f=>({...f,note:e.target.value}))}/>
-          <div className="flex gap-2 justify-end">
-            <Btn variant="secondary" onClick={()=>setUsageModal(null)}>Cancel</Btn>
-            <Btn onClick={logUsage}>Save</Btn>
-          </div>
-        </Modal>
-      )}
-      {topupModal&&(
-        <Modal title="Record Lesson Top-up" onClose={()=>setTopupModal(false)}>
-          <p className="text-sm mb-4" style={{color:"#6b7280"}}>Add a new block of lessons to {centre.name}'s pool.</p>
-          <Inp label="Lessons Purchased" type="number" value={topupForm.qty} onChange={e=>setTopupForm(f=>({...f,qty:e.target.value}))}/>
-          <Inp label="Note (optional)" value={topupForm.note} onChange={e=>setTopupForm(f=>({...f,note:e.target.value}))}/>
-          <div className="flex gap-2 justify-end">
-            <Btn variant="secondary" onClick={()=>setTopupModal(false)}>Cancel</Btn>
-            <Btn onClick={logTopup}><CheckCircle size={15}/> Save Top-up</Btn>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }
@@ -3860,7 +3912,7 @@ export default function App() {
 
   const renderContent = () => {
     if (role==="admin"||role==="owner") return adminPages[effectivePage]||null;
-    if (role==="centreOwner") return <CentreOwnerView data={data} setData={setData} ownerRef={roleRef}/>;
+    if (role==="centreOwner") return <CentreOwnerView data={data} ownerRef={roleRef}/>;
     if (role==="tutor")  return <TutorView  data={data} setData={setData} tutorRef={roleRef}/>;
     if (role==="parent") return <ParentView data={data} setData={setData} parentRef={roleRef}/>;
     if (role==="student") return <StudentView data={data} setData={setData} studentRef={roleRef}/>;
