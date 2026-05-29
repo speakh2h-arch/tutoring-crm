@@ -362,16 +362,22 @@ const lastNMonths = (n) => {
 
 // Lesson balance: accounts for sibling pooling
 const getLessonBalance = (studentId, data) => {
+  // BFS across sibling graph so chains (A-B-C) are fully resolved
   const group = new Set([studentId]);
-  (data.siblings||[]).forEach(s => {
-    if (s.studentId1===studentId) group.add(s.studentId2);
-    if (s.studentId2===studentId) group.add(s.studentId1);
-  });
+  const queue = [studentId];
+  while (queue.length) {
+    const cur = queue.shift();
+    (data.siblings||[]).forEach(s => {
+      if (s.studentId1===cur && !group.has(s.studentId2)) { group.add(s.studentId2); queue.push(s.studentId2); }
+      if (s.studentId2===cur && !group.has(s.studentId1)) { group.add(s.studentId1); queue.push(s.studentId1); }
+    });
+  }
   const groupIds = [...group];
+  // All paid lessons ever purchased for any member of the family group
   const bought = (data.invoices||[])
     .filter(inv=>groupIds.includes(inv.studentId)&&inv.status==="paid")
     .reduce((sum,inv)=>sum+inv.lineItems.reduce((s,li)=>s+(li.lessons||0),0),0);
-  // All completed logs for this student regardless of which tutor delivered them
+  // All completed lessons used by any member of the family group, regardless of tutor
   const used = (data.lessonLogs||[])
     .filter(l=>groupIds.includes(l.studentId)&&l.status==="completed").length;
   return { bought, used, remaining:bought-used, groupIds, isSiblingGroup:groupIds.length>1 };
@@ -653,12 +659,14 @@ function Dashboard({ data, setData, onNav }) {
     return students
       .filter(s => s.status === "Active")
       .map(s => ({ student: s, bal: getLessonBalance(s.id, data) }))
-      .filter(({ student, bal }) => {
-        // Only show once per sibling group (keyed by sorted group IDs)
+      // Filter to low-balance students FIRST, then deduplicate sibling groups
+      .filter(({ bal }) => bal.remaining <= LOW_THRESHOLD)
+      .filter(({ bal }) => {
+        // Show the family once, keyed by all sibling IDs sorted
         const key = [...bal.groupIds].sort().join(",");
         if (seen.has(key)) return false;
         seen.add(key);
-        return bal.remaining <= LOW_THRESHOLD;
+        return true;
       })
       .sort((a, b) => a.bal.remaining - b.bal.remaining);
   }, [students, data]);
@@ -745,7 +753,8 @@ function Dashboard({ data, setData, onNav }) {
           <div className="space-y-2">
             {lowBalanceStudents.map(({ student, bal }) => {
               const alreadyFlagged = (data.invoiceAlerts||{})[student.id];
-              const siblings = bal.groupIds.filter(id=>id!==student.id).map(id=>students.find(s=>s.id===id)?.firstName).filter(Boolean);
+              const siblingStudents = bal.groupIds.filter(id=>id!==student.id).map(id=>students.find(s=>s.id===id)).filter(Boolean);
+              const siblings = siblingStudents.map(s=>s.firstName);
               return (
                 <div key={student.id} className="flex items-center justify-between p-3 rounded-xl"
                   style={{background:alreadyFlagged?"#f0fdf4":"white",border:`1px solid ${alreadyFlagged?"#86efac":"#fed7aa"}`}}>
