@@ -208,6 +208,19 @@ const INIT_INVOICES = [
     ], total:3250, notes:"" },
 ];
 
+const INIT_STUDENT_REPORTS = [
+  {
+    id:"rpt1", tutorId:"t1", studentId:"st1",
+    date:"2026-05-10", subject:"Mathematics",
+    overallRating:"Good", topicsCovers:"Quadratic equations, Factorisation, Number lines",
+    strengths:"Strong algebraic manipulation, good recall of formulae",
+    areasToImprove:"Word problems require more practice, needs to slow down in timed conditions",
+    nextSteps:"Practice past paper Q3 and Q7 types, focus on setting up equations from word problems",
+    notes:"Sipho has shown great improvement this month. Attendance has been consistent.",
+    createdAt:"2026-05-10",
+  },
+];
+
 const INIT_LESSON_LOGS = [
   { id:"ll1", studentId:"st1", tutorId:"t1", subjectId:"s1", date:"2025-05-15", status:"completed",
     comment:"Covered polynomial expressions and the degree of a polynomial. Student initially struggled with identifying terms but improved significantly by end of session. Assigned practice exercises 1–5.",
@@ -926,6 +939,7 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
   const [tab, setTab] = useState("links");
   const [purchaseForm, setPurchaseForm] = useState({ quantity: "", date: today(), note: "" });
   const [siblingId, setSiblingId] = useState("");
+  const bal = getLessonBalance(student.id, data);
 
   const lks      = data.links.filter(l => l.studentId === student.id);
   const siblings = data.siblings.filter(s => s.studentId1 === student.id || s.studentId2 === student.id)
@@ -999,13 +1013,17 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-lg">
-        {["links","lessons","siblings"].map(t => (
+      <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-lg flex-wrap">
+        {[
+          ["links", `Links (${lks.length})`],
+          ["lessons", `Lessons (${purchases.length})`],
+          ["siblings", `Siblings (${siblings.length})`],
+          ["logbook", "Logbook"],
+          ["rep", "Reports"],
+        ].map(([t,label]) => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${tab === t ? "bg-white shadow text-teal-700" : "text-gray-500 hover:text-gray-700"}`}>
-            {t} {t === "links" && `(${lks.length})`}
-            {t === "lessons" && `(${purchases.length})`}
-            {t === "siblings" && `(${siblings.length})`}
+            {label}
           </button>
         ))}
       </div>
@@ -1085,6 +1103,38 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
           ))}
           {siblings.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No siblings linked.</p>}
         </div>
+      )}
+
+      {tab === "logbook" && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>Lesson Balance</p>
+              <p className="text-xs" style={{color:"#9ca3af"}}>
+                {bal.remaining} remaining · {bal.used} used of {bal.bought} bought
+                {bal.isSiblingGroup && <span className="ml-1 italic">(shared sibling pool)</span>}
+              </p>
+            </div>
+            <Badge color={bal.remaining <= 2 ? "red" : bal.remaining <= 5 ? "yellow" : "green"}>
+              {bal.remaining} left
+            </Badge>
+          </div>
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-4">
+            {[["logbook","Logbook"],["reports","Reports"]].map(([t,l])=>(
+              <button key={t} onClick={()=>setParentStudTab(prev=>({...prev,[student.id]:t}))}
+                className="px-3 py-1 rounded-md text-xs font-medium transition-colors"
+                style={(parentStudTab[student.id]||"logbook")===t?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
+                {l}
+              </button>
+            ))}
+          </div>
+          {(parentStudTab[student.id]||"logbook")==="logbook" && <LogbookView studentId={student.id} data={data}/>}
+          {(parentStudTab[student.id]||"logbook")==="reports" && <StudentReportsTab studentId={student.id} data={data} setData={setData}/>}
+        </div>
+      )}
+
+      {tab === "rep" && (
+        <StudentReportsTab studentId={student.id} data={data} setData={setData} isAdminView={true}/>
       )}
     </Modal>
   );
@@ -3123,6 +3173,129 @@ function ReportsPage({ data }) {
 
 // ─── LESSON LOGBOOK & LOG LESSON ─────────────────────────────────────────────
 
+
+// ─── STUDENT REPORTS TAB ──────────────────────────────────────────────────────
+function StudentReportsTab({ studentId, data, setData, tutorId, isAdminView }) {
+  const student = data.students.find(s=>s.id===studentId);
+  const reports = (data.studentReports||[])
+    .filter(r=>r.studentId===studentId)
+    .sort((a,b)=>b.date.localeCompare(a.date));
+  const canCreate = !!tutorId;
+  const [creating, setCreating] = useState(false);
+  const [viewRpt, setViewRpt] = useState(null);
+  const emptyForm = { date:today(), subject:"", overallRating:"Good", topicsCovers:"", strengths:"", areasToImprove:"", nextSteps:"", notes:"" };
+  const [form, setFrm] = useState(emptyForm);
+  const ratingOpts = ["Excellent","Good","Satisfactory","Needs Improvement"];
+
+  const saveReport = () => {
+    if (!form.subject||!form.topicsCovers) return;
+    setData(d=>({...d, studentReports:[...(d.studentReports||[]),{id:"rpt"+uid(),tutorId:tutorId||"admin",studentId,...form,createdAt:today()}]}));
+    setFrm(emptyForm); setCreating(false);
+  };
+  const deleteReport = (id) => setData(d=>({...d, studentReports:(d.studentReports||[]).filter(r=>r.id!==id)}));
+
+  if (creating) return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-bold text-base" style={{color:"#0d1e2a"}}>New Report — {student?.firstName} {student?.lastName}</h3>
+        <Btn variant="ghost" size="sm" onClick={()=>{setCreating(false);setFrm(emptyForm);}}>Cancel</Btn>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Date</label>
+          <input className={inp} type="date" value={form.date} onChange={e=>setFrm(f=>({...f,date:e.target.value}))}/>
+        </div>
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Subject *</label>
+          <select className={inp} value={form.subject} onChange={e=>setFrm(f=>({...f,subject:e.target.value}))}>
+            <option value="">Select subject…</option>
+            {data.subjects.map(s=><option key={s.id} value={s.name}>{s.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Overall Rating</label>
+          <select className={inp} value={form.overallRating} onChange={e=>setFrm(f=>({...f,overallRating:e.target.value}))}>
+            {ratingOpts.map(r=><option key={r} value={r}>{r}</option>)}
+          </select>
+        </div>
+      </div>
+      {[
+        ["Topics Covered *","topicsCovers","List the topics covered in this period…"],
+        ["Strengths","strengths","What is the student doing well?"],
+        ["Areas to Improve","areasToImprove","Where does the student need more work?"],
+        ["Next Steps","nextSteps","What should the student focus on next?"],
+        ["Additional Notes","notes","Any other observations…"],
+      ].map(([label,field,ph])=>(
+        <div key={field}>
+          <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>{label}</label>
+          <textarea className={`${inp} w-full`} rows={2} placeholder={ph} value={form[field]} onChange={e=>setFrm(f=>({...f,[field]:e.target.value}))}/>
+        </div>
+      ))}
+      <div className="flex gap-2 pt-2">
+        <Btn onClick={saveReport} disabled={!form.subject||!form.topicsCovers}>Save Report</Btn>
+        <Btn variant="secondary" onClick={()=>{setCreating(false);setFrm(emptyForm);}}>Cancel</Btn>
+      </div>
+    </div>
+  );
+
+  if (viewRpt) {
+    const tutor = data.tutors.find(t=>t.id===viewRpt.tutorId);
+    const rcMap = {Excellent:"green",Good:"teal",Satisfactory:"yellow","Needs Improvement":"red"};
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-base" style={{color:"#0d1e2a"}}>{viewRpt.subject} Report</h3>
+            <p className="text-xs" style={{color:"#9ca3af"}}>{fmtDate(viewRpt.date)} · {tutor?.firstName} {tutor?.lastName}</p>
+          </div>
+          <div className="flex gap-2 items-center">
+            <Badge color={rcMap[viewRpt.overallRating]||"gray"}>{viewRpt.overallRating}</Badge>
+            <Btn variant="ghost" size="sm" onClick={()=>setViewRpt(null)}>← Back</Btn>
+          </div>
+        </div>
+        {[["Topics Covered",viewRpt.topicsCovers],["Strengths",viewRpt.strengths],["Areas to Improve",viewRpt.areasToImprove],["Next Steps",viewRpt.nextSteps],["Additional Notes",viewRpt.notes]].filter(([,v])=>v).map(([label,val])=>(
+          <div key={label} className="p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#9ca3af"}}>{label}</p>
+            <p className="text-sm whitespace-pre-wrap" style={{color:"#374151"}}>{val}</p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {canCreate && <div className="flex justify-end mb-4"><Btn onClick={()=>setCreating(true)}><Plus size={14}/> New Report</Btn></div>}
+      {reports.length === 0 && <p className="text-sm text-center py-8" style={{color:"#9ca3af"}}>No reports yet.{canCreate?" Create the first one above.":""}</p>}
+      <div className="space-y-3">
+        {reports.map(r=>{
+          const tutor = data.tutors.find(t=>t.id===r.tutorId);
+          const rcMap = {Excellent:"green",Good:"teal",Satisfactory:"yellow","Needs Improvement":"red"};
+          return (
+            <div key={r.id} className="p-4 rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
+              style={{background:"#f8faf9",border:"1px solid #eef2f1"}} onClick={()=>setViewRpt(r)}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-bold" style={{color:"#0d1e2a"}}>{r.subject}</p>
+                    <Badge color={rcMap[r.overallRating]||"gray"}>{r.overallRating}</Badge>
+                  </div>
+                  <p className="text-xs mt-0.5" style={{color:"#9ca3af"}}>{fmtDate(r.date)} · {tutor?.firstName} {tutor?.lastName}</p>
+                  {r.topicsCovers && <p className="text-xs mt-1" style={{color:"#6b7280",overflow:"hidden",display:"-webkit-box",WebkitLineClamp:1,WebkitBoxOrient:"vertical"}}>{r.topicsCovers}</p>}
+                </div>
+                <div className="flex gap-1 shrink-0" onClick={e=>e.stopPropagation()}>
+                  <Btn size="sm" variant="ghost" onClick={()=>setViewRpt(r)}><Eye size={13}/></Btn>
+                  {(canCreate||isAdminView) && <Btn size="sm" variant="ghost" onClick={()=>deleteReport(r.id)}><Trash2 size={13} className="text-red-400"/></Btn>}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function LogbookView({ studentId, data, currentTutorId }) {
   const logs = (data.lessonLogs||[])
     .filter(l=>l.studentId===studentId)
@@ -3287,6 +3460,7 @@ function LogLessonModal({ studentId, tutorId, data, setData, onClose }) {
 
 // ── PARENT VIEW ──────────────────────────────────────────────────────────────
 function ParentView({ data, setData, parentRef }) {
+  const [parentStudTab, setParentStudTab] = useState({});
   const parent = data.parents.find(p=>p.id===parentRef);
   if (!parent) return <div className="p-8 text-center" style={{color:"#9ca3af"}}>Parent not found.</div>;
   const students = data.students.filter(s=>parent.studentIds.includes(s.id));
@@ -3425,7 +3599,17 @@ function ParentView({ data, setData, parentRef }) {
       })()}
       {student && (
         <Section title="Lesson Logbook">
-          <LogbookView studentId={student.id} data={data}/>
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-4">
+            {[["logbook","Logbook"],["reports","Reports"]].map(([t,l])=>(
+              <button key={t} onClick={()=>setParentStudTab(prev=>({...prev,[student.id]:t}))}
+                className="px-3 py-1 rounded-md text-xs font-medium transition-colors"
+                style={(parentStudTab[student.id]||"logbook")===t?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
+                {l}
+              </button>
+            ))}
+          </div>
+          {(parentStudTab[student.id]||"logbook")==="logbook" && <LogbookView studentId={student.id} data={data}/>}
+          {(parentStudTab[student.id]||"logbook")==="reports" && <StudentReportsTab studentId={student.id} data={data} setData={setData}/>}
         </Section>
       )}
 
@@ -3593,6 +3777,7 @@ function TutorView({ data, setData, tutorRef }) {
   const [resForm, setResForm] = useState({ name:"", url:"" });
   const [schedModal, setSchedModal] = useState(null); // studentId
   const [logModal, setLogModal] = useState(null); // studentId
+  const [selStudentTab, setSelStudentTab] = useState("logbook");
   const [schedForm, setSchedForm] = useState({ date:"", time:"", duration:"60", platform:"", meetingLink:"", note:"", subjectId:"", fixed:false });
 
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
@@ -3894,8 +4079,18 @@ function TutorView({ data, setData, tutorRef }) {
       {tab==="logbook" && (
         <div className="space-y-4">
           {assignedStudents.map(s=>(
-            <Section key={s.id} title={`Lesson Logbook — ${s.firstName} ${s.lastName}`}>
-              <LogbookView studentId={s.id} data={data} currentTutorId={tutor.id}/>
+            <Section key={s.id} title={`${s.firstName} ${s.lastName}`}>
+              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-4 w-fit">
+                {[["logbook","Logbook"],["reports","Reports"]].map(([t,l])=>(
+                  <button key={t} onClick={()=>setSelStudentTab(t)}
+                    className="px-3 py-1 rounded-md text-xs font-medium transition-colors"
+                    style={selStudentTab===t?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+              {selStudentTab==="logbook" && <LogbookView studentId={s.id} data={data} currentTutorId={tutor.id}/>}
+              {selStudentTab==="reports" && <StudentReportsTab studentId={s.id} data={data} setData={setData} tutorId={tutor.id}/>}
             </Section>
           ))}
         </div>
@@ -4381,6 +4576,7 @@ export default function App() {
     scheduledLessons:   INIT_SCHEDULED_LESSONS,
     invoices:           INIT_INVOICES,
     lessonLogs:         INIT_LESSON_LOGS,
+    studentReports:     INIT_STUDENT_REPORTS,
   });
 
   const account = ROLE_ACCOUNTS.find(a=>a.id===activeAccount)||ROLE_ACCOUNTS[0];
