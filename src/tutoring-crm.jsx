@@ -821,6 +821,9 @@ function StudentsPage({ data, setData }) {
   const [form,    setForm]    = useState({});
   const [groupBy, setGroupBy] = useState("none"); // "none" | "curriculum" | "grade"
   const [filterCurr, setFilterCurr] = useState("");
+  // Tutor assignments staged while adding a student [{tutorId, subjectId}]
+  const [stagedLinks, setStagedLinks] = useState([]);
+  const [linkForm, setLinkForm] = useState({ tutorId:"", subjectId:"" });
 
   const filtered = data.students.filter(s => {
     const q = search.toLowerCase();
@@ -841,18 +844,27 @@ function StudentsPage({ data, setData }) {
     return [{ key: "all", label: "", items: filtered }];
   }, [filtered, groupBy]);
 
-  const openAdd  = () => { setForm({ firstName: "", lastName: "", curriculum: "IEB", grade: "Grade 10", status: "Active", enrolledDate: today(), centreId: "" }); setModal("add"); };
+  const openAdd  = () => { setForm({ firstName: "", lastName: "", curriculum: "IEB", grade: "Grade 10", status: "Active", enrolledDate: today(), centreId: "" }); setStagedLinks([]); setLinkForm({tutorId:"",subjectId:""}); setModal("add"); };
   const openEdit = (s, e) => { e?.stopPropagation(); setForm({ ...s }); setModal("edit"); };
   const openView = (s) => { setForm({ ...s }); setModal("view"); };
 
   const save = () => {
     if (!form.firstName || !form.lastName) return;
-    setData(d => ({
-      ...d,
-      students: modal === "add"
-        ? [...d.students, { ...form, id: "st" + uid() }]
-        : d.students.map(s => s.id === form.id ? form : s),
-    }));
+    setData(d => {
+      const newId = "st" + uid();
+      const studentId = modal === "add" ? newId : form.id;
+      const newLinks = modal === "add"
+        ? stagedLinks.map(sl => ({ id:"lk"+uid(), studentId, tutorId:sl.tutorId, subjectId:sl.subjectId, createdDate:today() }))
+        : [];
+      return {
+        ...d,
+        students: modal === "add"
+          ? [...d.students, { ...form, id: newId }]
+          : d.students.map(s => s.id === form.id ? form : s),
+        links: [...d.links, ...newLinks],
+      };
+    });
+    setStagedLinks([]); setLinkForm({tutorId:"",subjectId:""});
     setModal(null);
   };
 
@@ -979,7 +991,59 @@ function StudentsPage({ data, setData }) {
             onChange={e => setForm(f => ({ ...f, enrolledDate: e.target.value }))} />
           <Sel label="Centre" options={centreOpts} value={form.centreId || ""}
             onChange={e => setForm(f => ({ ...f, centreId: e.target.value }))} />
-          <div className="flex items-center justify-between mt-2">
+
+          {/* Tutor assignment — only when adding a new student */}
+          {modal === "add" && (
+            <div className="mt-4 pt-4" style={{borderTop:"1px solid #eef2f1"}}>
+              <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{color:"#5a9fa6"}}>Assign Tutor(s)</p>
+              {/* Staged links list */}
+              {stagedLinks.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {stagedLinks.map((sl,i) => {
+                    const t = data.tutors.find(x=>x.id===sl.tutorId);
+                    const s = data.subjects.find(x=>x.id===sl.subjectId);
+                    return (
+                      <div key={i} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{background:"#f0f9fa",border:"1px solid #b2e0e4"}}>
+                        <span className="text-sm font-medium" style={{color:"#0d1e2a"}}>{t?.firstName} {t?.lastName} — <span style={{color:"#5a9fa6"}}>{s?.name}</span></span>
+                        <button onClick={()=>setStagedLinks(ls=>ls.filter((_,j)=>j!==i))}><X size={13} style={{color:"#ef4444"}}/></button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {/* Add link form */}
+              <div className="grid grid-cols-2 gap-3 mb-2">
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Tutor</label>
+                  <select className={inp} value={linkForm.tutorId} onChange={e=>setLinkForm(f=>({...f,tutorId:e.target.value,subjectId:""}))}>
+                    <option value="">Select tutor…</option>
+                    {data.tutors.filter(t=>t.status==="Active").map(t=>(
+                      <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Subject</label>
+                  <select className={inp} value={linkForm.subjectId} onChange={e=>setLinkForm(f=>({...f,subjectId:e.target.value}))} disabled={!linkForm.tutorId}>
+                    <option value="">Select subject…</option>
+                    {linkForm.tutorId && data.subjects
+                      .filter(s => data.tutors.find(t=>t.id===linkForm.tutorId)?.subjectIds?.includes(s.id)
+                        && !stagedLinks.some(sl=>sl.tutorId===linkForm.tutorId&&sl.subjectId===s.id))
+                      .map(s=><option key={s.id} value={s.id}>{s.name}</option>)
+                    }
+                  </select>
+                </div>
+              </div>
+              <Btn size="sm" variant="secondary"
+                disabled={!linkForm.tutorId||!linkForm.subjectId}
+                onClick={()=>{ setStagedLinks(ls=>[...ls,{tutorId:linkForm.tutorId,subjectId:linkForm.subjectId}]); setLinkForm({tutorId:"",subjectId:""}); }}>
+                <Plus size={12}/> Add Tutor Assignment
+              </Btn>
+              {stagedLinks.length===0 && <p className="text-xs mt-2" style={{color:"#9ca3af"}}>Optional — you can also assign tutors later from the student detail.</p>}
+            </div>
+          )}
+
+          <div className="flex items-center justify-between mt-4">
             {modal === "edit" && <Btn variant="danger" size="sm" onClick={() => remove(form.id)}><Trash2 size={13} /> Delete</Btn>}
             <div className="flex gap-3 ml-auto">
               <Btn variant="secondary" onClick={() => setModal(null)}>Cancel</Btn>
@@ -1006,6 +1070,7 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
   const [purchaseForm, setPurchaseForm] = useState({ quantity: "", date: today(), note: "" });
   const [siblingId, setSiblingId] = useState("");
   const [modalStudTab, setModalStudTab] = useState("logbook");
+  const [assignForm, setAssignForm] = useState({ tutorId:"", subjectId:"" });
   const bal = getLessonBalance(student.id, data);
 
   const lks      = data.links.filter(l => l.studentId === student.id);
@@ -1042,6 +1107,17 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
   };
 
   const removeLink = (id) => setData(d => ({ ...d, links: d.links.filter(l => l.id !== id) }));
+
+  const addTutorLink = () => {
+    if (!assignForm.tutorId || !assignForm.subjectId) return;
+    if (data.links.some(l => l.studentId===student.id && l.tutorId===assignForm.tutorId && l.subjectId===assignForm.subjectId)) return;
+    setData(d => ({ ...d, links: [...d.links, { id:"lk"+uid(), studentId:student.id, tutorId:assignForm.tutorId, subjectId:assignForm.subjectId, createdDate:today() }] }));
+    setAssignForm({ tutorId:"", subjectId:"" });
+  };
+  const assignableTutors  = data.tutors.filter(t => t.status === "Active");
+  const assignableSubjects = assignForm.tutorId
+    ? data.subjects.filter(s => data.tutors.find(t=>t.id===assignForm.tutorId)?.subjectIds?.includes(s.id) && !data.links.some(l=>l.studentId===student.id&&l.tutorId===assignForm.tutorId&&l.subjectId===s.id))
+    : [];
 
   const siblingOpts = data.students
     .filter(s => s.id !== student.id && !siblings.some(x => x.id === s.id))
@@ -1096,29 +1172,49 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
       </div>
 
       {tab === "links" && (
-        <div className="space-y-2">
-          {lks.map(lk => {
-            const tutor = data.tutors.find(t => t.id === lk.tutorId);
-            const subj  = data.subjects.find(s => s.id === lk.subjectId);
-            return (
-              <div key={lk.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs">
-                    {tutor?.firstName[0]}{tutor?.lastName[0]}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{tutor?.firstName} {tutor?.lastName}</p>
-                    <p className="text-xs text-gray-400">Since {fmtDate(lk.createdDate)}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge color="indigo">{subj?.name}</Badge>
-                  <Btn size="sm" variant="ghost" onClick={() => removeLink(lk.id)}><X size={13} /></Btn>
-                </div>
+        <div className="space-y-3">
+          <div className="p-4 rounded-2xl" style={{background:"#f0f9fa",border:"1px solid #b2e0e4"}}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{color:"#5a9fa6"}}>Assign a Tutor</p>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Tutor</label>
+                <select className={inp} value={assignForm.tutorId} onChange={e=>setAssignForm(f=>({...f,tutorId:e.target.value,subjectId:""}))}>
+                  <option value="">Select tutor…</option>
+                  {assignableTutors.map(t=><option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>)}
+                </select>
               </div>
-            );
-          })}
-          {lks.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No links yet.</p>}
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Subject</label>
+                <select className={inp} value={assignForm.subjectId} onChange={e=>setAssignForm(f=>({...f,subjectId:e.target.value}))} disabled={!assignForm.tutorId||assignableSubjects.length===0}>
+                  <option value="">{assignForm.tutorId&&assignableSubjects.length===0?"All subjects assigned":"Select subject…"}</option>
+                  {assignableSubjects.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
+              </div>
+            </div>
+            <Btn onClick={addTutorLink} disabled={!assignForm.tutorId||!assignForm.subjectId}><Plus size={13}/> Assign</Btn>
+          </div>
+          {lks.length===0
+            ? <p className="text-sm text-gray-400 text-center py-3">No tutors assigned yet.</p>
+            : lks.map(lk=>{
+                const tutor=data.tutors.find(t=>t.id===lk.tutorId);
+                const subj=data.subjects.find(s=>s.id===lk.subjectId);
+                return (
+                  <div key={lk.id} className="flex items-center justify-between p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm text-white" style={{background:B.tealDark}}>{tutor?.firstName[0]}{tutor?.lastName[0]}</div>
+                      <div>
+                        <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{tutor?.firstName} {tutor?.lastName}</p>
+                        <p className="text-xs" style={{color:"#9ca3af"}}>Since {fmtDate(lk.createdDate)}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge color="indigo">{subj?.name}</Badge>
+                      <Btn size="sm" variant="ghost" onClick={()=>removeLink(lk.id)}><X size={13}/></Btn>
+                    </div>
+                  </div>
+                );
+              })
+          }
         </div>
       )}
 
@@ -3102,61 +3198,58 @@ function CentreDetailModal({ centre, data, setData, onClose, onEdit }) {
 // ─── PAGE: INVOICING ─────────────────────────────────────────────────────────
 
 function InvoicingPage({ data, setData }) {
-  const [search, setSearch] = useState("");
+  const [search, setSearch]           = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [modal, setModal] = useState(null); // "create" | "view"
-  const [viewInv, setViewInv] = useState(null);
-  const [form, setForm] = useState({ studentId:"", lineItems:[], notes:"" });
+  const [modal, setModal]             = useState(null); // "create" | "view"
+  const [viewInv, setViewInv]         = useState(null);
+  const [dlLoading, setDlLoading]     = useState(null);
+  const [form, setForm]               = useState({
+    studentId:"", lineItems:[], notes:"", dueDate:"", discount:0,
+  });
   const [customLine, setCustomLine] = useState({ description:"", qty:"1", unitPrice:"", lessons:"" });
 
   const invoices = data.invoices||[];
   const filtered = invoices.filter(inv=>{
     const student = data.students.find(s=>s.id===inv.studentId);
     const name = student?`${student.firstName} ${student.lastName}`:"";
-    const matchesSearch = name.toLowerCase().includes(search.toLowerCase()) || inv.invoiceNumber.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter==="all" || inv.status===statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchSearch = name.toLowerCase().includes(search.toLowerCase())||inv.invoiceNumber.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = statusFilter==="all"||inv.status===statusFilter;
+    return matchSearch && matchStatus;
   }).sort((a,b)=>b.date.localeCompare(a.date));
 
   const openCreate = () => {
-    setForm({ studentId:"", lineItems:[], notes:"" });
+    const due = new Date(); due.setDate(due.getDate()+14);
+    setForm({ studentId:"", lineItems:[], notes:"", dueDate:due.toISOString().slice(0,10), discount:0 });
     setModal("create");
   };
 
-  const addPackageLine = (pkg) => {
-    setForm(f=>({...f, lineItems:[...f.lineItems, {
-      id:"li"+uid(), description:pkg.name, qty:1,
-      unitPrice:pkg.price, lessons:pkg.lessons,
-    }]}));
-  };
+  const addPackageLine = (pkg) => setForm(f=>({...f, lineItems:[...f.lineItems,{
+    id:"li"+uid(), description:pkg.name, qty:1, unitPrice:pkg.price, lessons:pkg.lessons,
+  }]}));
 
   const addCustomLine = () => {
     if (!customLine.description||!customLine.unitPrice) return;
     setForm(f=>({...f, lineItems:[...f.lineItems,{
-      id:"li"+uid(),
-      description:customLine.description,
-      qty:parseInt(customLine.qty)||1,
-      unitPrice:parseFloat(customLine.unitPrice)||0,
+      id:"li"+uid(), description:customLine.description,
+      qty:parseInt(customLine.qty)||1, unitPrice:parseFloat(customLine.unitPrice)||0,
       lessons:parseInt(customLine.lessons)||0,
     }]}));
     setCustomLine({description:"",qty:"1",unitPrice:"",lessons:""});
   };
+  const removeLine = (id) => setForm(f=>({...f, lineItems:f.lineItems.filter(l=>l.id!==id)}));
 
-  const removeLine = (id) => setForm(f=>({...f,lineItems:f.lineItems.filter(l=>l.id!==id)}));
-
-  const calcTotal = (items) => items.reduce((s,l)=>s+(l.qty*l.unitPrice),0);
+  const subtotal  = (items) => items.reduce((s,l)=>s+(l.qty*l.unitPrice),0);
+  const calcTotal = (items, discount=0) => Math.max(0, subtotal(items) - discount);
 
   const saveInvoice = () => {
     if (!form.studentId||form.lineItems.length===0) return;
     const inv = {
-      id:"inv"+uid(),
-      studentId:form.studentId,
+      id:"inv"+uid(), studentId:form.studentId,
       invoiceNumber:nextInvoiceNumber(data.invoices),
-      date:today(),
-      status:"draft",
-      paidDate:"",
-      lineItems:form.lineItems,
-      total:calcTotal(form.lineItems),
+      date:today(), dueDate:form.dueDate, status:"draft",
+      paidDate:"", lineItems:form.lineItems,
+      subtotal:subtotal(form.lineItems), discount:parseFloat(form.discount)||0,
+      total:calcTotal(form.lineItems, parseFloat(form.discount)||0),
       notes:form.notes,
     };
     setData(d=>({...d, invoices:[...(d.invoices||[]),inv]}));
@@ -3164,27 +3257,175 @@ function InvoicingPage({ data, setData }) {
   };
 
   const markSent = (invId) => {
-    setData(d=>({
-      ...d,
+    setData(d=>({...d,
       invoices:d.invoices.map(i=>i.id===invId?{...i,status:"sent"}:i),
-      students:d.students.map(s=>{
-        const inv=d.invoices.find(i=>i.id===invId);
-        return (inv&&s.id===inv.studentId&&s.status==="Pending")?{...s,status:"Invoice Sent"}:s;
-      }),
+      students:d.students.map(s=>{ const inv=d.invoices.find(i=>i.id===invId); return (inv&&s.id===inv.studentId&&s.status==="Pending")?{...s,status:"Invoice Sent"}:s; }),
     }));
     setViewInv(v=>v?{...v,status:"sent"}:v);
   };
 
   const markPaid = (invId) => {
-    setData(d=>({
-      ...d,
+    setData(d=>({...d,
       invoices:d.invoices.map(i=>i.id===invId?{...i,status:"paid",paidDate:today()}:i),
-      students:d.students.map(s=>{
-        const inv=d.invoices.find(i=>i.id===invId);
-        return (inv&&s.id===inv.studentId)?{...s,status:"Active"}:s;
-      }),
+      students:d.students.map(s=>{ const inv=d.invoices.find(i=>i.id===invId); return (inv&&s.id===inv.studentId)?{...s,status:"Active"}:s; }),
     }));
     setViewInv(v=>v?{...v,status:"paid",paidDate:today()}:v);
+  };
+
+  const deleteInvoice = (invId) => {
+    setData(d=>({...d, invoices:d.invoices.filter(i=>i.id!==invId)}));
+    setModal(null); setViewInv(null);
+  };
+
+  // ── PDF download ───────────────────────────────────────────────────────────
+  const downloadInvoicePDF = async (inv) => {
+    setDlLoading(inv.id);
+    try {
+      if (!window.jspdf) {
+        await new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:'mm', format:'a4' });
+      const W=210; const H=297;
+      const tealD=[90,159,166], coral=[215,115,90], dark=[13,30,42], gray=[107,114,128], white=[255,255,255], light=[248,250,249];
+
+      const student = data.students.find(s=>s.id===inv.studentId);
+      const parent  = data.parents?.find(p=>p.studentIds?.includes(inv.studentId));
+      const billTo  = parent ? `${parent.firstName} ${parent.lastName}` : (student ? `${student.firstName} ${student.lastName}` : '—');
+      const sColor  = {draft:gray, sent:[217,119,6], paid:[22,163,74]}[inv.status]||gray;
+      const sLabel  = {draft:'DRAFT', sent:'AWAITING PAYMENT', paid:'PAID'}[inv.status]||'';
+
+      // ── Header band ──
+      doc.setFillColor(...tealD); doc.rect(0,0,W,38,'F');
+      doc.setFillColor(...coral); doc.rect(0,38,W,2,'F');
+      doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(24);
+      doc.text('LEARN TO LINK',14,18);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      doc.text('Empowering learners, one lesson at a time.',14,26);
+      doc.setFont('helvetica','bold'); doc.setFontSize(18);
+      doc.text('INVOICE',W-14,20,{align:'right'});
+      doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      doc.text(inv.invoiceNumber,W-14,28,{align:'right'});
+
+      // ── Status badge ──
+      doc.setFillColor(...sColor); doc.roundedRect(W-50,32,36,8,2,2,'F');
+      doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+      doc.text(sLabel,W-32,37.5,{align:'center'});
+
+      let y=48;
+
+      // ── Two-column meta ──
+      // Left: Bill To
+      doc.setTextColor(...gray); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+      doc.text('BILL TO',14,y);
+      doc.setTextColor(...dark); doc.setFont('helvetica','normal'); doc.setFontSize(10);
+      doc.text(billTo,14,y+6);
+      if (student) {
+        doc.setFontSize(9); doc.setTextColor(...gray);
+        doc.text(`Student: ${student.firstName} ${student.lastName}`,14,y+12);
+        doc.text(`${student.curriculum} · ${student.grade}`,14,y+17);
+      }
+
+      // Right: Invoice details
+      const rightX=W-14;
+      const details=[['Invoice No:', inv.invoiceNumber],['Date:', fmtDate(inv.date)],['Due Date:', inv.dueDate?fmtDate(inv.dueDate):'—'],['Status:', sLabel]];
+      details.forEach(([k,v],i)=>{
+        const dy=y+(i*7);
+        doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...gray);
+        doc.text(k,rightX-45,dy);
+        doc.setFont('helvetica','normal'); doc.setTextColor(...dark);
+        doc.text(String(v),rightX,dy,{align:'right'});
+      });
+
+      y+=28;
+
+      // ── Line items table header ──
+      doc.setFillColor(...tealD); doc.rect(14,y,W-28,8,'F');
+      doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+      doc.text('DESCRIPTION',17,y+5.5);
+      doc.text('LESSONS',110,y+5.5,{align:'center'});
+      doc.text('QTY',145,y+5.5,{align:'center'});
+      doc.text('UNIT PRICE',168,y+5.5,{align:'right'});
+      doc.text('AMOUNT',W-14,y+5.5,{align:'right'});
+      y+=8;
+
+      // ── Line items ──
+      inv.lineItems.forEach((line,i)=>{
+        const bg = i%2===0?light:white;
+        doc.setFillColor(...bg); doc.rect(14,y,W-28,8,'F');
+        doc.setTextColor(...dark); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+        doc.text(String(line.description).slice(0,55),17,y+5.5);
+        doc.text(line.lessons>0?String(line.lessons):'—',110,y+5.5,{align:'center'});
+        doc.text(String(line.qty||1),145,y+5.5,{align:'center'});
+        doc.text(`R ${Number(line.unitPrice).toFixed(2)}`,168,y+5.5,{align:'right'});
+        doc.text(`R ${(Number(line.qty||1)*Number(line.unitPrice)).toFixed(2)}`,W-14,y+5.5,{align:'right'});
+        y+=8;
+      });
+
+      // ── Totals ──
+      y+=4;
+      const sub=inv.subtotal||inv.total;
+      const disc=inv.discount||0;
+      const tot=inv.total;
+      const totLines=[[`Subtotal`,`R ${Number(sub).toFixed(2)}`]];
+      if (disc>0) totLines.push([`Discount`,`- R ${Number(disc).toFixed(2)}`]);
+      totLines.push([`TOTAL DUE`,`R ${Number(tot).toFixed(2)}`]);
+      totLines.forEach(([k,v],i)=>{
+        const isTotal=i===totLines.length-1;
+        if (isTotal) { doc.setFillColor(...tealD); doc.rect(W-70,y-1,56,9,'F'); }
+        doc.setFont('helvetica', isTotal?'bold':'normal');
+        doc.setFontSize(isTotal?11:9);
+        if(isTotal){doc.setTextColor(...white);}else{doc.setTextColor(...gray);}
+        doc.text(k,W-72,y+5,{align:'right'});
+        if(isTotal){doc.setTextColor(...white);}else{doc.setTextColor(...dark);}
+        doc.text(v,W-14,y+5,{align:'right'});
+        y+=isTotal?10:7;
+      });
+
+      // ── Banking details placeholder ──
+      y+=8;
+      doc.setFillColor(248,250,249); doc.roundedRect(14,y,W-28,30,3,3,'F');
+      doc.setDrawColor(...tealD); doc.setLineWidth(0.3); doc.roundedRect(14,y,W-28,30,3,3,'S');
+      doc.setTextColor(...tealD); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+      doc.text('BANKING DETAILS',18,y+7);
+      doc.setTextColor(...dark); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      const banking=[['Bank:','[BANK NAME]'],['Account Name:','LEARN TO LINK'],['Account No:','[ACCOUNT NUMBER]'],['Branch Code:','[BRANCH CODE]'],['Reference:',inv.invoiceNumber]];
+      let bx=18; let by=y+14;
+      banking.forEach(([k,v])=>{
+        doc.setFont('helvetica','bold'); doc.text(k,bx,by);
+        doc.setFont('helvetica','normal'); doc.text(v,bx+36,by);
+        bx+=38; if(bx>W-50){bx=18;by+=7;}
+      });
+      y+=36;
+
+      // ── Notes ──
+      if (inv.notes) {
+        y+=4;
+        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...gray);
+        doc.text('NOTES',14,y);
+        doc.setFont('helvetica','normal'); doc.setTextColor(...dark);
+        const nlines=doc.splitTextToSize(inv.notes,W-28);
+        doc.text(nlines,14,y+6);
+        y+=6+nlines.length*5;
+      }
+
+      if (inv.status==='paid'&&inv.paidDate) {
+        y+=4;
+        doc.setFillColor(220,252,231); doc.roundedRect(14,y,W-28,10,2,2,'F');
+        doc.setTextColor(22,163,74); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+        doc.text(`✓  Payment received on ${fmtDate(inv.paidDate)} — Thank you!`,W/2,y+6.5,{align:'center'});
+      }
+
+      // ── Footer ──
+      doc.setFillColor(...tealD); doc.rect(0,H-14,W,14,'F');
+      doc.setTextColor(...white); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+      doc.text('LEARN TO LINK  |  learntolink.co.za  |  info@learntolink.co.za',W/2,H-8,{align:'center'});
+      doc.text('Thank you for choosing LEARN TO LINK.',W/2,H-3,{align:'center'});
+
+      const fname=`${inv.invoiceNumber}_${student?.lastName||'Invoice'}.pdf`.replace(/\s+/g,'_');
+      doc.save(fname);
+    } catch(e){ console.error(e); alert('PDF generation failed. Please try again.'); }
+    setDlLoading(null);
   };
 
   const statusColor = {draft:"gray",sent:"yellow",paid:"green"};
@@ -3201,10 +3442,11 @@ function InvoicingPage({ data, setData }) {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-3 gap-4">
-        <KPI title="Draft" value={invoices.filter(i=>i.status==="draft").length} icon={FileText} color="indigo"/>
-        <KPI title="Sent / Awaiting Payment" value={invoices.filter(i=>i.status==="sent").length} icon={TrendingUp} color="amber"/>
-        <KPI title="Total Collected (Paid)" value={fmtZAR(invoices.filter(i=>i.status==="paid").reduce((s,i)=>s+i.total,0))} icon={DollarSign} color="green"/>
+      <div className="grid grid-cols-4 gap-4">
+        <KPI title="Draft"           value={invoices.filter(i=>i.status==="draft").length}  icon={FileText}   color="indigo"/>
+        <KPI title="Awaiting Payment" value={invoices.filter(i=>i.status==="sent").length}   icon={TrendingUp} color="amber"/>
+        <KPI title="Paid This Month"  value={invoices.filter(i=>i.status==="paid"&&i.paidDate?.startsWith(today().slice(0,7))).length} icon={CheckCircle} color="green"/>
+        <KPI title="Total Collected"  value={fmtZAR(invoices.filter(i=>i.status==="paid").reduce((s,i)=>s+i.total,0))} icon={DollarSign} color="teal"/>
       </div>
 
       {/* Filters */}
@@ -3225,22 +3467,31 @@ function InvoicingPage({ data, setData }) {
       <Section title="Invoices">
         {filtered.length===0?<p className="text-sm text-center py-6" style={{color:"#9ca3af"}}>No invoices found.</p>:(
           <TableWrap>
-            <thead><tr><TH>#</TH><TH>Student</TH><TH>Date</TH><TH>Lessons</TH><TH>Total</TH><TH>Status</TH><TH></TH></tr></thead>
+            <thead><tr><TH>#</TH><TH>Student</TH><TH>Date</TH><TH>Due</TH><TH>Lessons</TH><TH>Total</TH><TH>Status</TH><TH></TH></tr></thead>
             <tbody>{filtered.map(inv=>{
               const student=data.students.find(s=>s.id===inv.studentId);
               const totalLessons=inv.lineItems.reduce((s,l)=>s+(l.lessons||0),0);
+              const overdue=inv.status==="sent"&&inv.dueDate&&inv.dueDate<today();
               return (
                 <TR key={inv.id} onClick={()=>{setViewInv(inv);setModal("view");}}>
                   <TD><span className="font-mono font-bold text-xs" style={{color:B.tealDark}}>{inv.invoiceNumber}</span></TD>
                   <TD><span className="font-semibold">{student?`${student.firstName} ${student.lastName}`:"—"}</span></TD>
                   <TD>{fmtDate(inv.date)}</TD>
+                  <TD>
+                    <span className={overdue?"font-bold":""}  style={{color:overdue?"#dc2626":"inherit"}}>
+                      {inv.dueDate?fmtDate(inv.dueDate):"—"}{overdue?" ⚠":""}
+                    </span>
+                  </TD>
                   <TD>{totalLessons>0?`${totalLessons} lessons`:"—"}</TD>
                   <TD><span className="font-bold">{fmtZAR(inv.total)}</span></TD>
                   <TD><Badge color={statusColor[inv.status]}>{statusLabel[inv.status]}</Badge></TD>
-                  <TD onClick={e=>e.stopPropagation()}>
+                  <TD onClick={e=>e.stopPropagation()} className="flex gap-1">
+                    <Btn size="sm" variant="ghost" title="Download PDF" onClick={()=>downloadInvoicePDF(inv)} disabled={dlLoading===inv.id}>
+                      {dlLoading===inv.id?"…":<FileText size={12}/>}
+                    </Btn>
                     {inv.status==="draft"&&<Btn size="sm" onClick={()=>markSent(inv.id)}>Mark Sent</Btn>}
                     {inv.status==="sent"&&<Btn size="sm" variant="success" onClick={()=>markPaid(inv.id)}><CheckCircle size={13}/> Mark Paid</Btn>}
-                    {inv.status==="paid"&&<Badge color="green">✓ Paid {fmtDate(inv.paidDate)}</Badge>}
+                    {inv.status==="paid"&&<span className="text-xs" style={{color:"#059669"}}>✓ {fmtDate(inv.paidDate)}</span>}
                   </TD>
                 </TR>
               );
@@ -3252,13 +3503,23 @@ function InvoicingPage({ data, setData }) {
       {/* Create invoice modal */}
       {modal==="create"&&(
         <Modal title="New Invoice" onClose={()=>setModal(null)} extraWide>
-          <Sel label="Student" value={form.studentId} onChange={e=>setForm(f=>({...f,studentId:e.target.value}))}
-            options={data.students.map(s=>({value:s.id,label:`${s.firstName} ${s.lastName} (${s.curriculum} · ${s.grade})`}))}
-            placeholder="Select student"/>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Student *</label>
+              <select className={inp} value={form.studentId} onChange={e=>setForm(f=>({...f,studentId:e.target.value}))}>
+                <option value="">Select student…</option>
+                {data.students.map(s=><option key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.curriculum} · {s.grade})</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Due Date</label>
+              <input className={inp} type="date" value={form.dueDate} onChange={e=>setForm(f=>({...f,dueDate:e.target.value}))}/>
+            </div>
+          </div>
 
-          {/* Package quick-add buttons */}
+          {/* Package quick-add */}
           <div className="mb-4">
-            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>Add Package / Service</p>
+            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>Quick Add Package</p>
             <div className="flex flex-wrap gap-2">
               {PACKAGES.filter(p=>p.type!=="custom").map(pkg=>(
                 <button key={pkg.id} onClick={()=>addPackageLine(pkg)}
@@ -3274,7 +3535,7 @@ function InvoicingPage({ data, setData }) {
             </div>
           </div>
 
-          {/* Custom line item */}
+          {/* Custom line */}
           <div className="p-3 rounded-xl mb-4" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
             <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>Add Custom Line Item</p>
             <div className="grid grid-cols-4 gap-2 items-end">
@@ -3283,39 +3544,58 @@ function InvoicingPage({ data, setData }) {
                   placeholder="Description" value={customLine.description} onChange={e=>setCustomLine(f=>({...f,description:e.target.value}))}/>
               </div>
               <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
-                placeholder="Price (R)" type="number" value={customLine.unitPrice} onChange={e=>setCustomLine(f=>({...f,unitPrice:e.target.value}))}/>
+                placeholder="Unit Price (R)" type="number" value={customLine.unitPrice} onChange={e=>setCustomLine(f=>({...f,unitPrice:e.target.value}))}/>
               <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
                 placeholder="Lessons #" type="number" value={customLine.lessons} onChange={e=>setCustomLine(f=>({...f,lessons:e.target.value}))}/>
             </div>
             <Btn size="sm" className="mt-2" onClick={addCustomLine} disabled={!customLine.description||!customLine.unitPrice}><Plus size={13}/> Add Line</Btn>
           </div>
 
-          {/* Line items preview */}
+          {/* Line items */}
           {form.lineItems.length>0&&(
-            <div className="mb-4">
-              <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>Invoice Lines</p>
-              <div className="rounded-xl overflow-hidden" style={{border:"1px solid #eef2f1"}}>
-                {form.lineItems.map((l,i)=>(
-                  <div key={l.id} className="flex items-center gap-3 px-4 py-3 text-sm" style={{borderBottom:i<form.lineItems.length-1?"1px solid #f5f8f7":"none",background:"white"}}>
-                    <div className="flex-1">
-                      <span className="font-semibold" style={{color:"#0d1e2a"}}>{l.description}</span>
-                      {l.lessons>0&&<span className="text-xs ml-2" style={{color:"#9ca3af"}}>+{l.lessons} lessons</span>}
-                    </div>
-                    <span className="font-bold" style={{color:B.tealDark}}>{fmtZAR(l.qty*l.unitPrice)}</span>
-                    <button onClick={()=>removeLine(l.id)} style={{color:"#ef4444"}}><X size={14}/></button>
-                  </div>
-                ))}
-                <div className="flex justify-end px-4 py-3 font-bold text-sm" style={{background:"#f8faf9",borderTop:"1px solid #eef2f1"}}>
-                  <span style={{color:"#9ca3af",marginRight:"16px"}}>Total</span>
-                  <span style={{color:"#0d1e2a"}}>{fmtZAR(calcTotal(form.lineItems))}</span>
+            <div className="mb-4 rounded-xl overflow-hidden" style={{border:"1px solid #eef2f1"}}>
+              <table className="w-full text-sm">
+                <thead><tr style={{background:B.tealDark}}>
+                  {["Description","Lessons","Qty","Unit Price","Amount",""].map(h=><th key={h} className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{color:"white"}}>{h}</th>)}
+                </tr></thead>
+                <tbody>
+                  {form.lineItems.map((l,i)=>(
+                    <tr key={l.id} style={{background:i%2===0?"#f8faf9":"white"}}>
+                      <td className="px-3 py-2 font-medium" style={{color:"#0d1e2a"}}>{l.description}</td>
+                      <td className="px-3 py-2 text-center" style={{color:"#9ca3af"}}>{l.lessons>0?l.lessons:"—"}</td>
+                      <td className="px-3 py-2 text-center">{l.qty}</td>
+                      <td className="px-3 py-2">{fmtZAR(l.unitPrice)}</td>
+                      <td className="px-3 py-2 font-bold" style={{color:B.tealDark}}>{fmtZAR(l.qty*l.unitPrice)}</td>
+                      <td className="px-3 py-2"><button onClick={()=>removeLine(l.id)}><X size={13} style={{color:"#ef4444"}}/></button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="px-4 py-3 text-sm" style={{borderTop:"1px solid #eef2f1",background:"#f0f9fa"}}>
+                <div className="flex justify-end gap-8 mb-1">
+                  <span style={{color:"#9ca3af"}}>Subtotal</span>
+                  <span className="font-semibold" style={{color:"#0d1e2a"}}>{fmtZAR(subtotal(form.lineItems))}</span>
+                </div>
+                <div className="flex items-center justify-end gap-3">
+                  <span style={{color:"#9ca3af"}}>Discount (R)</span>
+                  <input className="border rounded-lg px-2 py-1 text-sm w-24 text-right" style={{borderColor:"#e5e7eb"}}
+                    type="number" min={0} value={form.discount}
+                    onChange={e=>setForm(f=>({...f,discount:e.target.value}))}/>
+                </div>
+                <div className="flex justify-end gap-8 mt-2 pt-2" style={{borderTop:"1px solid #eef2f1"}}>
+                  <span className="font-bold" style={{color:"#0d1e2a"}}>Total Due</span>
+                  <span className="font-bold text-lg" style={{color:B.tealDark}}>{fmtZAR(calcTotal(form.lineItems,parseFloat(form.discount)||0))}</span>
                 </div>
               </div>
             </div>
           )}
 
-          <Txt label="Notes (optional)" value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} placeholder="Internal notes…"/>
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Notes to Client (optional)</label>
+            <textarea className={`${inp} w-full`} rows={2} placeholder="e.g. Please use invoice number as reference when making payment." value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))}/>
+          </div>
 
-          <div className="flex gap-2 justify-end">
+          <div className="flex gap-2 justify-end mt-4">
             <Btn variant="secondary" onClick={()=>setModal(null)}>Cancel</Btn>
             <Btn onClick={saveInvoice} disabled={!form.studentId||form.lineItems.length===0}><FileText size={15}/> Create Invoice</Btn>
           </div>
@@ -3325,37 +3605,86 @@ function InvoicingPage({ data, setData }) {
       {/* View invoice modal */}
       {modal==="view"&&viewInv&&(()=>{
         const student=data.students.find(s=>s.id===viewInv.studentId);
+        const parent=data.parents?.find(p=>p.studentIds?.includes(viewInv.studentId));
+        const billTo=parent?`${parent.firstName} ${parent.lastName}`:(student?`${student.firstName} ${student.lastName}`:"—");
         const totalLessons=viewInv.lineItems.reduce((s,l)=>s+(l.lessons||0),0);
+        const sub=viewInv.subtotal||viewInv.total;
+        const disc=viewInv.discount||0;
+        const overdue=viewInv.status==="sent"&&viewInv.dueDate&&viewInv.dueDate<today();
         return (
           <Modal title={viewInv.invoiceNumber} onClose={()=>setModal(null)} wide>
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <p className="font-bold text-lg" style={{color:"#0d1e2a"}}>{student?`${student.firstName} ${student.lastName}`:"—"}</p>
-                <p className="text-sm" style={{color:"#6b7280"}}>{fmtDate(viewInv.date)} · {totalLessons} lessons</p>
-              </div>
-              <Badge color={statusColor[viewInv.status]}>{statusLabel[viewInv.status]}</Badge>
-            </div>
-            <div className="rounded-xl overflow-hidden mb-4" style={{border:"1px solid #eef2f1"}}>
-              {viewInv.lineItems.map((l,i)=>(
-                <div key={l.id} className="flex items-center gap-3 px-4 py-3 text-sm" style={{borderBottom:i<viewInv.lineItems.length-1?"1px solid #f5f8f7":"none",background:"white"}}>
-                  <div className="flex-1">
-                    <span className="font-semibold" style={{color:"#0d1e2a"}}>{l.description}</span>
-                    {l.lessons>0&&<span className="text-xs ml-2" style={{color:"#9ca3af"}}>+{l.lessons} lessons</span>}
-                  </div>
-                  <span className="font-bold" style={{color:B.tealDark}}>{fmtZAR(l.qty*l.unitPrice)}</span>
+            {/* Invoice header */}
+            <div className="rounded-2xl p-5 mb-4" style={{background:"#0d1e2a"}}>
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#94cbd1"}}>LEARN TO LINK — Invoice</p>
+                  <p className="font-bold text-xl" style={{color:"white"}}>{viewInv.invoiceNumber}</p>
+                  <p className="text-sm mt-1" style={{color:"#94cbd1"}}>Billed to: {billTo}</p>
+                  {student&&<p className="text-xs mt-0.5" style={{color:"#6b7280"}}>Student: {student.firstName} {student.lastName} · {student.curriculum} {student.grade}</p>}
                 </div>
-              ))}
-              <div className="flex justify-end px-4 py-3 font-bold text-sm" style={{background:"#f8faf9",borderTop:"1px solid #eef2f1"}}>
-                <span style={{color:"#9ca3af",marginRight:"16px"}}>Total</span>
-                <span style={{color:"#0d1e2a"}}>{fmtZAR(viewInv.total)}</span>
+                <div className="text-right">
+                  <Badge color={{draft:"gray",sent:"yellow",paid:"green"}[viewInv.status]}>{statusLabel[viewInv.status]}</Badge>
+                  <p className="text-xs mt-2" style={{color:"#9ca3af"}}>Issued: {fmtDate(viewInv.date)}</p>
+                  {viewInv.dueDate&&<p className="text-xs" style={{color:overdue?"#f87171":"#9ca3af"}}>Due: {fmtDate(viewInv.dueDate)}{overdue?" ⚠ Overdue":""}</p>}
+                  {totalLessons>0&&<p className="text-xs mt-1" style={{color:"#94cbd1"}}>{totalLessons} lessons included</p>}
+                </div>
               </div>
             </div>
-            {viewInv.notes&&<p className="text-sm mb-4" style={{color:"#6b7280"}}>{viewInv.notes}</p>}
-            {viewInv.status==="paid"&&<p className="text-xs mb-4" style={{color:"#059669"}}>✓ Paid on {fmtDate(viewInv.paidDate)} — student marked Active</p>}
-            <div className="flex gap-2 justify-end">
-              <Btn variant="secondary" onClick={()=>setModal(null)}>Close</Btn>
-              {viewInv.status==="draft"&&<Btn onClick={()=>markSent(viewInv.id)}>Mark Sent</Btn>}
-              {viewInv.status==="sent"&&<Btn variant="success" onClick={()=>markPaid(viewInv.id)}><CheckCircle size={15}/> Mark Paid</Btn>}
+
+            {/* Line items */}
+            <div className="rounded-xl overflow-hidden mb-4" style={{border:"1px solid #eef2f1"}}>
+              <table className="w-full text-sm">
+                <thead><tr style={{background:B.tealDark}}>
+                  {["Description","Lessons","Qty","Unit Price","Amount"].map(h=><th key={h} className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{color:"white"}}>{h}</th>)}
+                </tr></thead>
+                <tbody>
+                  {viewInv.lineItems.map((l,i)=>(
+                    <tr key={l.id} style={{background:i%2===0?"#f8faf9":"white"}}>
+                      <td className="px-3 py-3 font-medium" style={{color:"#0d1e2a"}}>{l.description}</td>
+                      <td className="px-3 py-3 text-center" style={{color:"#9ca3af"}}>{l.lessons>0?l.lessons:"—"}</td>
+                      <td className="px-3 py-3 text-center">{l.qty||1}</td>
+                      <td className="px-3 py-3">{fmtZAR(l.unitPrice)}</td>
+                      <td className="px-3 py-3 font-bold" style={{color:B.tealDark}}>{fmtZAR((l.qty||1)*l.unitPrice)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="px-4 py-3 text-sm space-y-1" style={{borderTop:"1px solid #eef2f1",background:"#f8faf9"}}>
+                <div className="flex justify-end gap-8"><span style={{color:"#9ca3af"}}>Subtotal</span><span className="font-medium">{fmtZAR(sub)}</span></div>
+                {disc>0&&<div className="flex justify-end gap-8"><span style={{color:"#9ca3af"}}>Discount</span><span className="font-medium" style={{color:"#d97706"}}>- {fmtZAR(disc)}</span></div>}
+                <div className="flex justify-end gap-8 pt-2" style={{borderTop:"1px solid #eef2f1"}}>
+                  <span className="font-bold text-base">Total Due</span>
+                  <span className="font-bold text-xl" style={{color:B.tealDark}}>{fmtZAR(viewInv.total)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Banking details */}
+            <div className="rounded-xl p-4 mb-4" style={{background:"#f0f9fa",border:"1px solid #b2e0e4"}}>
+              <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:B.tealDark}}>Banking Details</p>
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                {[["Bank","[BANK NAME]"],["Account Name","LEARN TO LINK"],["Account No","[ACCOUNT NUMBER]"],["Branch Code","[BRANCH CODE]"],["Reference",viewInv.invoiceNumber]].map(([k,v])=>(
+                  <div key={k} className="flex gap-2">
+                    <span className="font-semibold w-28 shrink-0" style={{color:"#374151"}}>{k}:</span>
+                    <span style={{color:k==="Reference"?B.tealDark:"#0d1e2a",fontWeight:k==="Reference"?"700":"400"}}>{v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {viewInv.notes&&<p className="text-sm mb-4 px-1" style={{color:"#6b7280"}}>📝 {viewInv.notes}</p>}
+            {viewInv.status==="paid"&&<p className="text-xs mb-4 font-semibold" style={{color:"#059669"}}>✓ Payment received on {fmtDate(viewInv.paidDate)} — student marked Active</p>}
+
+            <div className="flex gap-2 justify-between">
+              <Btn variant="danger" size="sm" onClick={()=>{ if(window.confirm('Delete this invoice?')) deleteInvoice(viewInv.id); }}><Trash2 size={13}/> Delete</Btn>
+              <div className="flex gap-2">
+                <Btn variant="secondary" onClick={()=>setModal(null)}>Close</Btn>
+                <Btn variant="ghost" onClick={()=>downloadInvoicePDF(viewInv)} disabled={dlLoading===viewInv.id}>
+                  {dlLoading===viewInv.id?"Generating…":<><FileText size={13}/> Download PDF</>}
+                </Btn>
+                {viewInv.status==="draft"&&<Btn onClick={()=>markSent(viewInv.id)}>Mark Sent</Btn>}
+                {viewInv.status==="sent"&&<Btn variant="success" onClick={()=>markPaid(viewInv.id)}><CheckCircle size={15}/> Mark Paid</Btn>}
+              </div>
             </div>
           </Modal>
         );
@@ -3363,6 +3692,7 @@ function InvoicingPage({ data, setData }) {
     </div>
   );
 }
+
 
 // ─── PAGE: REPORTS ────────────────────────────────────────────────────────────
 
@@ -5078,6 +5408,7 @@ export default function App() {
     students:<StudentsPage data={data} setData={setData}/>,
     tutors:<TutorsPage data={data} setData={setData}/>,
     links:<LinksPage data={data} setData={setData}/>,
+    invoicing:<InvoicingPage data={data} setData={setData}/>,
     centres:<CentresPage data={data} setData={setData}/>,
     accounting:<AccountingPage data={data} setData={setData}/>,
     stats:<StatsPage data={data}/>,
