@@ -97,6 +97,66 @@ const INIT_CENTRE_NOTES = [
   { id: "cn2", centreId: "c2", type: "complaint",  note: "Owner flagged timetable clashes in Week 3 of February.",    date: "2025-02-18" },
 ];
 
+// ─── ROLE & ACCOUNT SEED DATA ─────────────────────────────────────────────────
+
+// Tutor extra details (emergency contact, per-lesson rate, syllabi hired for)
+const INIT_TUTOR_PROFILES = [
+  { tutorId: "t1", emergencyName: "Thandi Mokoena", emergencyPhone: "071 999 1111", ratePerLesson: 250, syllabi: ["IEB","CAPS"], levels: ["Grade 10","Grade 11","Grade 12"], bio: "" },
+  { tutorId: "t2", emergencyName: "Sara Botha",     emergencyPhone: "082 888 2222", ratePerLesson: 220, syllabi: ["CAPS","Cambridge"], levels: ["Grade 8","Grade 9","Grade 10"], bio: "" },
+  { tutorId: "t3", emergencyName: "Nomvula Sithole",emergencyPhone: "076 777 3333", ratePerLesson: 230, syllabi: ["IEB","Cambridge"], levels: ["Grade 11","Grade 12","IGCSE"], bio: "" },
+  { tutorId: "t4", emergencyName: "Ana Ferreira",   emergencyPhone: "083 666 4444", ratePerLesson: 240, syllabi: ["IEB","CAPS"], levels: ["Grade 9","Grade 10","Grade 11"], bio: "" },
+];
+
+// Parent accounts — each linked to one or more students
+const INIT_PARENTS = [
+  { id: "p1", firstName: "Bongi",   lastName: "Dlamini",       email: "bongi@example.com",   phone: "071 100 0001", studentIds: ["st1","st5"] }, // parent of Siyanda & Nomsa
+  { id: "p2", firstName: "Anita",   lastName: "van der Merwe", email: "anita@example.com",   phone: "071 100 0002", studentIds: ["st2"] },
+  { id: "p3", firstName: "Sipho",   lastName: "Nkosi",         email: "sipho@example.com",   phone: "071 100 0003", studentIds: ["st3"] },
+  { id: "p4", firstName: "Rajan",   lastName: "Patel",         email: "rajan@example.com",   phone: "071 100 0004", studentIds: ["st4"] },
+  { id: "p5", firstName: "Lin",     lastName: "Chen",          email: "lin@example.com",     phone: "071 100 0005", studentIds: ["st6"] },
+  { id: "p6", firstName: "Fatima",  lastName: "Moosa",         email: "fatima@example.com",  phone: "071 100 0006", studentIds: ["st7"] },
+];
+
+// Parent notes on tutors (visible to admin + tutor only, NOT the parent after submit)
+const INIT_PARENT_TUTOR_NOTES = [
+  { id: "ptn1", parentId: "p1", tutorId: "t1", note: "Very happy with Ayanda's approach. Siyanda\'s marks improved 15% this term.", date: "2025-05-10", visibleTo: ["admin","tutor"] },
+];
+
+// Tutor monthly payments logged by owner
+const INIT_TUTOR_PAYMENTS = [
+  { id: "tp1", tutorId: "t1", month: "2025-04", lessonsDelivered: 20, ratePerLesson: 250, total: 5000, paid: true, paidDate: "2025-05-03", expenseId: "exp1" },
+  { id: "tp2", tutorId: "t2", month: "2025-04", lessonsDelivered: 18, ratePerLesson: 220, total: 3960, paid: true, paidDate: "2025-05-03", expenseId: "exp2" },
+  { id: "tp3", tutorId: "t3", month: "2025-04", lessonsDelivered: 16, ratePerLesson: 230, total: 3680, paid: true, paidDate: "2025-05-03", expenseId: "exp3" },
+  { id: "tp4", tutorId: "t4", month: "2025-04", lessonsDelivered: 14, ratePerLesson: 240, total: 3360, paid: true, paidDate: "2025-05-03", expenseId: "exp4" },
+];
+
+// Expenses (tutor payments feed into here)
+const INIT_EXPENSES = [
+  { id: "exp1", description: "Tutor pay — Ayanda Mokoena (Apr 2025)",  amount: 5000, date: "2025-05-03", category: "tutor" },
+  { id: "exp2", description: "Tutor pay — Ruan Botha (Apr 2025)",      amount: 3960, date: "2025-05-03", category: "tutor" },
+  { id: "exp3", description: "Tutor pay — Lerato Sithole (Apr 2025)",  amount: 3680, date: "2025-05-03", category: "tutor" },
+  { id: "exp4", description: "Tutor pay — Marco Ferreira (Apr 2025)",  amount: 3360, date: "2025-05-03", category: "tutor" },
+];
+
+// Mark which students have academy access
+// (we'll add academyStudent flag to INIT_STUDENTS via override below)
+const ACADEMY_STUDENT_IDS = ["st1","st3"];
+
+// User accounts for role switcher
+const ROLE_ACCOUNTS = [
+  { id: "admin1",  role: "admin",   label: "Admin (Chanelle)",      ref: null     },
+  { id: "owner1",  role: "owner",   label: "Owner",                 ref: null     },
+  { id: "t1",      role: "tutor",   label: "Tutor — Ayanda",        ref: "t1"     },
+  { id: "t2",      role: "tutor",   label: "Tutor — Ruan",          ref: "t2"     },
+  { id: "t3",      role: "tutor",   label: "Tutor — Lerato",        ref: "t3"     },
+  { id: "t4",      role: "tutor",   label: "Tutor — Marco",         ref: "t4"     },
+  { id: "p1",      role: "parent",  label: "Parent — Bongi (Siyanda & Nomsa)", ref: "p1" },
+  { id: "p2",      role: "parent",  label: "Parent — Anita (Mia)",  ref: "p2"     },
+  { id: "st1",     role: "student", label: "Student — Siyanda",     ref: "st1"    },
+  { id: "st3",     role: "student", label: "Student — Langa",       ref: "st3"    },
+];
+
+
 // ─── LMS SEED DATA ────────────────────────────────────────────────────────────
 
 const INIT_COURSES = [
@@ -311,6 +371,7 @@ const LogoMark = ({ size = 36 }) => {
     </svg>
   );
 };
+
 
 // ─── SHARED UI ────────────────────────────────────────────────────────────────
 
@@ -2709,49 +2770,703 @@ function ReportsPage({ data }) {
 }
 
 
+
+// ─── ROLE VIEWS ───────────────────────────────────────────────────────────────
+
+// ── PARENT VIEW ──────────────────────────────────────────────────────────────
+function ParentView({ data, setData, parentRef }) {
+  const parent = data.parents.find(p => p.id === parentRef);
+  if (!parent) return <div className="p-8 text-center text-gray-400">Parent record not found.</div>;
+
+  const students = data.students.filter(s => parent.studentIds.includes(s.id));
+  const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || null);
+  const [noteModal, setNoteModal] = useState(null); // tutorId
+  const [noteText, setNoteText] = useState("");
+
+  const student = students.find(s => s.id === selectedStudentId);
+
+  const getLessonsInfo = (studentId) => {
+    const purchases = data.purchases.filter(p => p.studentId === studentId);
+    const totalBought = purchases.reduce((s, p) => s + p.quantity, 0);
+    // For demo: assume each link = 1 lesson used per week; use purchase count as proxy
+    const latestPurchase = purchases.sort((a,b) => b.date.localeCompare(a.date))[0];
+    return { totalBought, latestPurchase, packages: purchases };
+  };
+
+  const getTutorNotes = (studentId) => {
+    const tutorIds = [...new Set(data.links.filter(l => l.studentId === studentId).map(l => l.tutorId))];
+    return data.tutorNotes.filter(n => tutorIds.includes(n.tutorId));
+  };
+
+  const handleSubmitNote = (tutorId) => {
+    if (!noteText.trim()) return;
+    const newNote = {
+      id: "ptn" + uid(),
+      parentId: parent.id,
+      tutorId,
+      note: noteText.trim(),
+      date: today(),
+      visibleTo: ["admin","tutor"],
+    };
+    setData(d => ({ ...d, parentTutorNotes: [...d.parentTutorNotes, newNote] }));
+    setNoteText("");
+    setNoteModal(null);
+  };
+
+  const studentTutors = student
+    ? [...new Set(data.links.filter(l => l.studentId === student.id).map(l => l.tutorId))]
+        .map(tid => data.tutors.find(t => t.id === tid)).filter(Boolean)
+    : [];
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold" style={{ color: "#0d1e2a" }}>Welcome, {parent.firstName}</h1>
+        <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>Your children's learning overview</p>
+      </div>
+
+      {/* Student selector */}
+      {students.length > 1 && (
+        <div className="flex gap-2">
+          {students.map(s => (
+            <button key={s.id} onClick={() => setSelectedStudentId(s.id)}
+              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+              style={selectedStudentId === s.id
+                ? { background: B.teal, color: "white" }
+                : { background: "white", color: "#374151", border: "1px solid #e5e7eb" }}>
+              {s.firstName}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {student && (() => {
+        const { totalBought, packages } = getLessonsInfo(student.id);
+        const lessonLinks = data.links.filter(l => l.studentId === student.id);
+        // Each link counts as active subject; estimate used = links * 4 (demo)
+        const estimatedUsed = lessonLinks.length * 4;
+        const remaining = Math.max(0, totalBought - estimatedUsed);
+        const lowLessons = remaining <= 2 && totalBought > 0;
+        const tutorNotes = getTutorNotes(student.id);
+
+        return (
+          <div className="space-y-4">
+            {/* Low lessons warning */}
+            {lowLessons && (
+              <div className="rounded-2xl px-5 py-4 flex items-start gap-3"
+                style={{ background: "#fef3c7", border: "1px solid #fde68a" }}>
+                <span className="text-xl">⚠️</span>
+                <div>
+                  <p className="text-sm font-bold" style={{ color: "#92400e" }}>Only {remaining} lesson{remaining !== 1 ? "s" : ""} remaining!</p>
+                  <p className="text-xs mt-0.5" style={{ color: "#b45309" }}>Please contact LEARN TO LINK to top up {student.firstName}'s lesson package.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Student profile card */}
+            <Section title={`${student.firstName} ${student.lastName}`}>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div><span className="font-semibold" style={{ color: "#9ca3af" }}>Curriculum</span><p style={{ color: "#0d1e2a" }}>{student.curriculum}</p></div>
+                <div><span className="font-semibold" style={{ color: "#9ca3af" }}>Grade</span><p style={{ color: "#0d1e2a" }}>{student.grade}</p></div>
+                <div><span className="font-semibold" style={{ color: "#9ca3af" }}>Status</span><p style={{ color: "#0d1e2a" }}>{student.status}</p></div>
+                <div><span className="font-semibold" style={{ color: "#9ca3af" }}>Enrolled</span><p style={{ color: "#0d1e2a" }}>{fmtDate(student.enrolledDate)}</p></div>
+              </div>
+            </Section>
+
+            {/* Lesson packages */}
+            <Section title="Lesson Packages">
+              <div className="flex items-center gap-6 mb-4">
+                <div className="text-center">
+                  <p className="text-3xl font-bold" style={{ color: "#0d1e2a" }}>{totalBought}</p>
+                  <p className="text-xs font-bold uppercase tracking-wider mt-1" style={{ color: "#9ca3af" }}>Total Bought</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-3xl font-bold" style={{ color: remaining <= 2 ? "#d97706" : "#059669" }}>{remaining}</p>
+                  <p className="text-xs font-bold uppercase tracking-wider mt-1" style={{ color: "#9ca3af" }}>Estimated Remaining</p>
+                </div>
+              </div>
+              {packages.length > 0 ? (
+                <TableWrap>
+                  <thead><tr>
+                    <TH>Date</TH><TH>Qty</TH><TH>Note</TH>
+                  </tr></thead>
+                  <tbody>
+                    {packages.sort((a,b) => b.date.localeCompare(a.date)).map(p => (
+                      <TR key={p.id}>
+                        <TD>{fmtDate(p.date)}</TD>
+                        <TD><span className="font-semibold">{p.quantity} lessons</span></TD>
+                        <TD>{p.note || "—"}</TD>
+                      </TR>
+                    ))}
+                  </tbody>
+                </TableWrap>
+              ) : <p className="text-sm" style={{ color: "#9ca3af" }}>No packages recorded yet.</p>}
+            </Section>
+
+            {/* Tutors & subjects */}
+            <Section title="Linked Tutors">
+              {lessonLinks.length === 0
+                ? <p className="text-sm" style={{ color: "#9ca3af" }}>No tutors assigned yet.</p>
+                : (
+                <div className="space-y-3">
+                  {lessonLinks.map(lk => {
+                    const tutor = data.tutors.find(t => t.id === lk.tutorId);
+                    const subject = data.subjects.find(s => s.id === lk.subjectId);
+                    if (!tutor) return null;
+                    return (
+                      <div key={lk.id} className="flex items-center justify-between p-3 rounded-xl"
+                        style={{ background: "#f8faf9", border: "1px solid #eef2f1" }}>
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: "#0d1e2a" }}>{tutor.firstName} {tutor.lastName}</p>
+                          <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>{subject?.name || "—"}</p>
+                        </div>
+                        <Btn size="sm" variant="secondary" onClick={() => { setNoteModal(tutor.id); setNoteText(""); }}>
+                          Leave Feedback
+                        </Btn>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Section>
+
+            {/* Tutor notes visible to parent */}
+            {tutorNotes.length > 0 && (
+              <Section title="Notes from Tutors">
+                <div className="space-y-3">
+                  {tutorNotes.map(n => {
+                    const tutor = data.tutors.find(t => t.id === n.tutorId);
+                    const typeColor = n.type === "compliment" ? "green" : n.type === "complaint" ? "red" : "gray";
+                    return (
+                      <div key={n.id} className="p-3 rounded-xl" style={{ background: "#f8faf9", border: "1px solid #eef2f1" }}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge color={typeColor}>{n.type}</Badge>
+                          <span className="text-xs" style={{ color: "#9ca3af" }}>{tutor?.firstName} {tutor?.lastName} · {fmtDate(n.date)}</span>
+                        </div>
+                        <p className="text-sm" style={{ color: "#374151" }}>{n.note}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Section>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Note modal */}
+      {noteModal && (() => {
+        const tutor = data.tutors.find(t => t.id === noteModal);
+        return (
+          <Modal title={`Leave feedback about ${tutor?.firstName} ${tutor?.lastName}`} onClose={() => setNoteModal(null)}>
+            <Txt label="Your feedback" value={noteText} onChange={e => setNoteText(e.target.value)}
+              placeholder="Share your feedback about this tutor..." />
+            <p className="text-xs mb-4" style={{ color: "#9ca3af" }}>This note will be seen by the admin and tutor. It won't appear in your view after submission.</p>
+            <div className="flex gap-2 justify-end">
+              <Btn variant="secondary" onClick={() => setNoteModal(null)}>Cancel</Btn>
+              <Btn onClick={() => handleSubmitNote(noteModal)}>Submit Feedback</Btn>
+            </div>
+          </Modal>
+        );
+      })()}
+    </div>
+  );
+}
+
+// ── TUTOR VIEW ────────────────────────────────────────────────────────────────
+function TutorView({ data, setData, tutorRef }) {
+  const tutor = data.tutors.find(t => t.id === tutorRef);
+  const profile = data.tutorProfiles?.find(p => p.tutorId === tutorRef);
+  const [editingProfile, setEditingProfile] = useState(!tutor);
+  const [form, setForm] = useState({
+    firstName: tutor?.firstName || "",
+    lastName: tutor?.lastName || "",
+    email: tutor?.email || "",
+    phone: tutor?.phone || "",
+    emergencyName: profile?.emergencyName || "",
+    emergencyPhone: profile?.emergencyPhone || "",
+    syllabi: profile?.syllabi || [],
+    levels: profile?.levels || [],
+    subjectIds: tutor?.subjectIds || [],
+    bio: profile?.bio || "",
+  });
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  if (!tutor && !editingProfile) return null;
+
+  const assignedLinks = tutor ? data.links.filter(l => l.tutorId === tutor.id) : [];
+  const assignedStudentIds = [...new Set(assignedLinks.map(l => l.studentId))];
+  const assignedStudents = assignedStudentIds.map(id => data.students.find(s => s.id === id)).filter(Boolean);
+
+  const parentNotes = data.parentTutorNotes?.filter(n => n.tutorId === tutorRef) || [];
+
+  const toggleArr = (arr, val) => arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
+
+  const saveProfile = () => {
+    if (!form.firstName || !form.email) return;
+    setData(d => {
+      const tExists = d.tutors.find(t => t.id === tutorRef);
+      const updatedTutors = tExists
+        ? d.tutors.map(t => t.id === tutorRef ? { ...t, firstName: form.firstName, lastName: form.lastName, email: form.email, phone: form.phone, subjectIds: form.subjectIds } : t)
+        : d.tutors;
+      const profExists = d.tutorProfiles?.find(p => p.tutorId === tutorRef);
+      const updatedProfiles = profExists
+        ? (d.tutorProfiles || []).map(p => p.tutorId === tutorRef ? { ...p, emergencyName: form.emergencyName, emergencyPhone: form.emergencyPhone, syllabi: form.syllabi, levels: form.levels, bio: form.bio } : p)
+        : [...(d.tutorProfiles || []), { tutorId: tutorRef, emergencyName: form.emergencyName, emergencyPhone: form.emergencyPhone, ratePerLesson: 0, syllabi: form.syllabi, levels: form.levels, bio: form.bio }];
+      return { ...d, tutors: updatedTutors, tutorProfiles: updatedProfiles };
+    });
+    setEditingProfile(false);
+  };
+
+  if (editingProfile) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: "#0d1e2a" }}>Your Profile</h1>
+          <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>Keep your details up to date</p>
+        </div>
+        <Section title="Personal Details">
+          <div className="grid grid-cols-2 gap-4">
+            <Inp label="First Name" value={form.firstName} onChange={e => set("firstName", e.target.value)} />
+            <Inp label="Last Name" value={form.lastName} onChange={e => set("lastName", e.target.value)} />
+            <Inp label="Email" type="email" value={form.email} onChange={e => set("email", e.target.value)} />
+            <Inp label="Phone" value={form.phone} onChange={e => set("phone", e.target.value)} />
+          </div>
+        </Section>
+        <Section title="Emergency Contact">
+          <div className="grid grid-cols-2 gap-4">
+            <Inp label="Contact Name" value={form.emergencyName} onChange={e => set("emergencyName", e.target.value)} />
+            <Inp label="Contact Phone" value={form.emergencyPhone} onChange={e => set("emergencyPhone", e.target.value)} />
+          </div>
+        </Section>
+        <Section title="Subjects & Syllabi I Tutor">
+          <div className="mb-4">
+            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>Subjects</p>
+            <div className="flex flex-wrap gap-2">
+              {data.subjects.map(s => (
+                <button key={s.id} onClick={() => set("subjectIds", toggleArr(form.subjectIds, s.id))}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  style={form.subjectIds.includes(s.id)
+                    ? { background: B.teal, color: "white" }
+                    : { background: "#f8faf9", color: "#374151", border: "1px solid #e5e7eb" }}>
+                  {s.name}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mb-4">
+            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>Syllabi</p>
+            <div className="flex flex-wrap gap-2">
+              {["IEB","CAPS","Cambridge"].map(s => (
+                <button key={s} onClick={() => set("syllabi", toggleArr(form.syllabi, s))}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  style={form.syllabi.includes(s)
+                    ? { background: B.coral, color: "white" }
+                    : { background: "#f8faf9", color: "#374151", border: "1px solid #e5e7eb" }}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>Grade Levels</p>
+            <div className="flex flex-wrap gap-2">
+              {["Grade 8","Grade 9","Grade 10","Grade 11","Grade 12","IGCSE","AS Level","A Level"].map(l => (
+                <button key={l} onClick={() => set("levels", toggleArr(form.levels, l))}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  style={form.levels.includes(l)
+                    ? { background: B.tealDark, color: "white" }
+                    : { background: "#f8faf9", color: "#374151", border: "1px solid #e5e7eb" }}>
+                  {l}
+                </button>
+              ))}
+            </div>
+          </div>
+        </Section>
+        <div className="flex justify-end gap-2">
+          {tutor && <Btn variant="secondary" onClick={() => setEditingProfile(false)}>Cancel</Btn>}
+          <Btn onClick={saveProfile}><CheckCircle size={15} /> Save Profile</Btn>
+        </div>
+      </div>
+    );
+  }
+
+  const selectedStudent = assignedStudents.find(s => s.id === selectedStudentId);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: "#0d1e2a" }}>Welcome, {tutor.firstName}</h1>
+          <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>Your students and schedule</p>
+        </div>
+        <Btn variant="secondary" size="sm" onClick={() => setEditingProfile(true)}><Edit2 size={14} /> Edit Profile</Btn>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <KPI title="Students Assigned" value={assignedStudentIds.length} icon={Users} color="teal" />
+        <KPI title="Active Subjects" value={assignedLinks.length} icon={BookMarked} color="coral" />
+        <KPI title="Syllabi" value={(profile?.syllabi || []).join(", ") || "—"} icon={GraduationCap} color="indigo" />
+      </div>
+
+      {/* Parent feedback notes */}
+      {parentNotes.length > 0 && (
+        <Section title="Parent Feedback">
+          <div className="space-y-3">
+            {parentNotes.map(n => {
+              const parent = data.parents?.find(p => p.id === n.parentId);
+              return (
+                <div key={n.id} className="p-3 rounded-xl" style={{ background: "#f8faf9", border: "1px solid #eef2f1" }}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge color="teal">Parent Note</Badge>
+                    <span className="text-xs" style={{ color: "#9ca3af" }}>{parent ? `${parent.firstName} ${parent.lastName}` : "Parent"} · {fmtDate(n.date)}</span>
+                  </div>
+                  <p className="text-sm" style={{ color: "#374151" }}>{n.note}</p>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+      )}
+
+      {/* Assigned students list */}
+      <Section title="My Students">
+        {assignedStudents.length === 0
+          ? <p className="text-sm" style={{ color: "#9ca3af" }}>No students assigned yet. Admin will link students to you.</p>
+          : (
+          <div className="space-y-2">
+            {assignedStudents.map(s => {
+              const sLinks = assignedLinks.filter(l => l.studentId === s.id);
+              const subjects = sLinks.map(l => data.subjects.find(sub => sub.id === l.subjectId)?.name).filter(Boolean);
+              return (
+                <div key={s.id}
+                  className="flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all"
+                  style={{ background: selectedStudentId === s.id ? B.tealLight : "#f8faf9", border: `1px solid ${selectedStudentId === s.id ? B.teal : "#eef2f1"}` }}
+                  onClick={() => setSelectedStudentId(selectedStudentId === s.id ? null : s.id)}>
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: "#0d1e2a" }}>{s.firstName} {s.lastName}</p>
+                    <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>{s.curriculum} · {s.grade} · {subjects.join(", ")}</p>
+                  </div>
+                  <ChevronRight size={16} style={{ color: "#9ca3af", transform: selectedStudentId === s.id ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Section>
+
+      {/* Student detail expand */}
+      {selectedStudent && (() => {
+        const sLinks = assignedLinks.filter(l => l.studentId === selectedStudent.id);
+        const subjects = sLinks.map(l => data.subjects.find(sub => sub.id === l.subjectId)?.name).filter(Boolean);
+        const purchases = data.purchases.filter(p => p.studentId === selectedStudent.id);
+        const totalBought = purchases.reduce((s, p) => s + p.quantity, 0);
+        const siblings = data.siblings.filter(sb => sb.studentId1 === selectedStudent.id || sb.studentId2 === selectedStudent.id)
+          .map(sb => data.students.find(s => s.id === (sb.studentId1 === selectedStudent.id ? sb.studentId2 : sb.studentId1))).filter(Boolean);
+        return (
+          <Section title={`${selectedStudent.firstName} ${selectedStudent.lastName} — Full Profile`}>
+            <div className="grid grid-cols-2 gap-4 text-sm mb-5">
+              <div><span className="font-bold text-xs uppercase tracking-wider" style={{ color: "#9ca3af" }}>Curriculum</span><p className="mt-0.5" style={{ color: "#0d1e2a" }}>{selectedStudent.curriculum}</p></div>
+              <div><span className="font-bold text-xs uppercase tracking-wider" style={{ color: "#9ca3af" }}>Grade</span><p className="mt-0.5" style={{ color: "#0d1e2a" }}>{selectedStudent.grade}</p></div>
+              <div><span className="font-bold text-xs uppercase tracking-wider" style={{ color: "#9ca3af" }}>Subjects with you</span><p className="mt-0.5" style={{ color: "#0d1e2a" }}>{subjects.join(", ") || "—"}</p></div>
+              <div><span className="font-bold text-xs uppercase tracking-wider" style={{ color: "#9ca3af" }}>Total Lessons Bought</span><p className="mt-0.5" style={{ color: "#0d1e2a" }}>{totalBought}</p></div>
+              {siblings.length > 0 && <div className="col-span-2"><span className="font-bold text-xs uppercase tracking-wider" style={{ color: "#9ca3af" }}>Siblings</span><p className="mt-0.5" style={{ color: "#0d1e2a" }}>{siblings.map(s => `${s.firstName} ${s.lastName}`).join(", ")}</p></div>}
+            </div>
+            {purchases.length > 0 && (
+              <>
+                <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>Lesson Purchase History</p>
+                <TableWrap>
+                  <thead><tr><TH>Date</TH><TH>Qty</TH><TH>Note</TH></tr></thead>
+                  <tbody>{purchases.sort((a,b) => b.date.localeCompare(a.date)).map(p => (
+                    <TR key={p.id}><TD>{fmtDate(p.date)}</TD><TD>{p.quantity}</TD><TD>{p.note || "—"}</TD></TR>
+                  ))}</tbody>
+                </TableWrap>
+              </>
+            )}
+          </Section>
+        );
+      })()}
+    </div>
+  );
+}
+
+// ── STUDENT VIEW ──────────────────────────────────────────────────────────────
+function StudentView({ data, setData, studentRef }) {
+  const student = data.students.find(s => s.id === studentRef);
+  if (!student) return <div className="p-8 text-center" style={{ color: "#9ca3af" }}>Student record not found.</div>;
+
+  const isAcademy = ACADEMY_STUDENT_IDS.includes(studentRef);
+
+  if (!isAcademy) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center space-y-3">
+        <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: B.tealLight }}>
+          <BookOpen size={28} style={{ color: B.tealDark }} />
+        </div>
+        <h2 className="text-lg font-bold" style={{ color: "#0d1e2a" }}>Academy Access Not Enabled</h2>
+        <p className="text-sm max-w-sm" style={{ color: "#6b7280" }}>Your account does not currently have Academy access. Please contact LEARN TO LINK.</p>
+      </div>
+    );
+  }
+
+  return <AcademyPage data={data} setData={setData} studentId={studentRef} />;
+}
+
+// ── OWNER VIEW ────────────────────────────────────────────────────────────────
+function OwnerPayrollPage({ data, setData }) {
+  const [month, setMonth] = useState(today().slice(0, 7));
+  const [payModal, setPayModal] = useState(null); // tutorId
+  const [payForm, setPayForm] = useState({ lessons: "", rate: "" });
+
+  const payments = data.tutorPayments || [];
+  const monthPayments = payments.filter(p => p.month === month);
+
+  const getMonthPayment = (tutorId) => monthPayments.find(p => p.tutorId === tutorId);
+
+  const logPayment = (tutorId) => {
+    const lessons = parseInt(payForm.lessons) || 0;
+    const rate = parseFloat(payForm.rate) || 0;
+    const total = lessons * rate;
+    const tutor = data.tutors.find(t => t.id === tutorId);
+    const expId = "exp" + uid();
+    const payId = "tp" + uid();
+    const expense = {
+      id: expId,
+      description: `Tutor pay — ${tutor?.firstName} ${tutor?.lastName} (${fmtMonth(month)})`,
+      amount: total,
+      date: today(),
+      category: "tutor",
+    };
+    const payment = {
+      id: payId,
+      tutorId,
+      month,
+      lessonsDelivered: lessons,
+      ratePerLesson: rate,
+      total,
+      paid: true,
+      paidDate: today(),
+      expenseId: expId,
+    };
+    setData(d => ({
+      ...d,
+      tutorPayments: [...(d.tutorPayments || []).filter(p => !(p.tutorId === tutorId && p.month === month)), payment],
+      expenses: [...(d.expenses || []), expense],
+      financials: d.financials.map(f =>
+        f.month === month ? { ...f, expenses: f.expenses + total } : f
+      ),
+    }));
+    setPayModal(null);
+    setPayForm({ lessons: "", rate: "" });
+  };
+
+  const months6 = lastNMonths(6);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold" style={{ color: "#0d1e2a" }}>Tutor Payroll</h1>
+        <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>Monthly breakdown and payment logging</p>
+      </div>
+
+      {/* Month selector */}
+      <div className="flex gap-2 flex-wrap">
+        {months6.map(m => (
+          <button key={m.key} onClick={() => setMonth(m.key)}
+            className="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
+            style={month === m.key
+              ? { background: B.tealDark, color: "white" }
+              : { background: "white", color: "#374151", border: "1px solid #e5e7eb" }}>
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Summary KPIs */}
+      <div className="grid grid-cols-3 gap-4">
+        <KPI title="Tutors to Pay"
+          value={data.tutors.filter(t => t.status === "Active").length}
+          icon={GraduationCap} color="teal" />
+        <KPI title="Total Payroll This Month"
+          value={fmtZAR(monthPayments.reduce((s, p) => s + p.total, 0))}
+          icon={DollarSign} color="coral" />
+        <KPI title="Payments Logged"
+          value={`${monthPayments.filter(p => p.paid).length} / ${data.tutors.filter(t => t.status === "Active").length}`}
+          icon={CheckCircle} color="green" />
+      </div>
+
+      {/* Tutor payment table */}
+      <Section title={`Tutor Payments — ${fmtMonth(month)}`}>
+        <TableWrap>
+          <thead><tr>
+            <TH>Tutor</TH><TH>Subjects</TH><TH>Rate/Lesson</TH><TH>Lessons</TH><TH>Total</TH><TH>Status</TH><TH></TH>
+          </tr></thead>
+          <tbody>
+            {data.tutors.filter(t => t.status === "Active").map(tutor => {
+              const profile = data.tutorProfiles?.find(p => p.tutorId === tutor.id);
+              const payment = getMonthPayment(tutor.id);
+              const subjects = tutor.subjectIds.map(sid => data.subjects.find(s => s.id === sid)?.name).filter(Boolean);
+              return (
+                <TR key={tutor.id}>
+                  <TD><span className="font-semibold">{tutor.firstName} {tutor.lastName}</span></TD>
+                  <TD><span className="text-xs">{subjects.join(", ") || "—"}</span></TD>
+                  <TD>{payment ? fmtZAR(payment.ratePerLesson) : profile ? fmtZAR(profile.ratePerLesson) : "—"}</TD>
+                  <TD>{payment ? payment.lessonsDelivered : "—"}</TD>
+                  <TD><span className="font-semibold">{payment ? fmtZAR(payment.total) : "—"}</span></TD>
+                  <TD>
+                    {payment?.paid
+                      ? <Badge color="green">Paid {fmtDate(payment.paidDate)}</Badge>
+                      : <Badge color="yellow">Pending</Badge>}
+                  </TD>
+                  <TD>
+                    {!payment?.paid && (
+                      <Btn size="sm" onClick={() => {
+                        setPayModal(tutor.id);
+                        setPayForm({ lessons: "", rate: String(profile?.ratePerLesson || "") });
+                      }}>Log Payment</Btn>
+                    )}
+                  </TD>
+                </TR>
+              );
+            })}
+          </tbody>
+        </TableWrap>
+      </Section>
+
+      {/* Expenses from tutor payments */}
+      {(data.expenses || []).filter(e => e.category === "tutor").length > 0 && (
+        <Section title="Tutor Payment Expenses (All Time)">
+          <TableWrap>
+            <thead><tr><TH>Date</TH><TH>Description</TH><TH>Amount</TH></tr></thead>
+            <tbody>
+              {(data.expenses || []).filter(e => e.category === "tutor").sort((a,b) => b.date.localeCompare(a.date)).map(e => (
+                <TR key={e.id}>
+                  <TD>{fmtDate(e.date)}</TD>
+                  <TD>{e.description}</TD>
+                  <TD><span className="font-semibold">{fmtZAR(e.amount)}</span></TD>
+                </TR>
+              ))}
+            </tbody>
+          </TableWrap>
+        </Section>
+      )}
+
+      {/* Pay modal */}
+      {payModal && (() => {
+        const tutor = data.tutors.find(t => t.id === payModal);
+        const total = (parseInt(payForm.lessons) || 0) * (parseFloat(payForm.rate) || 0);
+        return (
+          <Modal title={`Log Payment — ${tutor?.firstName} ${tutor?.lastName}`} onClose={() => setPayModal(null)}>
+            <Inp label="Lessons Delivered" type="number" value={payForm.lessons}
+              onChange={e => setPayForm(f => ({ ...f, lessons: e.target.value }))} />
+            <Inp label="Rate per Lesson (R)" type="number" value={payForm.rate}
+              onChange={e => setPayForm(f => ({ ...f, rate: e.target.value }))} />
+            {total > 0 && (
+              <div className="rounded-xl p-3 mb-4" style={{ background: B.tealLight }}>
+                <p className="text-sm font-bold" style={{ color: B.tealDark }}>Total: {fmtZAR(total)}</p>
+                <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>This will be recorded as an expense in Accounting.</p>
+              </div>
+            )}
+            <div className="flex gap-2 justify-end">
+              <Btn variant="secondary" onClick={() => setPayModal(null)}>Cancel</Btn>
+              <Btn onClick={() => logPayment(payModal)} disabled={!payForm.lessons || !payForm.rate}>
+                <CheckCircle size={15} /> Confirm Payment
+              </Btn>
+            </div>
+          </Modal>
+        );
+      })()}
+    </div>
+  );
+}
+
+
 // ─── APP ──────────────────────────────────────────────────────────────────────
 
-const NAV = [
-  { id: "dashboard",  label: "Dashboard",   icon: LayoutDashboard },
-  { id: "students",   label: "Students",    icon: Users           },
-  { id: "tutors",     label: "Tutors",      icon: GraduationCap   },
-  { id: "links",      label: "Links",       icon: LinkIcon        },
-  { id: "centres",    label: "Centres",     icon: Building2       },
-  { id: "accounting", label: "Accounting",  icon: DollarSign      },
-  { id: "stats",      label: "Stats",       icon: BarChart2       },
-  { id: "reports",    label: "Reports",     icon: FileText        },
-  { id: "settings",   label: "Settings",    icon: SettingsIcon    },
-  { id: "academy",    label: "Academy",     icon: BookOpen, divider: true },
+const NAV_ADMIN = [
+  { id: "dashboard",  label: "Dashboard",  icon: LayoutDashboard },
+  { id: "students",   label: "Students",   icon: Users           },
+  { id: "tutors",     label: "Tutors",     icon: GraduationCap   },
+  { id: "links",      label: "Links",      icon: LinkIcon        },
+  { id: "centres",    label: "Centres",    icon: Building2       },
+  { id: "accounting", label: "Accounting", icon: DollarSign      },
+  { id: "stats",      label: "Stats",      icon: BarChart2       },
+  { id: "reports",    label: "Reports",    icon: FileText        },
+  { id: "settings",   label: "Settings",   icon: SettingsIcon    },
+  { id: "academy",    label: "Academy",    icon: BookOpen, divider: true },
 ];
 
+const NAV_OWNER = [
+  ...NAV_ADMIN,
+  { id: "payroll", label: "Payroll", icon: DollarSign, divider: false },
+];
+
+const NAV_TUTOR   = [{ id: "tutor_home", label: "My Dashboard", icon: LayoutDashboard }, { id: "tutor_students", label: "My Students", icon: Users }];
+const NAV_PARENT  = [{ id: "parent_home", label: "My Children", icon: Users }];
+const NAV_STUDENT = [{ id: "academy", label: "Academy", icon: BookOpen }];
+
 export default function App() {
+  const [activeAccount, setActiveAccount] = useState("admin1");
   const [page, setPage] = useState("dashboard");
   const [data, setData] = useState({
-    students:      INIT_STUDENTS,
-    tutors:        INIT_TUTORS,
-    subjects:      INIT_SUBJECTS,
-    links:         INIT_LINKS,
-    siblings:      INIT_SIBLINGS,
-    tutorNotes:    INIT_TUTOR_NOTES,
-    centres:       INIT_CENTRES,
-    centreNotes:   INIT_CENTRE_NOTES,
-    purchases:     INIT_PURCHASES,
-    financials:    INIT_FINANCIALS,
-    courses:       INIT_COURSES,
-    modules:       INIT_MODULES,
-    lessons:       INIT_LESSONS,
-    quizzes:       INIT_QUIZZES,
-    enrolments:    INIT_ENROLMENTS,
-    progress:      INIT_PROGRESS,
-    announcements: INIT_ANNOUNCEMENTS,
+    students:         INIT_STUDENTS,
+    tutors:           INIT_TUTORS,
+    subjects:         INIT_SUBJECTS,
+    links:            INIT_LINKS,
+    siblings:         INIT_SIBLINGS,
+    tutorNotes:       INIT_TUTOR_NOTES,
+    centres:          INIT_CENTRES,
+    centreNotes:      INIT_CENTRE_NOTES,
+    purchases:        INIT_PURCHASES,
+    financials:       INIT_FINANCIALS,
+    courses:          INIT_COURSES,
+    modules:          INIT_MODULES,
+    lessons:          INIT_LESSONS,
+    quizzes:          INIT_QUIZZES,
+    enrolments:       INIT_ENROLMENTS,
+    progress:         INIT_PROGRESS,
+    announcements:    INIT_ANNOUNCEMENTS,
+    parents:          INIT_PARENTS,
+    tutorProfiles:    INIT_TUTOR_PROFILES,
+    parentTutorNotes: INIT_PARENT_TUTOR_NOTES,
+    tutorPayments:    INIT_TUTOR_PAYMENTS,
+    expenses:         INIT_EXPENSES,
   });
+
+  const account = ROLE_ACCOUNTS.find(a => a.id === activeAccount) || ROLE_ACCOUNTS[0];
+  const { role, ref: roleRef } = account;
+
+  // When switching accounts, reset to appropriate default page
+  const switchAccount = (accountId) => {
+    const acc = ROLE_ACCOUNTS.find(a => a.id === accountId);
+    if (!acc) return;
+    setActiveAccount(accountId);
+    if (acc.role === "admin" || acc.role === "owner") setPage("dashboard");
+    else if (acc.role === "tutor") setPage("tutor_home");
+    else if (acc.role === "parent") setPage("parent_home");
+    else if (acc.role === "student") setPage("academy");
+  };
 
   const unassigned = useMemo(
     () => data.students.filter(s => !data.links.some(l => l.studentId === s.id)).length,
     [data.students, data.links]
   );
 
-  const pages = {
+  // Determine nav items for current role
+  const navItems = role === "owner" ? NAV_OWNER
+    : role === "tutor" ? NAV_TUTOR
+    : role === "parent" ? NAV_PARENT
+    : role === "student" ? NAV_STUDENT
+    : NAV_ADMIN;
+
+  // Ensure page is valid for role when role changes
+  const validPages = navItems.map(n => n.id);
+  const effectivePage = validPages.includes(page) ? page : validPages[0];
+
+  // Admin/Owner pages
+  const adminPages = {
     dashboard:  <Dashboard      data={data} onNav={setPage} />,
     students:   <StudentsPage   data={data} setData={setData} />,
     tutors:     <TutorsPage     data={data} setData={setData} />,
@@ -2762,7 +3477,19 @@ export default function App() {
     reports:    <ReportsPage    data={data} />,
     settings:   <SettingsPage   data={data} setData={setData} />,
     academy:    <AcademyPage    data={data} setData={setData} />,
+    payroll:    <OwnerPayrollPage data={data} setData={setData} />,
   };
+
+  const renderContent = () => {
+    if (role === "admin" || role === "owner") return adminPages[effectivePage] || null;
+    if (role === "tutor")   return <TutorView   data={data} setData={setData} tutorRef={roleRef} />;
+    if (role === "parent")  return <ParentView  data={data} setData={setData} parentRef={roleRef} />;
+    if (role === "student") return <StudentView data={data} setData={setData} studentRef={roleRef} />;
+    return null;
+  };
+
+  const roleColors = { admin: B.teal, owner: B.gold, tutor: B.coral, parent: "#8b5cf6", student: "#10b981" };
+  const roleColor = roleColors[role] || B.teal;
 
   return (
     <>
@@ -2780,7 +3507,7 @@ export default function App() {
         <aside className="w-60 flex flex-col shrink-0 overflow-hidden"
           style={{ background: "#0d1e2a", borderRight: "1px solid rgba(255,255,255,0.05)" }}>
 
-          {/* Logo area */}
+          {/* Logo */}
           <div className="px-5 py-5 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -2789,15 +3516,27 @@ export default function App() {
               </div>
               <div className="min-w-0">
                 <p className="text-xs font-bold tracking-[0.14em] uppercase leading-none" style={{ color: B.teal }}>LEARN TO LINK</p>
-                <p className="text-xs mt-1 font-medium" style={{ color: "rgba(255,255,255,0.28)", letterSpacing: "0.03em" }}>TutorOps · CRM+LMS</p>
+                <p className="text-xs mt-1 font-medium" style={{ color: "rgba(255,255,255,0.28)" }}>TutorOps · CRM+LMS</p>
               </div>
             </div>
           </div>
 
-          {/* Navigation */}
+          {/* Role indicator */}
+          <div className="px-4 py-3 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+            <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.25)" }}>Viewing as</p>
+            <select value={activeAccount} onChange={e => switchAccount(e.target.value)}
+              className="w-full rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none"
+              style={{ background: "rgba(255,255,255,0.08)", color: roleColor, border: `1px solid ${roleColor}44` }}>
+              {ROLE_ACCOUNTS.map(a => (
+                <option key={a.id} value={a.id} style={{ background: "#0d1e2a", color: "white" }}>{a.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Nav */}
           <nav className="flex-1 px-3 py-4 overflow-y-auto">
-            {NAV.map(n => {
-              const active = page === n.id;
+            {navItems.map(n => {
+              const active = effectivePage === n.id;
               const isAc = n.id === "academy";
               return (
                 <div key={n.id}>
@@ -2808,21 +3547,18 @@ export default function App() {
                       <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
                     </div>
                   )}
-                  <button
-                    onClick={() => setPage(n.id)}
+                  <button onClick={() => setPage(n.id)}
                     className="to-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-left mb-0.5"
                     style={active ? {
-                      background: isAc ? "rgba(215,115,90,0.15)" : "rgba(148,203,209,0.15)",
-                      color:      isAc ? B.coral : B.teal,
-                      boxShadow:  `inset 3px 0 0 ${isAc ? B.coral : B.teal}`,
+                      background: isAc ? "rgba(215,115,90,0.15)" : `${roleColor}22`,
+                      color:      isAc ? B.coral : roleColor,
+                      boxShadow:  `inset 3px 0 0 ${isAc ? B.coral : roleColor}`,
                     } : { color: "rgba(255,255,255,0.45)" }}>
                     <n.icon size={16} />
                     <span>{n.label}</span>
                     {n.id === "links" && unassigned > 0 && (
                       <span className="ml-auto text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
-                        style={{ background: B.coral, color: "white" }}>
-                        {unassigned}
-                      </span>
+                        style={{ background: B.coral, color: "white" }}>{unassigned}</span>
                     )}
                   </button>
                 </div>
@@ -2830,29 +3566,29 @@ export default function App() {
             })}
           </nav>
 
-          {/* Admin footer */}
+          {/* Footer */}
           <div className="px-4 py-4 shrink-0" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0"
-                style={{ background: "rgba(148,203,209,0.2)", color: B.teal, border: "1px solid rgba(148,203,209,0.3)" }}>
-                AD
+              <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 uppercase"
+                style={{ background: `${roleColor}22`, color: roleColor, border: `1px solid ${roleColor}44` }}>
+                {account.label.slice(0,2)}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold truncate" style={{ color: "rgba(255,255,255,0.75)" }}>Admin</p>
-                <p className="text-xs truncate" style={{ color: "rgba(255,255,255,0.28)" }}>Administrator</p>
+                <p className="text-xs font-semibold truncate" style={{ color: "rgba(255,255,255,0.75)" }}>{account.label}</p>
+                <p className="text-xs truncate capitalize" style={{ color: roleColor }}>{role}</p>
               </div>
             </div>
           </div>
         </aside>
 
-        {/* ── Main content ── */}
+        {/* ── Main ── */}
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto px-6 py-6">
-            {pages[page]}
+            {renderContent()}
           </div>
         </main>
-
       </div>
     </>
   );
 }
+
