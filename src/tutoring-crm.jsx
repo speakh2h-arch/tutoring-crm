@@ -175,6 +175,57 @@ const INIT_SCHEDULED_LESSONS = [
   { id:"sl3", studentId:"st2", tutorId:"t2", subjectId:"s3", date:"2025-06-04", time:"16:00", duration:45, meetingLink:"https://zoom.us/j/1234567890",             platform:"Zoom",        fixed:true,  note:"English weekly" },
 ];
 
+
+// ─── PACKAGES & INVOICING ─────────────────────────────────────────────────────
+
+const PACKAGES = [
+  { id:"pkg_trial",  name:"Trial Lesson (30 min)",      lessons:1,  price:115,   type:"trial"      },
+  { id:"pkg_ind",    name:"Individual Lesson (1 hr)",    lessons:1,  price:350,   type:"individual" },
+  { id:"pkg_single", name:"Single Loyalty Package (10)", lessons:10, price:3250,  type:"loyalty"    },
+  { id:"pkg_double", name:"Double Loyalty Package (20)", lessons:20, price:6300,  type:"loyalty"    },
+  { id:"pkg_50",     name:"50 Lesson Package",           lessons:50, price:15000, type:"loyalty"    },
+  { id:"pkg_custom", name:"Custom / Other",              lessons:0,  price:0,     type:"custom"     },
+];
+
+const INIT_INVOICES = [
+  { id:"inv1", studentId:"st1", invoiceNumber:"INV-001", date:"2025-01-10", status:"paid", paidDate:"2025-01-14",
+    lineItems:[
+      { id:"li1", description:"Trial Lesson (30 min)", qty:1, unitPrice:115,  lessons:1  },
+      { id:"li2", description:"Single Loyalty Package (10)", qty:1, unitPrice:3250, lessons:10 },
+    ], total:3365, notes:"" },
+  { id:"inv2", studentId:"st2", invoiceNumber:"INV-002", date:"2025-02-01", status:"paid", paidDate:"2025-02-05",
+    lineItems:[
+      { id:"li3", description:"Single Loyalty Package (10)", qty:1, unitPrice:3250, lessons:10 },
+    ], total:3250, notes:"" },
+  { id:"inv3", studentId:"st3", invoiceNumber:"INV-003", date:"2024-11-05", status:"paid", paidDate:"2024-11-08",
+    lineItems:[
+      { id:"li4", description:"Trial Lesson (30 min)", qty:1, unitPrice:115, lessons:1 },
+      { id:"li5", description:"Double Loyalty Package (20)", qty:1, unitPrice:6300, lessons:20 },
+    ], total:6415, notes:"" },
+  { id:"inv4", studentId:"st5", invoiceNumber:"INV-004", date:"2025-04-02", status:"sent", paidDate:"",
+    lineItems:[
+      { id:"li6", description:"Single Loyalty Package (10)", qty:1, unitPrice:3250, lessons:10 },
+    ], total:3250, notes:"" },
+];
+
+const INIT_LESSON_LOGS = [
+  { id:"ll1", studentId:"st1", tutorId:"t1", subjectId:"s1", date:"2025-05-15", status:"completed",
+    comment:"Covered polynomial expressions and the degree of a polynomial. Student initially struggled with identifying terms but improved significantly by end of session. Assigned practice exercises 1–5.",
+    cancelReason:"", createdAt:"2025-05-15T14:30" },
+  { id:"ll2", studentId:"st1", tutorId:"t1", subjectId:"s1", date:"2025-05-22", status:"completed",
+    comment:"Revised factorisation including common factors and difference of two squares. Student showed strong understanding. Homework: textbook p.45 q1–10.",
+    cancelReason:"", createdAt:"2025-05-22T14:35" },
+  { id:"ll3", studentId:"st1", tutorId:"t1", subjectId:"s1", date:"2025-05-29", status:"cancelled",
+    comment:"", cancelReason:"Student unwell — rescheduled to 5 June at 14:00.",
+    createdAt:"2025-05-29T13:00" },
+  { id:"ll4", studentId:"st2", tutorId:"t2", subjectId:"s3", date:"2025-05-20", status:"completed",
+    comment:"Worked on essay structure. Covered intro, body paragraphs and conclusion. Student produced a strong first draft. Will review at next session.",
+    cancelReason:"", createdAt:"2025-05-20T16:05" },
+  { id:"ll5", studentId:"st3", tutorId:"t1", subjectId:"s2", date:"2025-05-18", status:"completed",
+    comment:"Introduced chemical bonding. Covered ionic, covalent and metallic bonds with examples. Student asked excellent questions and showed strong engagement.",
+    cancelReason:"", createdAt:"2025-05-18T15:00" },
+];
+
 const ACADEMY_STUDENT_IDS = ["st1","st3"];
 
 const ROLE_ACCOUNTS = [
@@ -293,6 +344,30 @@ const lastNMonths = (n) => {
     });
   }
   return months;
+};
+
+
+// Lesson balance: accounts for sibling pooling
+const getLessonBalance = (studentId, data) => {
+  const group = new Set([studentId]);
+  (data.siblings||[]).forEach(s => {
+    if (s.studentId1===studentId) group.add(s.studentId2);
+    if (s.studentId2===studentId) group.add(s.studentId1);
+  });
+  const groupIds = [...group];
+  const bought = (data.invoices||[])
+    .filter(inv=>groupIds.includes(inv.studentId)&&inv.status==="paid")
+    .reduce((sum,inv)=>sum+inv.lineItems.reduce((s,li)=>s+(li.lessons||0),0),0);
+  const used = (data.lessonLogs||[])
+    .filter(l=>groupIds.includes(l.studentId)&&l.status==="completed").length;
+  return { bought, used, remaining:bought-used, groupIds, isSiblingGroup:groupIds.length>1 };
+};
+
+// Next invoice number
+const nextInvoiceNumber = (invoices) => {
+  const nums = (invoices||[]).map(inv=>parseInt(inv.invoiceNumber.replace("INV-",""))||0);
+  const max = nums.length ? Math.max(...nums) : 0;
+  return "INV-" + String(max+1).padStart(3,"0");
 };
 
 // ─── REPORT GENERATION ───────────────────────────────────────────────────────
@@ -2543,33 +2618,9 @@ function CentresPage({ data, setData }) {
 function CentreDetailModal({ centre, data, setData, onClose, onEdit }) {
   const [tab, setTab] = useState("students");
   const [noteForm, setNoteForm] = useState({ type: "general", note: "", date: today() });
-  const [topupModal, setTopupModal] = useState(false);
-  const [topupForm, setTopupForm] = useState({ qty:"", note:"" });
-  const [usageModal, setUsageModal] = useState(null);
-  const [usageForm, setUsageForm] = useState({ qty:"", note:"" });
 
   const students = data.students.filter(s => s.centreId === centre.id);
   const notes    = data.centreNotes.filter(n => n.centreId === centre.id);
-  const pools    = (data.centrePools||[]).filter(p => p.centreId === centre.id);
-  const allUsage = (data.centreLessonUsage||[]).filter(u => u.centreId === centre.id);
-  const totalBought = pools.reduce((s,p) => s+p.totalBought, 0);
-  const totalUsed   = allUsage.reduce((s,u) => s+u.quantity, 0);
-  const remaining   = totalBought - totalUsed;
-  const getStudentUsed = (sid) => allUsage.filter(u=>u.studentId===sid).reduce((s,u)=>s+u.quantity,0);
-
-  const logTopup = () => {
-    const qty = parseInt(topupForm.qty)||0;
-    if (!qty) return;
-    setData(d=>({...d, centrePools:[...(d.centrePools||[]), { id:"cp"+uid(), centreId:centre.id, totalBought:qty, date:today(), note:topupForm.note }]}));
-    setTopupModal(false); setTopupForm({qty:"",note:""});
-  };
-
-  const logUsage = () => {
-    const qty = parseInt(usageForm.qty)||0;
-    if (!qty||!usageModal) return;
-    setData(d=>({...d, centreLessonUsage:[...(d.centreLessonUsage||[]), { id:"clu"+uid(), centreId:centre.id, studentId:usageModal, quantity:qty, date:today(), note:usageForm.note }]}));
-    setUsageModal(null); setUsageForm({qty:"",note:""});
-  };
 
   const addNote = () => {
     if (!noteForm.note) return;
@@ -2605,10 +2656,10 @@ function CentreDetailModal({ centre, data, setData, onClose, onEdit }) {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-lg">
-        {[["students",students.length],["lessons",pools.length],["notes",notes.length]].map(([t,count]) => (
+        {["students","notes"].map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${tab === t ? "bg-white shadow text-teal-700" : "text-gray-500 hover:text-gray-700"}`}>
-            {t} ({count})
+            {t} ({t === "students" ? students.length : notes.length})
           </button>
         ))}
       </div>
@@ -2685,85 +2736,273 @@ function CentreDetailModal({ centre, data, setData, onClose, onEdit }) {
           </div>
         </div>
       )}
+    </Modal>
+  );
+}
 
-      {tab === "lessons" && (
-        <div className="space-y-4">
-          {/* Pool summary */}
-          <div className="grid grid-cols-3 gap-3">
-            {[["Bought",totalBought,B.teal],["Used",totalUsed,B.coral],["Remaining",remaining,remaining<=20?"#d97706":"#059669"]].map(([k,v,c])=>(
-              <div key={k} className="rounded-xl p-3 text-center" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-                <p className="text-2xl font-bold" style={{color:c}}>{v}</p>
-                <p className="text-xs font-bold uppercase tracking-wider mt-1" style={{color:"#9ca3af"}}>{k}</p>
-              </div>
-            ))}
+
+// ─── PAGE: INVOICING ─────────────────────────────────────────────────────────
+
+function InvoicingPage({ data, setData }) {
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [modal, setModal] = useState(null); // "create" | "view"
+  const [viewInv, setViewInv] = useState(null);
+  const [form, setForm] = useState({ studentId:"", lineItems:[], notes:"" });
+  const [customLine, setCustomLine] = useState({ description:"", qty:"1", unitPrice:"", lessons:"" });
+
+  const invoices = data.invoices||[];
+  const filtered = invoices.filter(inv=>{
+    const student = data.students.find(s=>s.id===inv.studentId);
+    const name = student?`${student.firstName} ${student.lastName}`:"";
+    const matchesSearch = name.toLowerCase().includes(search.toLowerCase()) || inv.invoiceNumber.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter==="all" || inv.status===statusFilter;
+    return matchesSearch && matchesStatus;
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+
+  const openCreate = () => {
+    setForm({ studentId:"", lineItems:[], notes:"" });
+    setModal("create");
+  };
+
+  const addPackageLine = (pkg) => {
+    setForm(f=>({...f, lineItems:[...f.lineItems, {
+      id:"li"+uid(), description:pkg.name, qty:1,
+      unitPrice:pkg.price, lessons:pkg.lessons,
+    }]}));
+  };
+
+  const addCustomLine = () => {
+    if (!customLine.description||!customLine.unitPrice) return;
+    setForm(f=>({...f, lineItems:[...f.lineItems,{
+      id:"li"+uid(),
+      description:customLine.description,
+      qty:parseInt(customLine.qty)||1,
+      unitPrice:parseFloat(customLine.unitPrice)||0,
+      lessons:parseInt(customLine.lessons)||0,
+    }]}));
+    setCustomLine({description:"",qty:"1",unitPrice:"",lessons:""});
+  };
+
+  const removeLine = (id) => setForm(f=>({...f,lineItems:f.lineItems.filter(l=>l.id!==id)}));
+
+  const calcTotal = (items) => items.reduce((s,l)=>s+(l.qty*l.unitPrice),0);
+
+  const saveInvoice = () => {
+    if (!form.studentId||form.lineItems.length===0) return;
+    const inv = {
+      id:"inv"+uid(),
+      studentId:form.studentId,
+      invoiceNumber:nextInvoiceNumber(data.invoices),
+      date:today(),
+      status:"draft",
+      paidDate:"",
+      lineItems:form.lineItems,
+      total:calcTotal(form.lineItems),
+      notes:form.notes,
+    };
+    setData(d=>({...d, invoices:[...(d.invoices||[]),inv]}));
+    setModal(null);
+  };
+
+  const markSent = (invId) => {
+    setData(d=>({
+      ...d,
+      invoices:d.invoices.map(i=>i.id===invId?{...i,status:"sent"}:i),
+      students:d.students.map(s=>{
+        const inv=d.invoices.find(i=>i.id===invId);
+        return (inv&&s.id===inv.studentId&&s.status==="Pending")?{...s,status:"Invoice Sent"}:s;
+      }),
+    }));
+    setViewInv(v=>v?{...v,status:"sent"}:v);
+  };
+
+  const markPaid = (invId) => {
+    setData(d=>({
+      ...d,
+      invoices:d.invoices.map(i=>i.id===invId?{...i,status:"paid",paidDate:today()}:i),
+      students:d.students.map(s=>{
+        const inv=d.invoices.find(i=>i.id===invId);
+        return (inv&&s.id===inv.studentId)?{...s,status:"Active"}:s;
+      }),
+    }));
+    setViewInv(v=>v?{...v,status:"paid",paidDate:today()}:v);
+  };
+
+  const statusColor = {draft:"gray",sent:"yellow",paid:"green"};
+  const statusLabel = {draft:"Draft",sent:"Sent",paid:"Paid"};
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Invoicing</h1>
+          <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>{invoices.filter(i=>i.status==="sent").length} awaiting payment · {invoices.filter(i=>i.status==="paid").length} paid</p>
+        </div>
+        <Btn onClick={openCreate}><Plus size={15}/> New Invoice</Btn>
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-3 gap-4">
+        <KPI title="Draft" value={invoices.filter(i=>i.status==="draft").length} icon={FileText} color="indigo"/>
+        <KPI title="Sent / Awaiting Payment" value={invoices.filter(i=>i.status==="sent").length} icon={TrendingUp} color="amber"/>
+        <KPI title="Total Collected (Paid)" value={fmtZAR(invoices.filter(i=>i.status==="paid").reduce((s,i)=>s+i.total,0))} icon={DollarSign} color="green"/>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-3 items-center flex-wrap">
+        <div className="flex-1 min-w-48"><SearchBar value={search} onChange={setSearch} placeholder="Search student or invoice #…"/></div>
+        <div className="flex gap-1">
+          {["all","draft","sent","paid"].map(s=>(
+            <button key={s} onClick={()=>setStatusFilter(s)}
+              className="px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all capitalize"
+              style={statusFilter===s?{background:B.tealDark,color:"white"}:{background:"white",color:"#374151",border:"1px solid #e5e7eb"}}>
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Invoice list */}
+      <Section title="Invoices">
+        {filtered.length===0?<p className="text-sm text-center py-6" style={{color:"#9ca3af"}}>No invoices found.</p>:(
+          <TableWrap>
+            <thead><tr><TH>#</TH><TH>Student</TH><TH>Date</TH><TH>Lessons</TH><TH>Total</TH><TH>Status</TH><TH></TH></tr></thead>
+            <tbody>{filtered.map(inv=>{
+              const student=data.students.find(s=>s.id===inv.studentId);
+              const totalLessons=inv.lineItems.reduce((s,l)=>s+(l.lessons||0),0);
+              return (
+                <TR key={inv.id} onClick={()=>{setViewInv(inv);setModal("view");}}>
+                  <TD><span className="font-mono font-bold text-xs" style={{color:B.tealDark}}>{inv.invoiceNumber}</span></TD>
+                  <TD><span className="font-semibold">{student?`${student.firstName} ${student.lastName}`:"—"}</span></TD>
+                  <TD>{fmtDate(inv.date)}</TD>
+                  <TD>{totalLessons>0?`${totalLessons} lessons`:"—"}</TD>
+                  <TD><span className="font-bold">{fmtZAR(inv.total)}</span></TD>
+                  <TD><Badge color={statusColor[inv.status]}>{statusLabel[inv.status]}</Badge></TD>
+                  <TD onClick={e=>e.stopPropagation()}>
+                    {inv.status==="draft"&&<Btn size="sm" onClick={()=>markSent(inv.id)}>Mark Sent</Btn>}
+                    {inv.status==="sent"&&<Btn size="sm" variant="success" onClick={()=>markPaid(inv.id)}><CheckCircle size={13}/> Mark Paid</Btn>}
+                    {inv.status==="paid"&&<Badge color="green">✓ Paid {fmtDate(inv.paidDate)}</Badge>}
+                  </TD>
+                </TR>
+              );
+            })}</tbody>
+          </TableWrap>
+        )}
+      </Section>
+
+      {/* Create invoice modal */}
+      {modal==="create"&&(
+        <Modal title="New Invoice" onClose={()=>setModal(null)} extraWide>
+          <Sel label="Student" value={form.studentId} onChange={e=>setForm(f=>({...f,studentId:e.target.value}))}
+            options={data.students.map(s=>({value:s.id,label:`${s.firstName} ${s.lastName} (${s.curriculum} · ${s.grade})`}))}
+            placeholder="Select student"/>
+
+          {/* Package quick-add buttons */}
+          <div className="mb-4">
+            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>Add Package / Service</p>
+            <div className="flex flex-wrap gap-2">
+              {PACKAGES.filter(p=>p.type!=="custom").map(pkg=>(
+                <button key={pkg.id} onClick={()=>addPackageLine(pkg)}
+                  className="px-3 py-2 rounded-xl text-xs font-semibold transition-all text-left"
+                  style={{background:"#f8faf9",border:"1px solid #eef2f1",color:"#374151"}}
+                  onMouseEnter={e=>e.currentTarget.style.background=B.tealLight}
+                  onMouseLeave={e=>e.currentTarget.style.background="#f8faf9"}>
+                  <span className="font-bold" style={{color:"#0d1e2a"}}>{pkg.name}</span>
+                  <span className="ml-2" style={{color:B.tealDark}}>{fmtZAR(pkg.price)}</span>
+                  {pkg.lessons>0&&<span className="ml-1 text-xs" style={{color:"#9ca3af"}}>· {pkg.lessons} lessons</span>}
+                </button>
+              ))}
+            </div>
           </div>
-          {remaining <= 20 && totalBought > 0 && (
-            <div className="rounded-xl px-4 py-3 flex items-center gap-2" style={{background:"#fef3c7",border:"1px solid #fde68a"}}>
-              <span>⚠️</span>
-              <p className="text-xs font-semibold" style={{color:"#92400e"}}>Lesson pool running low — consider topping up.</p>
+
+          {/* Custom line item */}
+          <div className="p-3 rounded-xl mb-4" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>Add Custom Line Item</p>
+            <div className="grid grid-cols-4 gap-2 items-end">
+              <div className="col-span-2">
+                <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
+                  placeholder="Description" value={customLine.description} onChange={e=>setCustomLine(f=>({...f,description:e.target.value}))}/>
+              </div>
+              <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
+                placeholder="Price (R)" type="number" value={customLine.unitPrice} onChange={e=>setCustomLine(f=>({...f,unitPrice:e.target.value}))}/>
+              <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
+                placeholder="Lessons #" type="number" value={customLine.lessons} onChange={e=>setCustomLine(f=>({...f,lessons:e.target.value}))}/>
+            </div>
+            <Btn size="sm" className="mt-2" onClick={addCustomLine} disabled={!customLine.description||!customLine.unitPrice}><Plus size={13}/> Add Line</Btn>
+          </div>
+
+          {/* Line items preview */}
+          {form.lineItems.length>0&&(
+            <div className="mb-4">
+              <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>Invoice Lines</p>
+              <div className="rounded-xl overflow-hidden" style={{border:"1px solid #eef2f1"}}>
+                {form.lineItems.map((l,i)=>(
+                  <div key={l.id} className="flex items-center gap-3 px-4 py-3 text-sm" style={{borderBottom:i<form.lineItems.length-1?"1px solid #f5f8f7":"none",background:"white"}}>
+                    <div className="flex-1">
+                      <span className="font-semibold" style={{color:"#0d1e2a"}}>{l.description}</span>
+                      {l.lessons>0&&<span className="text-xs ml-2" style={{color:"#9ca3af"}}>+{l.lessons} lessons</span>}
+                    </div>
+                    <span className="font-bold" style={{color:B.tealDark}}>{fmtZAR(l.qty*l.unitPrice)}</span>
+                    <button onClick={()=>removeLine(l.id)} style={{color:"#ef4444"}}><X size={14}/></button>
+                  </div>
+                ))}
+                <div className="flex justify-end px-4 py-3 font-bold text-sm" style={{background:"#f8faf9",borderTop:"1px solid #eef2f1"}}>
+                  <span style={{color:"#9ca3af",marginRight:"16px"}}>Total</span>
+                  <span style={{color:"#0d1e2a"}}>{fmtZAR(calcTotal(form.lineItems))}</span>
+                </div>
+              </div>
             </div>
           )}
-          {/* Top-up history + add button */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-bold uppercase tracking-wider" style={{color:"#9ca3af"}}>Top-up History</p>
-              <Btn size="sm" onClick={()=>setTopupModal(true)}><Plus size={13}/> Log Top-up</Btn>
-            </div>
-            {pools.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No top-ups recorded.</p>:(
-              <TableWrap><thead><tr><TH>Date</TH><TH>Lessons Added</TH><TH>Note</TH></tr></thead>
-              <tbody>{pools.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>(
-                <TR key={p.id}><TD>{fmtDate(p.date)}</TD><TD><span className="font-semibold">+{p.totalBought}</span></TD><TD>{p.note||"—"}</TD></TR>
-              ))}</tbody></TableWrap>
-            )}
-          </div>
-          {/* Per-student usage */}
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>Student Usage</p>
-            {students.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No students at this centre.</p>:(
-              <TableWrap>
-                <thead><tr><TH>Student</TH><TH>Lessons Used</TH><TH></TH></tr></thead>
-                <tbody>{students.map(s=>{
-                  const used=getStudentUsed(s.id);
-                  return (
-                    <TR key={s.id}>
-                      <TD><span className="font-semibold">{s.firstName} {s.lastName}</span><br/><span className="text-xs" style={{color:"#6b7280"}}>{s.curriculum} · {s.grade}</span></TD>
-                      <TD><span className="font-bold text-lg" style={{color:"#0d1e2a"}}>{used}</span><span className="text-xs ml-1" style={{color:"#9ca3af"}}>lessons</span></TD>
-                      <TD><Btn size="sm" variant="secondary" onClick={()=>{setUsageModal(s.id);setUsageForm({qty:"",note:""});}}>Log Usage</Btn></TD>
-                    </TR>
-                  );
-                })}</tbody>
-              </TableWrap>
-            )}
-          </div>
-        </div>
-      )}
 
-      {topupModal&&(
-        <Modal title="Log Lesson Top-up" onClose={()=>setTopupModal(false)}>
-          <p className="text-sm mb-4" style={{color:"#6b7280"}}>Add lessons to <strong>{centre.name}</strong>'s pool.</p>
-          <Inp label="Lessons Purchased" type="number" value={topupForm.qty} onChange={e=>setTopupForm(f=>({...f,qty:e.target.value}))}/>
-          <Inp label="Note (optional)" value={topupForm.note} onChange={e=>setTopupForm(f=>({...f,note:e.target.value}))}/>
+          <Txt label="Notes (optional)" value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} placeholder="Internal notes…"/>
+
           <div className="flex gap-2 justify-end">
-            <Btn variant="secondary" onClick={()=>setTopupModal(false)}>Cancel</Btn>
-            <Btn onClick={logTopup} disabled={!topupForm.qty}><CheckCircle size={15}/> Save</Btn>
+            <Btn variant="secondary" onClick={()=>setModal(null)}>Cancel</Btn>
+            <Btn onClick={saveInvoice} disabled={!form.studentId||form.lineItems.length===0}><FileText size={15}/> Create Invoice</Btn>
           </div>
         </Modal>
       )}
-      {usageModal&&(()=>{
-        const s=data.students.find(s=>s.id===usageModal);
+
+      {/* View invoice modal */}
+      {modal==="view"&&viewInv&&(()=>{
+        const student=data.students.find(s=>s.id===viewInv.studentId);
+        const totalLessons=viewInv.lineItems.reduce((s,l)=>s+(l.lessons||0),0);
         return (
-          <Modal title="Log Lesson Usage" onClose={()=>setUsageModal(null)}>
-            <p className="text-sm mb-4" style={{color:"#6b7280"}}>Recording usage for <strong>{s?.firstName} {s?.lastName}</strong></p>
-            <Inp label="Lessons Used" type="number" value={usageForm.qty} onChange={e=>setUsageForm(f=>({...f,qty:e.target.value}))}/>
-            <Inp label="Note (optional)" value={usageForm.note} onChange={e=>setUsageForm(f=>({...f,note:e.target.value}))}/>
+          <Modal title={viewInv.invoiceNumber} onClose={()=>setModal(null)} wide>
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <p className="font-bold text-lg" style={{color:"#0d1e2a"}}>{student?`${student.firstName} ${student.lastName}`:"—"}</p>
+                <p className="text-sm" style={{color:"#6b7280"}}>{fmtDate(viewInv.date)} · {totalLessons} lessons</p>
+              </div>
+              <Badge color={statusColor[viewInv.status]}>{statusLabel[viewInv.status]}</Badge>
+            </div>
+            <div className="rounded-xl overflow-hidden mb-4" style={{border:"1px solid #eef2f1"}}>
+              {viewInv.lineItems.map((l,i)=>(
+                <div key={l.id} className="flex items-center gap-3 px-4 py-3 text-sm" style={{borderBottom:i<viewInv.lineItems.length-1?"1px solid #f5f8f7":"none",background:"white"}}>
+                  <div className="flex-1">
+                    <span className="font-semibold" style={{color:"#0d1e2a"}}>{l.description}</span>
+                    {l.lessons>0&&<span className="text-xs ml-2" style={{color:"#9ca3af"}}>+{l.lessons} lessons</span>}
+                  </div>
+                  <span className="font-bold" style={{color:B.tealDark}}>{fmtZAR(l.qty*l.unitPrice)}</span>
+                </div>
+              ))}
+              <div className="flex justify-end px-4 py-3 font-bold text-sm" style={{background:"#f8faf9",borderTop:"1px solid #eef2f1"}}>
+                <span style={{color:"#9ca3af",marginRight:"16px"}}>Total</span>
+                <span style={{color:"#0d1e2a"}}>{fmtZAR(viewInv.total)}</span>
+              </div>
+            </div>
+            {viewInv.notes&&<p className="text-sm mb-4" style={{color:"#6b7280"}}>{viewInv.notes}</p>}
+            {viewInv.status==="paid"&&<p className="text-xs mb-4" style={{color:"#059669"}}>✓ Paid on {fmtDate(viewInv.paidDate)} — student marked Active</p>}
             <div className="flex gap-2 justify-end">
-              <Btn variant="secondary" onClick={()=>setUsageModal(null)}>Cancel</Btn>
-              <Btn onClick={logUsage} disabled={!usageForm.qty}>Save</Btn>
+              <Btn variant="secondary" onClick={()=>setModal(null)}>Close</Btn>
+              {viewInv.status==="draft"&&<Btn onClick={()=>markSent(viewInv.id)}>Mark Sent</Btn>}
+              {viewInv.status==="sent"&&<Btn variant="success" onClick={()=>markPaid(viewInv.id)}><CheckCircle size={15}/> Mark Paid</Btn>}
             </div>
           </Modal>
         );
       })()}
-    </Modal>
+    </div>
   );
 }
 
@@ -2881,6 +3120,169 @@ function ReportsPage({ data }) {
 }
 
 
+
+// ─── LESSON LOGBOOK & LOG LESSON ─────────────────────────────────────────────
+
+function LogbookView({ studentId, data, currentTutorId }) {
+  const logs = (data.lessonLogs||[])
+    .filter(l=>l.studentId===studentId)
+    .sort((a,b)=>b.date.localeCompare(a.date));
+  const [filter, setFilter] = useState("all");
+  const filtered = filter==="all" ? logs : logs.filter(l=>l.status===filter);
+
+  if (logs.length===0) return <p className="text-sm py-4 text-center" style={{color:"#9ca3af"}}>No lessons logged yet.</p>;
+
+  return (
+    <div>
+      <div className="flex gap-2 mb-4">
+        {[["all","All"],["completed","Completed"],["cancelled","Cancelled"]].map(([v,l])=>(
+          <button key={v} onClick={()=>setFilter(v)}
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+            style={filter===v?{background:B.teal,color:"white"}:{background:"#f8faf9",color:"#374151",border:"1px solid #e5e7eb"}}>
+            {l}
+          </button>
+        ))}
+      </div>
+      <div className="space-y-3">
+        {filtered.map(l=>{
+          const tutor=data.tutors.find(t=>t.id===l.tutorId);
+          const subj=data.subjects.find(s=>s.id===l.subjectId);
+          const cancelled=l.status==="cancelled";
+          return (
+            <div key={l.id} className="rounded-2xl p-4" style={{background:cancelled?"#fef2f2":"#f8faf9",border:`1px solid ${cancelled?"#fecaca":"#eef2f1"}`}}>
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="text-center min-w-10">
+                    <p className="text-xs font-bold uppercase" style={{color:"#9ca3af"}}>{new Date(l.date+"T00:00:00").toLocaleString("en-ZA",{month:"short"})}</p>
+                    <p className="text-xl font-bold leading-none" style={{color:"#0d1e2a"}}>{new Date(l.date+"T00:00:00").getDate()}</p>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-bold" style={{color:"#0d1e2a"}}>{tutor?.firstName} {tutor?.lastName}</span>
+                      {subj&&<Badge color="indigo">{subj.name}</Badge>}
+                      <Badge color={cancelled?"red":"green"}>{cancelled?"Cancelled":"Completed"}</Badge>
+                    </div>
+                    <p className="text-xs mt-0.5" style={{color:"#9ca3af"}}>{fmtDate(l.date)}</p>
+                  </div>
+                </div>
+              </div>
+              {cancelled&&l.cancelReason&&(
+                <div className="mt-3 p-2 rounded-lg" style={{background:"#fee2e2"}}>
+                  <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{color:"#991b1b"}}>Cancellation reason</p>
+                  <p className="text-sm" style={{color:"#7f1d1d"}}>{l.cancelReason}</p>
+                </div>
+              )}
+              {!cancelled&&l.comment&&(
+                <div className="mt-3 p-3 rounded-xl" style={{background:"white",border:"1px solid #eef2f1"}}>
+                  <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#9ca3af"}}>Lesson notes</p>
+                  <p className="text-sm whitespace-pre-wrap" style={{color:"#374151"}}>{l.comment}</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function LogLessonModal({ studentId, tutorId, data, setData, onClose }) {
+  const student = data.students.find(s=>s.id===studentId);
+  const tutor   = data.tutors.find(t=>t.id===tutorId);
+  const myLinks = data.links.filter(l=>l.studentId===studentId&&l.tutorId===tutorId);
+  const [form, setForm] = useState({
+    date: today(),
+    subjectId: myLinks[0]?.subjectId||"",
+    status: "completed",
+    comment: "",
+    cancelReason: "",
+  });
+  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+  const valid = form.status==="completed" ? form.comment.trim().length>0 : form.cancelReason.trim().length>0;
+
+  const save = () => {
+    if (!valid) return;
+    setData(d=>({...d, lessonLogs:[...(d.lessonLogs||[]),{
+      id:"ll"+uid(), studentId, tutorId,
+      subjectId:form.subjectId,
+      date:form.date,
+      status:form.status,
+      comment:form.status==="completed"?form.comment.trim():"",
+      cancelReason:form.status==="cancelled"?form.cancelReason.trim():"",
+      createdAt:new Date().toISOString().slice(0,16),
+    }]}));
+    onClose();
+  };
+
+  return (
+    <Modal title={`Log Lesson — ${student?.firstName} ${student?.lastName}`} onClose={onClose} wide>
+      <div className="mb-4 p-3 rounded-xl flex items-center gap-3" style={{background:B.tealLight}}>
+        <GraduationCap size={16} style={{color:B.tealDark}}/>
+        <p className="text-sm font-semibold" style={{color:B.tealDark}}>Tutor: {tutor?.firstName} {tutor?.lastName}</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <Inp label="Date of Lesson" type="date" value={form.date} onChange={e=>set("date",e.target.value)}/>
+        <Sel label="Subject" value={form.subjectId} onChange={e=>set("subjectId",e.target.value)}
+          options={myLinks.map(l=>({value:l.subjectId,label:data.subjects.find(s=>s.id===l.subjectId)?.name||l.subjectId}))}
+          placeholder="Select subject"/>
+      </div>
+
+      <Field label="Lesson Status">
+        <div className="flex gap-2">
+          {[["completed","✓ Completed"],["cancelled","✕ Cancelled"]].map(([v,l])=>(
+            <button key={v} onClick={()=>set("status",v)}
+              className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all"
+              style={form.status===v
+                ?(v==="completed"?{background:"#d1fae5",color:"#065f46",border:"2px solid #10b981"}:{background:"#fee2e2",color:"#991b1b",border:"2px solid #dc2626"})
+                :{background:"#f8faf9",color:"#374151",border:"2px solid #e5e7eb"}}>
+              {l}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      {form.status==="completed" && (
+        <div className="mb-4">
+          <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{color:"#9ca3af"}}>
+            Lesson Notes <span style={{color:B.coral}}>*</span>
+          </label>
+          <textarea
+            className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-all bg-white"
+            style={{borderColor:form.comment.trim()?B.teal:"#e5e7eb",minHeight:"120px",color:"#111827"}}
+            placeholder="What was covered in this lesson? Include topics, progress, homework set, anything relevant. (Required)"
+            value={form.comment} onChange={e=>set("comment",e.target.value)}
+            onFocus={e=>{e.target.style.borderColor=B.teal;e.target.style.boxShadow="0 0 0 3px #e8f5f7";}}
+            onBlur={e=>{e.target.style.borderColor=form.comment.trim()?B.teal:"#e5e7eb";e.target.style.boxShadow="none";}}/>
+          {!form.comment.trim() && <p className="text-xs mt-1" style={{color:B.coral}}>Lesson notes are required before saving.</p>}
+        </div>
+      )}
+
+      {form.status==="cancelled" && (
+        <div className="mb-4">
+          <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{color:"#9ca3af"}}>
+            Cancellation Reason <span style={{color:B.coral}}>*</span>
+          </label>
+          <textarea
+            className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-all bg-white"
+            style={{borderColor:form.cancelReason.trim()?B.teal:"#e5e7eb",minHeight:"80px",color:"#111827"}}
+            placeholder="Why was this lesson cancelled? (Required)"
+            value={form.cancelReason} onChange={e=>set("cancelReason",e.target.value)}
+            onFocus={e=>{e.target.style.borderColor=B.teal;e.target.style.boxShadow="0 0 0 3px #e8f5f7";}}
+            onBlur={e=>{e.target.style.borderColor=form.cancelReason.trim()?B.teal:"#e5e7eb";e.target.style.boxShadow="none";}}/>
+        </div>
+      )}
+
+      <div className="flex gap-2 justify-end">
+        <Btn variant="secondary" onClick={onClose}>Cancel</Btn>
+        <Btn onClick={save} disabled={!valid}>
+          <CheckCircle size={15}/> Save Lesson Log
+        </Btn>
+      </div>
+    </Modal>
+  );
+}
+
 // ─── ROLE VIEWS ───────────────────────────────────────────────────────────────
 
 // ── PARENT VIEW ──────────────────────────────────────────────────────────────
@@ -2941,6 +3343,32 @@ function ParentView({ data, setData, parentRef }) {
                 ))}
               </div>
             </Section>
+            {(()=>{
+              const bal = getLessonBalance(student.id, data);
+              const lowBal = bal.remaining <= 2 && bal.bought > 0;
+              return (
+                <>
+                  {lowBal && (
+                    <div className="rounded-2xl px-5 py-4 flex items-start gap-3" style={{background:"#fef3c7",border:"1px solid #fde68a"}}>
+                      <span className="text-xl">⚠️</span>
+                      <div>
+                        <p className="text-sm font-bold" style={{color:"#92400e"}}>Only {bal.remaining} lesson{bal.remaining!==1?"s":""} remaining{bal.isSiblingGroup?" (shared sibling pool)":""}!</p>
+                        <p className="text-xs mt-0.5" style={{color:"#b45309"}}>Please contact LEARN TO LINK to top up {student.firstName}'s lessons.</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-3 gap-4">
+                    {[["Lessons Bought",bal.bought,"#0d1e2a"],["Used",bal.used,B.coral],["Remaining",bal.remaining,bal.remaining<=2?"#d97706":"#059669"]].map(([k,v,c])=>(
+                      <div key={k} className="rounded-2xl p-4 bg-white text-center" style={{border:"1px solid #eef2f1"}}>
+                        <p className="text-3xl font-bold" style={{color:c}}>{v}</p>
+                        <p className="text-xs font-bold uppercase tracking-wider mt-1" style={{color:"#9ca3af"}}>{k}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {bal.isSiblingGroup&&<p className="text-xs" style={{color:"#6b7280"}}>* Lessons are shared across siblings in this account.</p>}
+                </>
+              );
+            })()}
             <Section title="Lesson Packages">
               <div className="flex gap-8 mb-4">
                 {[["Total Bought",total,"#0d1e2a"],["Estimated Remaining",rem,rem<=2?"#d97706":"#059669"]].map(([k,v,c])=>(
@@ -2995,6 +3423,12 @@ function ParentView({ data, setData, parentRef }) {
           </div>
         );
       })()}
+      {student && (
+        <Section title="Lesson Logbook">
+          <LogbookView studentId={student.id} data={data}/>
+        </Section>
+      )}
+
       {noteModal&&(()=>{
         const t=data.tutors.find(t=>t.id===noteModal);
         return (
@@ -3013,25 +3447,49 @@ function ParentView({ data, setData, parentRef }) {
 }
 
 // ── CENTRE OWNER VIEW ────────────────────────────────────────────────────────
-function CentreOwnerView({ data, ownerRef }) {
+function CentreOwnerView({ data, setData, ownerRef }) {
   const owner = data.centreOwners?.find(o=>o.id===ownerRef);
   const centre = owner ? data.centres.find(c=>c.id===owner.centreId) : null;
   if (!owner||!centre) return <div className="p-8 text-center" style={{color:"#9ca3af"}}>Centre owner record not found.</div>;
 
+  const [usageModal, setUsageModal] = useState(null); // studentId
+  const [usageForm, setUsageForm] = useState({ qty:"", note:"" });
+  const [topupModal, setTopupModal] = useState(false);
+  const [topupForm, setTopupForm] = useState({ qty:"", note:"" });
+
   const centreStudents = data.students.filter(s=>s.centreId===centre.id);
   const pools = (data.centrePools||[]).filter(p=>p.centreId===centre.id);
   const allUsage = (data.centreLessonUsage||[]).filter(u=>u.centreId===centre.id);
+
   const totalBought = pools.reduce((s,p)=>s+p.totalBought,0);
   const totalUsed = allUsage.reduce((s,u)=>s+u.quantity,0);
   const remaining = totalBought - totalUsed;
   const low = remaining <= 20 && totalBought > 0;
-  const getStudentUsed = (sid) => allUsage.filter(u=>u.studentId===sid).reduce((s,u)=>s+u.quantity,0);
+
+  const getStudentUsed = (studentId) => allUsage.filter(u=>u.studentId===studentId).reduce((s,u)=>s+u.quantity,0);
+
+  const logUsage = () => {
+    const qty = parseInt(usageForm.qty)||0;
+    if (!qty||!usageModal) return;
+    setData(d=>({...d, centreLessonUsage:[...(d.centreLessonUsage||[]), { id:"clu"+uid(), centreId:centre.id, studentId:usageModal, quantity:qty, date:today(), note:usageForm.note }]}));
+    setUsageModal(null); setUsageForm({qty:"",note:""});
+  };
+
+  const logTopup = () => {
+    const qty = parseInt(topupForm.qty)||0;
+    if (!qty) return;
+    setData(d=>({...d, centrePools:[...(d.centrePools||[]), { id:"cp"+uid(), centreId:centre.id, totalBought:qty, date:today(), note:topupForm.note }]}));
+    setTopupModal(false); setTopupForm({qty:"",note:""});
+  };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>{centre.name}</h1>
-        <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>Your centre's lesson pool — contact admin to make any changes</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>{centre.name}</h1>
+          <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>Centre lesson pool and student overview</p>
+        </div>
+        <Btn onClick={()=>setTopupModal(true)}><Plus size={15}/> Record Top-up</Btn>
       </div>
 
       {low && (
@@ -3039,7 +3497,7 @@ function CentreOwnerView({ data, ownerRef }) {
           <span className="text-xl">⚠️</span>
           <div>
             <p className="text-sm font-bold" style={{color:"#92400e"}}>Lesson pool running low — only {remaining} lessons remaining!</p>
-            <p className="text-xs mt-0.5" style={{color:"#b45309"}}>Please contact your LEARN TO LINK admin to top up your centre's lessons.</p>
+            <p className="text-xs mt-0.5" style={{color:"#b45309"}}>Consider purchasing a top-up block soon.</p>
           </div>
         </div>
       )}
@@ -3050,11 +3508,12 @@ function CentreOwnerView({ data, ownerRef }) {
         <KPI title="Remaining" value={remaining} sub={low?"⚠ Running low":undefined} icon={TrendingUp} color={low?"amber":"green"}/>
       </div>
 
-      <Section title="Lesson Pool History">
-        {pools.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No purchases recorded yet.</p>:(
-          <TableWrap><thead><tr><TH>Date</TH><TH>Lessons Added</TH><TH>Note</TH></tr></thead>
+      <Section title="Lesson Pool Purchases"
+        action={<Btn size="sm" onClick={()=>setTopupModal(true)}><Plus size={13}/> Top Up</Btn>}>
+        {pools.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No purchases recorded.</p>:(
+          <TableWrap><thead><tr><TH>Date</TH><TH>Qty</TH><TH>Note</TH></tr></thead>
           <tbody>{pools.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>(
-            <TR key={p.id}><TD>{fmtDate(p.date)}</TD><TD><span className="font-semibold">+{p.totalBought}</span></TD><TD>{p.note||"—"}</TD></TR>
+            <TR key={p.id}><TD>{fmtDate(p.date)}</TD><TD className="font-semibold">{p.totalBought}</TD><TD>{p.note||"—"}</TD></TR>
           ))}</tbody></TableWrap>
         )}
       </Section>
@@ -3062,16 +3521,17 @@ function CentreOwnerView({ data, ownerRef }) {
       <Section title="Students & Lesson Usage">
         {centreStudents.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No students at this centre.</p>:(
           <TableWrap>
-            <thead><tr><TH>Student</TH><TH>Curriculum</TH><TH>Grade</TH><TH>Lessons Used</TH></tr></thead>
+            <thead><tr><TH>Student</TH><TH>Curriculum</TH><TH>Grade</TH><TH>Lessons Used</TH><TH></TH></tr></thead>
             <tbody>
               {centreStudents.map(s=>{
                 const used = getStudentUsed(s.id);
-                const subs = [...new Set(data.links.filter(l=>l.studentId===s.id).map(l=>data.subjects.find(sub=>sub.id===l.subjectId)?.name).filter(Boolean))];
+                const tutorLinks = data.links.filter(l=>l.studentId===s.id);
+                const subjects = [...new Set(tutorLinks.map(l=>data.subjects.find(sub=>sub.id===l.subjectId)?.name).filter(Boolean))];
                 return (
                   <TR key={s.id}>
                     <TD>
                       <p className="font-semibold" style={{color:"#0d1e2a"}}>{s.firstName} {s.lastName}</p>
-                      <p className="text-xs" style={{color:"#6b7280"}}>{subs.join(", ")||"—"}</p>
+                      <p className="text-xs" style={{color:"#6b7280"}}>{subjects.join(", ")||"No subjects"}</p>
                     </TD>
                     <TD><Badge color={CURR_COLOR[s.curriculum]||"gray"}>{s.curriculum}</Badge></TD>
                     <TD>{s.grade}</TD>
@@ -3079,6 +3539,7 @@ function CentreOwnerView({ data, ownerRef }) {
                       <span className="font-bold text-lg" style={{color:"#0d1e2a"}}>{used}</span>
                       <span className="text-xs ml-1" style={{color:"#9ca3af"}}>lessons</span>
                     </TD>
+                    <TD><Btn size="sm" variant="secondary" onClick={()=>{setUsageModal(s.id);setUsageForm({qty:"",note:""});}}>Log Usage</Btn></TD>
                   </TR>
                 );
               })}
@@ -3086,6 +3547,29 @@ function CentreOwnerView({ data, ownerRef }) {
           </TableWrap>
         )}
       </Section>
+
+      {usageModal&&(
+        <Modal title="Log Lesson Usage" onClose={()=>setUsageModal(null)}>
+          {(()=>{const s=data.students.find(s=>s.id===usageModal); return <p className="text-sm mb-4" style={{color:"#6b7280"}}>Recording usage for <strong>{s?.firstName} {s?.lastName}</strong></p>; })()}
+          <Inp label="Lessons Used" type="number" value={usageForm.qty} onChange={e=>setUsageForm(f=>({...f,qty:e.target.value}))}/>
+          <Inp label="Note (optional)" value={usageForm.note} onChange={e=>setUsageForm(f=>({...f,note:e.target.value}))}/>
+          <div className="flex gap-2 justify-end">
+            <Btn variant="secondary" onClick={()=>setUsageModal(null)}>Cancel</Btn>
+            <Btn onClick={logUsage}>Save</Btn>
+          </div>
+        </Modal>
+      )}
+      {topupModal&&(
+        <Modal title="Record Lesson Top-up" onClose={()=>setTopupModal(false)}>
+          <p className="text-sm mb-4" style={{color:"#6b7280"}}>Add a new block of lessons to {centre.name}'s pool.</p>
+          <Inp label="Lessons Purchased" type="number" value={topupForm.qty} onChange={e=>setTopupForm(f=>({...f,qty:e.target.value}))}/>
+          <Inp label="Note (optional)" value={topupForm.note} onChange={e=>setTopupForm(f=>({...f,note:e.target.value}))}/>
+          <div className="flex gap-2 justify-end">
+            <Btn variant="secondary" onClick={()=>setTopupModal(false)}>Cancel</Btn>
+            <Btn onClick={logTopup}><CheckCircle size={15}/> Save Top-up</Btn>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
@@ -3108,6 +3592,7 @@ function TutorView({ data, setData, tutorRef }) {
   const [resModal, setResModal] = useState(null); // studentId
   const [resForm, setResForm] = useState({ name:"", url:"" });
   const [schedModal, setSchedModal] = useState(null); // studentId
+  const [logModal, setLogModal] = useState(null); // studentId
   const [schedForm, setSchedForm] = useState({ date:"", time:"", duration:"60", platform:"", meetingLink:"", note:"", subjectId:"", fixed:false });
 
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
@@ -3251,7 +3736,7 @@ function TutorView({ data, setData, tutorRef }) {
 
       {/* Tabs */}
       <div className="flex gap-2">
-        {[["students","My Students"],["chat","Messages"],["resources","Resources"],["schedule","Schedule"]].map(([id,label])=>(
+        {[["students","My Students"],["chat","Messages"],["resources","Resources"],["schedule","Schedule"],["logbook","Logbook"]].map(([id,label])=>(
           <button key={id} onClick={()=>setTab(id)} className="px-4 py-2 rounded-xl text-sm font-semibold transition-all" style={tabStyle(id)}>{label}</button>
         ))}
       </div>
@@ -3278,7 +3763,8 @@ function TutorView({ data, setData, tutorRef }) {
                         <p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{s.curriculum} · {s.grade} · {subjs.join(", ")}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setResModal(s.id);setResForm({name:"",url:""});}}>Share Resource</Btn>
+                        <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();setLogModal(s.id);}}><BookMarked size={13}/> Log Lesson</Btn>
+                      <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setResModal(s.id);setResForm({name:"",url:""});}}>Share Resource</Btn>
                         <Btn size="sm" onClick={e=>{e.stopPropagation();setSchedModal(s.id);setSchedForm({date:"",time:"",duration:"60",platform:"",meetingLink:"",note:"",subjectId:sLinks[0]?.subjectId||"",fixed:false});}}><CalendarDays size={13}/> Share Lesson Link</Btn>
                         <ChevronRight size={16} style={{color:"#9ca3af",transform:open?"rotate(90deg)":"none",transition:"transform 0.2s"}}/>
                       </div>
@@ -3403,6 +3889,21 @@ function TutorView({ data, setData, tutorRef }) {
             );
           })}
         </div>
+      )}
+
+      {tab==="logbook" && (
+        <div className="space-y-4">
+          {assignedStudents.map(s=>(
+            <Section key={s.id} title={`Lesson Logbook — ${s.firstName} ${s.lastName}`}>
+              <LogbookView studentId={s.id} data={data} currentTutorId={tutor.id}/>
+            </Section>
+          ))}
+        </div>
+      )}
+
+      {/* Log lesson modal */}
+      {logModal&&(
+        <LogLessonModal studentId={logModal} tutorId={tutor.id} data={data} setData={setData} onClose={()=>setLogModal(null)}/>
       )}
 
       {/* Share resource modal */}
@@ -3832,6 +4333,7 @@ const NAV_ADMIN = [
   { id:"students",   label:"Students",   icon:Users           },
   { id:"tutors",     label:"Tutors",     icon:GraduationCap   },
   { id:"links",      label:"Links",      icon:LinkIcon        },
+  { id:"invoicing",  label:"Invoicing",  icon:FileText        },
   { id:"centres",    label:"Centres",    icon:Building2       },
   { id:"accounting", label:"Accounting", icon:DollarSign      },
   { id:"stats",      label:"Stats",      icon:BarChart2       },
@@ -3877,6 +4379,8 @@ export default function App() {
     resources:          INIT_RESOURCES,
     chatMessages:       INIT_CHAT_MESSAGES,
     scheduledLessons:   INIT_SCHEDULED_LESSONS,
+    invoices:           INIT_INVOICES,
+    lessonLogs:         INIT_LESSON_LOGS,
   });
 
   const account = ROLE_ACCOUNTS.find(a=>a.id===activeAccount)||ROLE_ACCOUNTS[0];
@@ -3912,7 +4416,7 @@ export default function App() {
 
   const renderContent = () => {
     if (role==="admin"||role==="owner") return adminPages[effectivePage]||null;
-    if (role==="centreOwner") return <CentreOwnerView data={data} ownerRef={roleRef}/>;
+    if (role==="centreOwner") return <CentreOwnerView data={data} setData={setData} ownerRef={roleRef}/>;
     if (role==="tutor")  return <TutorView  data={data} setData={setData} tutorRef={roleRef}/>;
     if (role==="parent") return <ParentView data={data} setData={setData} parentRef={roleRef}/>;
     if (role==="student") return <StudentView data={data} setData={setData} studentRef={roleRef}/>;
