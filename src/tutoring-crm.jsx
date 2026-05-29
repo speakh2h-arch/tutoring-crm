@@ -99,61 +99,97 @@ const INIT_CENTRE_NOTES = [
 
 // ─── ROLE & ACCOUNT SEED DATA ─────────────────────────────────────────────────
 
-// Tutor extra details (emergency contact, per-lesson rate, syllabi hired for)
 const INIT_TUTOR_PROFILES = [
-  { tutorId: "t1", emergencyName: "Thandi Mokoena", emergencyPhone: "071 999 1111", ratePerLesson: 250, syllabi: ["IEB","CAPS"], levels: ["Grade 10","Grade 11","Grade 12"], bio: "" },
-  { tutorId: "t2", emergencyName: "Sara Botha",     emergencyPhone: "082 888 2222", ratePerLesson: 220, syllabi: ["CAPS","Cambridge"], levels: ["Grade 8","Grade 9","Grade 10"], bio: "" },
-  { tutorId: "t3", emergencyName: "Nomvula Sithole",emergencyPhone: "076 777 3333", ratePerLesson: 230, syllabi: ["IEB","Cambridge"], levels: ["Grade 11","Grade 12","IGCSE"], bio: "" },
-  { tutorId: "t4", emergencyName: "Ana Ferreira",   emergencyPhone: "083 666 4444", ratePerLesson: 240, syllabi: ["IEB","CAPS"], levels: ["Grade 9","Grade 10","Grade 11"], bio: "" },
+  { tutorId:"t1", emergencyName:"Thandi Mokoena", emergencyPhone:"071 999 1111", ratePerLesson:250, syllabi:["IEB","CAPS"],        levels:["Grade 10","Grade 11","Grade 12"], bio:"" },
+  { tutorId:"t2", emergencyName:"Sara Botha",     emergencyPhone:"082 888 2222", ratePerLesson:220, syllabi:["CAPS","Cambridge"],  levels:["Grade 8","Grade 9","Grade 10"],  bio:"" },
+  { tutorId:"t3", emergencyName:"Nomvula Sithole",emergencyPhone:"076 777 3333", ratePerLesson:230, syllabi:["IEB","Cambridge"],   levels:["Grade 11","Grade 12","IGCSE"],   bio:"" },
+  { tutorId:"t4", emergencyName:"Ana Ferreira",   emergencyPhone:"083 666 4444", ratePerLesson:240, syllabi:["IEB","CAPS"],        levels:["Grade 9","Grade 10","Grade 11"], bio:"" },
 ];
 
-// Parent accounts — each linked to one or more students
 const INIT_PARENTS = [
-  { id: "p1", firstName: "Bongi",   lastName: "Dlamini",       email: "bongi@example.com",   phone: "071 100 0001", studentIds: ["st1","st5"] }, // parent of Siyanda & Nomsa
-  { id: "p2", firstName: "Anita",   lastName: "van der Merwe", email: "anita@example.com",   phone: "071 100 0002", studentIds: ["st2"] },
-  { id: "p3", firstName: "Sipho",   lastName: "Nkosi",         email: "sipho@example.com",   phone: "071 100 0003", studentIds: ["st3"] },
-  { id: "p4", firstName: "Rajan",   lastName: "Patel",         email: "rajan@example.com",   phone: "071 100 0004", studentIds: ["st4"] },
-  { id: "p5", firstName: "Lin",     lastName: "Chen",          email: "lin@example.com",     phone: "071 100 0005", studentIds: ["st6"] },
-  { id: "p6", firstName: "Fatima",  lastName: "Moosa",         email: "fatima@example.com",  phone: "071 100 0006", studentIds: ["st7"] },
+  { id:"p1", firstName:"Bongi",  lastName:"Dlamini",       email:"bongi@example.com",  phone:"071 100 0001", studentIds:["st1","st5"] },
+  { id:"p2", firstName:"Anita",  lastName:"van der Merwe", email:"anita@example.com",  phone:"071 100 0002", studentIds:["st2"] },
+  { id:"p3", firstName:"Sipho",  lastName:"Nkosi",         email:"sipho@example.com",  phone:"071 100 0003", studentIds:["st3"] },
+  { id:"p4", firstName:"Rajan",  lastName:"Patel",         email:"rajan@example.com",  phone:"071 100 0004", studentIds:["st4"] },
+  { id:"p5", firstName:"Lin",    lastName:"Chen",          email:"lin@example.com",    phone:"071 100 0005", studentIds:["st6"] },
+  { id:"p6", firstName:"Fatima", lastName:"Moosa",         email:"fatima@example.com", phone:"071 100 0006", studentIds:["st7"] },
 ];
 
-// Parent notes on tutors (visible to admin + tutor only, NOT the parent after submit)
 const INIT_PARENT_TUTOR_NOTES = [
-  { id: "ptn1", parentId: "p1", tutorId: "t1", note: "Very happy with Ayanda's approach. Siyanda\'s marks improved 15% this term.", date: "2025-05-10", visibleTo: ["admin","tutor"] },
+  { id:"ptn1", parentId:"p1", tutorId:"t1", note:"Very happy with Ayanda's approach. Siyanda's marks improved 15% this term.", date:"2025-05-10", visibleTo:["admin","tutor"] },
 ];
 
-// Tutor monthly payments logged by owner
 const INIT_TUTOR_PAYMENTS = [
-  { id: "tp1", tutorId: "t1", month: "2025-04", lessonsDelivered: 20, ratePerLesson: 250, total: 5000, paid: true, paidDate: "2025-05-03", expenseId: "exp1" },
-  { id: "tp2", tutorId: "t2", month: "2025-04", lessonsDelivered: 18, ratePerLesson: 220, total: 3960, paid: true, paidDate: "2025-05-03", expenseId: "exp2" },
-  { id: "tp3", tutorId: "t3", month: "2025-04", lessonsDelivered: 16, ratePerLesson: 230, total: 3680, paid: true, paidDate: "2025-05-03", expenseId: "exp3" },
-  { id: "tp4", tutorId: "t4", month: "2025-04", lessonsDelivered: 14, ratePerLesson: 240, total: 3360, paid: true, paidDate: "2025-05-03", expenseId: "exp4" },
+  { id:"tp1", tutorId:"t1", month:"2025-04", lessonsDelivered:20, ratePerLesson:250, total:5000, paid:true, paidDate:"2025-05-03", expenseId:"exp1" },
+  { id:"tp2", tutorId:"t2", month:"2025-04", lessonsDelivered:18, ratePerLesson:220, total:3960, paid:true, paidDate:"2025-05-03", expenseId:"exp2" },
+  { id:"tp3", tutorId:"t3", month:"2025-04", lessonsDelivered:16, ratePerLesson:230, total:3680, paid:true, paidDate:"2025-05-03", expenseId:"exp3" },
+  { id:"tp4", tutorId:"t4", month:"2025-04", lessonsDelivered:14, ratePerLesson:240, total:3360, paid:true, paidDate:"2025-05-03", expenseId:"exp4" },
 ];
 
-// Expenses (tutor payments feed into here)
 const INIT_EXPENSES = [
-  { id: "exp1", description: "Tutor pay — Ayanda Mokoena (Apr 2025)",  amount: 5000, date: "2025-05-03", category: "tutor" },
-  { id: "exp2", description: "Tutor pay — Ruan Botha (Apr 2025)",      amount: 3960, date: "2025-05-03", category: "tutor" },
-  { id: "exp3", description: "Tutor pay — Lerato Sithole (Apr 2025)",  amount: 3680, date: "2025-05-03", category: "tutor" },
-  { id: "exp4", description: "Tutor pay — Marco Ferreira (Apr 2025)",  amount: 3360, date: "2025-05-03", category: "tutor" },
+  { id:"exp1", description:"Tutor pay — Ayanda Mokoena (Apr 2025)", amount:5000, date:"2025-05-03", category:"tutor" },
+  { id:"exp2", description:"Tutor pay — Ruan Botha (Apr 2025)",     amount:3960, date:"2025-05-03", category:"tutor" },
+  { id:"exp3", description:"Tutor pay — Lerato Sithole (Apr 2025)", amount:3680, date:"2025-05-03", category:"tutor" },
+  { id:"exp4", description:"Tutor pay — Marco Ferreira (Apr 2025)", amount:3360, date:"2025-05-03", category:"tutor" },
 ];
 
-// Mark which students have academy access
-// (we'll add academyStudent flag to INIT_STUDENTS via override below)
+// Centre lesson pools — each centre buys a shared block of lessons
+const INIT_CENTRE_POOLS = [
+  { id:"cp1", centreId:"c1", totalBought:200, date:"2025-01-10", note:"Initial annual block" },
+  { id:"cp2", centreId:"c1", totalBought:100, date:"2025-04-01", note:"Top-up Q2"           },
+  { id:"cp3", centreId:"c2", totalBought:150, date:"2025-02-01", note:"Initial block"        },
+];
+
+// Per-student lesson usage at a centre (admin logs how many a student used)
+const INIT_CENTRE_LESSON_USAGE = [
+  { id:"clu1", centreId:"c1", studentId:"st2", quantity:12, date:"2025-03-31", note:"Term 1" },
+  { id:"clu2", centreId:"c1", studentId:"st3", quantity:15, date:"2025-03-31", note:"Term 1" },
+  { id:"clu3", centreId:"c2", studentId:"st4", quantity:10, date:"2025-03-31", note:"Term 1" },
+  { id:"clu4", centreId:"c1", studentId:"st2", quantity: 8, date:"2025-05-15", note:"Term 2 partial" },
+];
+
+// Centre owner accounts
+const INIT_CENTRE_OWNERS = [
+  { id:"co1", centreId:"c1", firstName:"Patricia", lastName:"Nkosi",   email:"patricia@northside.co.za" },
+  { id:"co2", centreId:"c2", firstName:"David",    lastName:"van Wyk", email:"david@southgate.co.za"   },
+];
+
+// Resources shared by tutors to students
+const INIT_RESOURCES = [
+  { id:"res1", fromTutorId:"t1", toStudentId:"st1", name:"Grade 11 Algebra Notes.pdf",     url:"#", type:"pdf",  date:"2025-05-01" },
+  { id:"res2", fromTutorId:"t1", toStudentId:"st1", name:"Quadratics Practice Sheet.pdf",  url:"#", type:"pdf",  date:"2025-05-08" },
+  { id:"res3", fromTutorId:"t2", toStudentId:"st2", name:"Essay Writing Guide.pdf",        url:"#", type:"pdf",  date:"2025-05-03" },
+];
+
+// Chat messages between tutors and students
+const INIT_CHAT_MESSAGES = [
+  { id:"cm1", tutorId:"t1", studentId:"st1", fromRole:"tutor",   message:"Hi Siyanda! I've uploaded the algebra notes. Let me know if you have questions.", date:"2025-05-01", time:"09:15" },
+  { id:"cm2", tutorId:"t1", studentId:"st1", fromRole:"student", message:"Thank you! I'll go through them before our next session.",                          date:"2025-05-01", time:"09:32" },
+  { id:"cm3", tutorId:"t1", studentId:"st1", fromRole:"tutor",   message:"Great. I've also shared the practice sheet — try questions 1–5.",                  date:"2025-05-08", time:"10:00" },
+];
+
+// Scheduled lessons (student-facing calendar)
+const INIT_SCHEDULED_LESSONS = [
+  { id:"sl1", studentId:"st1", tutorId:"t1", subjectId:"s1", date:"2025-06-03", time:"14:00", duration:60, meetingLink:"https://meet.google.com/abc-defg-hij", platform:"Google Meet", fixed:true,  note:"Weekly Maths" },
+  { id:"sl2", studentId:"st1", tutorId:"t1", subjectId:"s2", date:"2025-06-05", time:"15:00", duration:60, meetingLink:"https://teams.microsoft.com/l/meetup/xyz", platform:"Teams",       fixed:false, note:"Physical Science check-in" },
+  { id:"sl3", studentId:"st2", tutorId:"t2", subjectId:"s3", date:"2025-06-04", time:"16:00", duration:45, meetingLink:"https://zoom.us/j/1234567890",             platform:"Zoom",        fixed:true,  note:"English weekly" },
+];
+
 const ACADEMY_STUDENT_IDS = ["st1","st3"];
 
-// User accounts for role switcher
 const ROLE_ACCOUNTS = [
-  { id: "admin1",  role: "admin",   label: "Admin (Chanelle)",      ref: null     },
-  { id: "owner1",  role: "owner",   label: "Owner",                 ref: null     },
-  { id: "t1",      role: "tutor",   label: "Tutor — Ayanda",        ref: "t1"     },
-  { id: "t2",      role: "tutor",   label: "Tutor — Ruan",          ref: "t2"     },
-  { id: "t3",      role: "tutor",   label: "Tutor — Lerato",        ref: "t3"     },
-  { id: "t4",      role: "tutor",   label: "Tutor — Marco",         ref: "t4"     },
-  { id: "p1",      role: "parent",  label: "Parent — Bongi (Siyanda & Nomsa)", ref: "p1" },
-  { id: "p2",      role: "parent",  label: "Parent — Anita (Mia)",  ref: "p2"     },
-  { id: "st1",     role: "student", label: "Student — Siyanda",     ref: "st1"    },
-  { id: "st3",     role: "student", label: "Student — Langa",       ref: "st3"    },
+  { id:"admin1", role:"admin",        label:"Admin (Chanelle)",              ref:null  },
+  { id:"owner1", role:"owner",        label:"Owner",                         ref:null  },
+  { id:"co1",    role:"centreOwner",  label:"Centre Owner — Patricia (Northside)", ref:"co1" },
+  { id:"co2",    role:"centreOwner",  label:"Centre Owner — David (Southgate)",    ref:"co2" },
+  { id:"t1",     role:"tutor",        label:"Tutor — Ayanda",                ref:"t1"  },
+  { id:"t2",     role:"tutor",        label:"Tutor — Ruan",                  ref:"t2"  },
+  { id:"t3",     role:"tutor",        label:"Tutor — Lerato",                ref:"t3"  },
+  { id:"t4",     role:"tutor",        label:"Tutor — Marco",                 ref:"t4"  },
+  { id:"p1",     role:"parent",       label:"Parent — Bongi (Siyanda & Nomsa)", ref:"p1" },
+  { id:"p2",     role:"parent",       label:"Parent — Anita (Mia)",          ref:"p2"  },
+  { id:"st1",    role:"student",      label:"Student — Siyanda",             ref:"st1" },
+  { id:"st3",    role:"student",      label:"Student — Langa",               ref:"st3" },
 ];
 
 
@@ -377,42 +413,27 @@ const LogoMark = ({ size = 36 }) => {
 
 const Badge = ({ children, color = "gray" }) => {
   const map = {
-    gray:   { bg: "#f1f5f4", text: "#4a5568" },
-    green:  { bg: "#d1fae5", text: "#065f46" },
-    blue:   { bg: "#dbeafe", text: "#1e40af" },
-    yellow: { bg: "#fef3c7", text: "#92400e" },
-    red:    { bg: "#fee2e2", text: "#991b1b" },
-    purple: { bg: "#ede9fe", text: "#5b21b6" },
-    indigo: { bg: "#e8f5f7", text: "#5a9fa6" },
-    orange: { bg: "#ffedd5", text: "#9a3412" },
-    teal:   { bg: "#e8f5f7", text: "#5a9fa6" },
-    rose:   { bg: "#ffe4e6", text: "#9f1239" },
+    gray:   { bg:"#f1f5f4", text:"#4a5568" }, green: { bg:"#d1fae5", text:"#065f46" },
+    blue:   { bg:"#dbeafe", text:"#1e40af" }, yellow:{ bg:"#fef3c7", text:"#92400e" },
+    red:    { bg:"#fee2e2", text:"#991b1b" }, purple:{ bg:"#ede9fe", text:"#5b21b6" },
+    indigo: { bg:"#e8f5f7", text:"#5a9fa6" }, orange:{ bg:"#ffedd5", text:"#9a3412" },
+    teal:   { bg:"#e8f5f7", text:"#5a9fa6" }, rose:  { bg:"#ffe4e6", text:"#9f1239" },
   };
   const c = map[color] || map.gray;
-  return (
-    <span style={{ background: c.bg, color: c.text }}
-      className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold tracking-wide">
-      {children}
-    </span>
-  );
+  return <span style={{ background:c.bg, color:c.text }} className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold tracking-wide">{children}</span>;
 };
 
-const CURR_COLOR = { IEB: "teal", CAPS: "green", Cambridge: "purple" };
+const CURR_COLOR = { IEB:"teal", CAPS:"green", Cambridge:"purple" };
 
 const Modal = ({ title, onClose, children, wide, extraWide }) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-    style={{ background: "rgba(8,18,26,0.65)", backdropFilter: "blur(4px)" }}>
-    <div className={`bg-white rounded-2xl w-full ${extraWide ? "max-w-3xl" : wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto`}
-      style={{ boxShadow: "0 25px 60px rgba(0,0,0,0.25)", border: "1px solid rgba(0,0,0,0.07)" }}>
-      <div className="flex items-center justify-between px-6 py-4 sticky top-0 bg-white z-10 rounded-t-2xl"
-        style={{ borderBottom: "1px solid #eef2f1" }}>
-        <h2 className="text-sm font-bold tracking-tight" style={{ color: "#0d1e2a" }}>{title}</h2>
-        <button onClick={onClose}
-          className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-          style={{ color: "#6b7280" }}
-          onMouseEnter={e => e.currentTarget.style.background="#f3f4f6"}
-          onMouseLeave={e => e.currentTarget.style.background="transparent"}>
-          <X size={18} />
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background:"rgba(8,18,26,0.65)", backdropFilter:"blur(4px)" }}>
+    <div className={`bg-white rounded-2xl w-full ${extraWide?"max-w-3xl":wide?"max-w-2xl":"max-w-lg"} max-h-[90vh] overflow-y-auto`}
+      style={{ boxShadow:"0 25px 60px rgba(0,0,0,0.25)", border:"1px solid rgba(0,0,0,0.07)" }}>
+      <div className="flex items-center justify-between px-6 py-4 sticky top-0 bg-white z-10 rounded-t-2xl" style={{ borderBottom:"1px solid #eef2f1" }}>
+        <h2 className="text-sm font-bold tracking-tight" style={{ color:"#0d1e2a" }}>{title}</h2>
+        <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center transition-colors" style={{ color:"#6b7280" }}
+          onMouseEnter={e=>e.currentTarget.style.background="#f3f4f6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+          <X size={18}/>
         </button>
       </div>
       <div className="px-6 py-5">{children}</div>
@@ -422,119 +443,107 @@ const Modal = ({ title, onClose, children, wide, extraWide }) => (
 
 const Field = ({ label, children, hint }) => (
   <div className="mb-4">
-    {label && <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: "#9ca3af" }}>{label}</label>}
+    {label && <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color:"#9ca3af" }}>{label}</label>}
     {children}
-    {hint && <p className="text-xs mt-1" style={{ color: "#9ca3af" }}>{hint}</p>}
+    {hint && <p className="text-xs mt-1" style={{ color:"#9ca3af" }}>{hint}</p>}
   </div>
 );
 
 const inp = "w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-all bg-white";
 const Inp = ({ label, hint, ...p }) => (
   <Field label={label} hint={hint}>
-    <input className={inp} style={{ borderColor: "#e5e7eb", color: "#111827" }} {...p}
-      onFocus={e => { e.target.style.borderColor = B.teal; e.target.style.boxShadow = "0 0 0 3px #e8f5f7"; }}
-      onBlur={e => { e.target.style.borderColor = "#e5e7eb"; e.target.style.boxShadow = "none"; }} />
+    <input className={inp} style={{ borderColor:"#e5e7eb", color:"#111827" }} {...p}
+      onFocus={e=>{ e.target.style.borderColor=B.teal; e.target.style.boxShadow="0 0 0 3px #e8f5f7"; }}
+      onBlur={e=>{ e.target.style.borderColor="#e5e7eb"; e.target.style.boxShadow="none"; }}/>
   </Field>
 );
 const Sel = ({ label, options, placeholder, hint, ...p }) => (
   <Field label={label} hint={hint}>
-    <select className={inp} style={{ borderColor: "#e5e7eb", color: "#111827" }} {...p}>
+    <select className={inp} style={{ borderColor:"#e5e7eb", color:"#111827" }} {...p}>
       {placeholder && <option value="">{placeholder}</option>}
-      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      {options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
   </Field>
 );
 const Txt = ({ label, hint, ...p }) => (
   <Field label={label} hint={hint}>
-    <textarea className={inp} style={{ borderColor: "#e5e7eb", color: "#111827" }} rows={3} {...p}
-      onFocus={e => { e.target.style.borderColor = B.teal; e.target.style.boxShadow = "0 0 0 3px #e8f5f7"; }}
-      onBlur={e => { e.target.style.borderColor = "#e5e7eb"; e.target.style.boxShadow = "none"; }} />
+    <textarea className={inp} style={{ borderColor:"#e5e7eb", color:"#111827" }} rows={3} {...p}
+      onFocus={e=>{ e.target.style.borderColor=B.teal; e.target.style.boxShadow="0 0 0 3px #e8f5f7"; }}
+      onBlur={e=>{ e.target.style.borderColor="#e5e7eb"; e.target.style.boxShadow="none"; }}/>
   </Field>
 );
 
-const Btn = ({ children, onClick, variant = "primary", size = "md", className = "", type = "button", disabled }) => {
-  const sz = { sm: "px-3 py-1.5 text-xs", md: "px-4 py-2 text-sm", lg: "px-5 py-2.5 text-sm" }[size];
+const Btn = ({ children, onClick, variant="primary", size="md", className="", type="button", disabled }) => {
+  const sz = { sm:"px-3 py-1.5 text-xs", md:"px-4 py-2 text-sm", lg:"px-5 py-2.5 text-sm" }[size];
   const vrStyle = {
-    primary:   { background: B.coral,   color: "white",    border: "none" },
-    secondary: { background: "white",   color: "#374151",  border: "1px solid #d1d5db" },
-    danger:    { background: "#dc2626", color: "white",    border: "none" },
-    ghost:     { background: "transparent", color: "#4b5563", border: "none" },
-    success:   { background: "#059669", color: "white",    border: "none" },
+    primary:  { background:B.coral,   color:"white",   border:"none" },
+    secondary:{ background:"white",   color:"#374151", border:"1px solid #d1d5db" },
+    danger:   { background:"#dc2626", color:"white",   border:"none" },
+    ghost:    { background:"transparent", color:"#4b5563", border:"none" },
+    success:  { background:"#059669", color:"white",   border:"none" },
   };
   return (
-    <button type={type} disabled={disabled} onClick={onClick}
-      style={vrStyle[variant] || vrStyle.primary}
+    <button type={type} disabled={disabled} onClick={onClick} style={vrStyle[variant]||vrStyle.primary}
       className={`inline-flex items-center gap-2 rounded-xl font-semibold transition-all focus:outline-none disabled:opacity-40 hover:opacity-85 active:scale-95 ${sz} ${className}`}>
       {children}
     </button>
   );
 };
 
-const KPI = ({ title, value, sub, icon: Icon, color = "teal" }) => {
+const KPI = ({ title, value, sub, icon:Icon, color="teal" }) => {
   const colors = {
-    teal:   { accent: B.teal,      bg: B.tealLight,  text: B.tealDark  },
-    coral:  { accent: B.coral,     bg: B.coralLight, text: B.coralDark },
-    gold:   { accent: B.gold,      bg: B.goldLight,  text: "#b45309"   },
-    indigo: { accent: B.tealDark,  bg: B.tealLight,  text: B.tealDark  },
-    green:  { accent: "#10b981",   bg: "#d1fae5",    text: "#065f46"   },
-    purple: { accent: "#8b5cf6",   bg: "#ede9fe",    text: "#5b21b6"   },
-    amber:  { accent: "#f59e0b",   bg: "#fef3c7",    text: "#92400e"   },
-    rose:   { accent: "#f43f5e",   bg: "#ffe4e6",    text: "#9f1239"   },
+    teal:  { accent:B.teal,     bg:B.tealLight,  }, coral: { accent:B.coral,    bg:B.coralLight },
+    gold:  { accent:B.gold,     bg:B.goldLight,  }, indigo:{ accent:B.tealDark, bg:B.tealLight  },
+    green: { accent:"#10b981",  bg:"#d1fae5"     }, purple:{ accent:"#8b5cf6",  bg:"#ede9fe"    },
+    amber: { accent:"#f59e0b",  bg:"#fef3c7"     }, rose:  { accent:"#f43f5e",  bg:"#ffe4e6"    },
   };
-  const c = colors[color] || colors.teal;
+  const c = colors[color]||colors.teal;
   return (
-    <div className="rounded-2xl p-5 bg-white flex items-start gap-4"
-      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04)", border: "1px solid #eef2f1" }}>
-      <div className="rounded-xl p-2.5 shrink-0" style={{ background: c.bg }}>
-        <Icon size={20} style={{ color: c.accent }} />
-      </div>
+    <div className="rounded-2xl p-5 bg-white flex items-start gap-4" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.07)", border:"1px solid #eef2f1" }}>
+      <div className="rounded-xl p-2.5 shrink-0" style={{ background:c.bg }}><Icon size={20} style={{ color:c.accent }}/></div>
       <div className="min-w-0">
-        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#9ca3af" }}>{title}</p>
-        <p className="text-2xl font-bold mt-0.5 leading-none" style={{ color: "#0d1e2a" }}>{value}</p>
-        {sub && <p className="text-xs mt-1" style={{ color: "#6b7280" }}>{sub}</p>}
+        <p className="text-xs font-bold uppercase tracking-wider" style={{ color:"#9ca3af" }}>{title}</p>
+        <p className="text-2xl font-bold mt-0.5 leading-none" style={{ color:"#0d1e2a" }}>{value}</p>
+        {sub && <p className="text-xs mt-1" style={{ color:"#6b7280" }}>{sub}</p>}
       </div>
     </div>
   );
 };
 
 const TableWrap = ({ children }) => (
-  <div className="overflow-x-auto rounded-2xl" style={{ border: "1px solid #eef2f1" }}>
-    <table className="min-w-full divide-y text-sm" style={{ borderColor: "#eef2f1" }}>{children}</table>
+  <div className="overflow-x-auto rounded-2xl" style={{ border:"1px solid #eef2f1" }}>
+    <table className="min-w-full divide-y text-sm" style={{ borderColor:"#eef2f1" }}>{children}</table>
   </div>
 );
-const TH = ({ children, className = "" }) => (
+const TH = ({ children, className="" }) => (
   <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-widest ${className}`}
-    style={{ background: "#f8faf9", color: "#9ca3af", borderBottom: "1px solid #eef2f1" }}>{children}</th>
+    style={{ background:"#f8faf9", color:"#9ca3af", borderBottom:"1px solid #eef2f1" }}>{children}</th>
 );
-const TD = ({ children, className = "" }) => (
-  <td className={`px-4 py-3 ${className}`} style={{ color: "#374151" }}>{children}</td>
-);
-const TR = ({ children, onClick, className = "" }) => (
-  <tr onClick={onClick}
-    className={`border-b last:border-0 transition-colors ${onClick ? "cursor-pointer" : ""} ${className}`}
-    style={{ borderColor: "#f5f8f7" }}
-    onMouseEnter={onClick ? (e => { e.currentTarget.style.background = "#f0faf8"; }) : undefined}
-    onMouseLeave={onClick ? (e => { e.currentTarget.style.background = ""; }) : undefined}>
+const TD = ({ children, className="" }) => <td className={`px-4 py-3 ${className}`} style={{ color:"#374151" }}>{children}</td>;
+const TR = ({ children, onClick, className="" }) => (
+  <tr onClick={onClick} className={`border-b last:border-0 transition-colors ${onClick?"cursor-pointer":""} ${className}`}
+    style={{ borderColor:"#f5f8f7" }}
+    onMouseEnter={onClick?(e=>{e.currentTarget.style.background="#f0faf8";}):undefined}
+    onMouseLeave={onClick?(e=>{e.currentTarget.style.background="";}):undefined}>
     {children}
   </tr>
 );
 
 const SearchBar = ({ value, onChange, placeholder }) => (
   <div className="relative">
-    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "#9ca3af" }} />
-    <input
-      className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none transition-all bg-white"
-      style={{ border: "1px solid #e5e7eb", color: "#111827" }}
-      placeholder={placeholder || "Search…"} value={value} onChange={e => onChange(e.target.value)}
-      onFocus={e => { e.target.style.borderColor = B.teal; e.target.style.boxShadow = "0 0 0 3px #e8f5f7"; }}
-      onBlur={e => { e.target.style.borderColor = "#e5e7eb"; e.target.style.boxShadow = "none"; }} />
+    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color:"#9ca3af" }}/>
+    <input className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none transition-all bg-white"
+      style={{ border:"1px solid #e5e7eb", color:"#111827" }}
+      placeholder={placeholder||"Search…"} value={value} onChange={e=>onChange(e.target.value)}
+      onFocus={e=>{ e.target.style.borderColor=B.teal; e.target.style.boxShadow="0 0 0 3px #e8f5f7"; }}
+      onBlur={e=>{ e.target.style.borderColor="#e5e7eb"; e.target.style.boxShadow="none"; }}/>
   </div>
 );
 
 const Section = ({ title, children, action }) => (
-  <div className="bg-white rounded-2xl" style={{ border: "1px solid #eef2f1", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
-    <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid #f5f8f7" }}>
-      <h3 className="text-sm font-bold tracking-tight" style={{ color: "#0d1e2a" }}>{title}</h3>
+  <div className="bg-white rounded-2xl" style={{ border:"1px solid #eef2f1", boxShadow:"0 1px 3px rgba(0,0,0,0.05)" }}>
+    <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:"1px solid #f5f8f7" }}>
+      <h3 className="text-sm font-bold tracking-tight" style={{ color:"#0d1e2a" }}>{title}</h3>
       {action}
     </div>
     <div className="p-5">{children}</div>
@@ -2770,201 +2779,129 @@ function ReportsPage({ data }) {
 }
 
 
-
 // ─── ROLE VIEWS ───────────────────────────────────────────────────────────────
 
 // ── PARENT VIEW ──────────────────────────────────────────────────────────────
 function ParentView({ data, setData, parentRef }) {
-  const parent = data.parents.find(p => p.id === parentRef);
-  if (!parent) return <div className="p-8 text-center text-gray-400">Parent record not found.</div>;
-
-  const students = data.students.filter(s => parent.studentIds.includes(s.id));
-  const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || null);
-  const [noteModal, setNoteModal] = useState(null); // tutorId
+  const parent = data.parents.find(p=>p.id===parentRef);
+  if (!parent) return <div className="p-8 text-center" style={{color:"#9ca3af"}}>Parent not found.</div>;
+  const students = data.students.filter(s=>parent.studentIds.includes(s.id));
+  const [selId, setSelId] = useState(students[0]?.id||null);
+  const [noteModal, setNoteModal] = useState(null);
   const [noteText, setNoteText] = useState("");
+  const student = students.find(s=>s.id===selId);
 
-  const student = students.find(s => s.id === selectedStudentId);
-
-  const getLessonsInfo = (studentId) => {
-    const purchases = data.purchases.filter(p => p.studentId === studentId);
-    const totalBought = purchases.reduce((s, p) => s + p.quantity, 0);
-    // For demo: assume each link = 1 lesson used per week; use purchase count as proxy
-    const latestPurchase = purchases.sort((a,b) => b.date.localeCompare(a.date))[0];
-    return { totalBought, latestPurchase, packages: purchases };
-  };
-
-  const getTutorNotes = (studentId) => {
-    const tutorIds = [...new Set(data.links.filter(l => l.studentId === studentId).map(l => l.tutorId))];
-    return data.tutorNotes.filter(n => tutorIds.includes(n.tutorId));
-  };
-
-  const handleSubmitNote = (tutorId) => {
+  const submit = (tutorId) => {
     if (!noteText.trim()) return;
-    const newNote = {
-      id: "ptn" + uid(),
-      parentId: parent.id,
-      tutorId,
-      note: noteText.trim(),
-      date: today(),
-      visibleTo: ["admin","tutor"],
-    };
-    setData(d => ({ ...d, parentTutorNotes: [...d.parentTutorNotes, newNote] }));
-    setNoteText("");
-    setNoteModal(null);
+    setData(d=>({...d, parentTutorNotes:[...d.parentTutorNotes, { id:"ptn"+uid(), parentId:parent.id, tutorId, note:noteText.trim(), date:today(), visibleTo:["admin","tutor"] }]}));
+    setNoteText(""); setNoteModal(null);
   };
-
-  const studentTutors = student
-    ? [...new Set(data.links.filter(l => l.studentId === student.id).map(l => l.tutorId))]
-        .map(tid => data.tutors.find(t => t.id === tid)).filter(Boolean)
-    : [];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: "#0d1e2a" }}>Welcome, {parent.firstName}</h1>
-        <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>Your children's learning overview</p>
+        <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Welcome, {parent.firstName}</h1>
+        <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>Your children's learning overview</p>
       </div>
-
-      {/* Student selector */}
-      {students.length > 1 && (
+      {students.length>1 && (
         <div className="flex gap-2">
-          {students.map(s => (
-            <button key={s.id} onClick={() => setSelectedStudentId(s.id)}
-              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-              style={selectedStudentId === s.id
-                ? { background: B.teal, color: "white" }
-                : { background: "white", color: "#374151", border: "1px solid #e5e7eb" }}>
+          {students.map(s=>(
+            <button key={s.id} onClick={()=>setSelId(s.id)} className="px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+              style={selId===s.id?{background:B.teal,color:"white"}:{background:"white",color:"#374151",border:"1px solid #e5e7eb"}}>
               {s.firstName}
             </button>
           ))}
         </div>
       )}
-
-      {student && (() => {
-        const { totalBought, packages } = getLessonsInfo(student.id);
-        const lessonLinks = data.links.filter(l => l.studentId === student.id);
-        // Each link counts as active subject; estimate used = links * 4 (demo)
-        const estimatedUsed = lessonLinks.length * 4;
-        const remaining = Math.max(0, totalBought - estimatedUsed);
-        const lowLessons = remaining <= 2 && totalBought > 0;
-        const tutorNotes = getTutorNotes(student.id);
-
+      {student && (()=>{
+        const purchases = data.purchases.filter(p=>p.studentId===student.id);
+        const total = purchases.reduce((s,p)=>s+p.quantity,0);
+        const used = data.links.filter(l=>l.studentId===student.id).length*4;
+        const rem = Math.max(0,total-used);
+        const low = rem<=2 && total>0;
+        const tutorLinks = data.links.filter(l=>l.studentId===student.id);
+        const tutorNotes = data.tutorNotes.filter(n=>tutorLinks.some(l=>l.tutorId===n.tutorId));
         return (
           <div className="space-y-4">
-            {/* Low lessons warning */}
-            {lowLessons && (
-              <div className="rounded-2xl px-5 py-4 flex items-start gap-3"
-                style={{ background: "#fef3c7", border: "1px solid #fde68a" }}>
+            {low && (
+              <div className="rounded-2xl px-5 py-4 flex items-start gap-3" style={{background:"#fef3c7",border:"1px solid #fde68a"}}>
                 <span className="text-xl">⚠️</span>
                 <div>
-                  <p className="text-sm font-bold" style={{ color: "#92400e" }}>Only {remaining} lesson{remaining !== 1 ? "s" : ""} remaining!</p>
-                  <p className="text-xs mt-0.5" style={{ color: "#b45309" }}>Please contact LEARN TO LINK to top up {student.firstName}'s lesson package.</p>
+                  <p className="text-sm font-bold" style={{color:"#92400e"}}>Only {rem} lesson{rem!==1?"s":""} remaining!</p>
+                  <p className="text-xs mt-0.5" style={{color:"#b45309"}}>Please contact LEARN TO LINK to top up {student.firstName}'s package.</p>
                 </div>
               </div>
             )}
-
-            {/* Student profile card */}
             <Section title={`${student.firstName} ${student.lastName}`}>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="font-semibold" style={{ color: "#9ca3af" }}>Curriculum</span><p style={{ color: "#0d1e2a" }}>{student.curriculum}</p></div>
-                <div><span className="font-semibold" style={{ color: "#9ca3af" }}>Grade</span><p style={{ color: "#0d1e2a" }}>{student.grade}</p></div>
-                <div><span className="font-semibold" style={{ color: "#9ca3af" }}>Status</span><p style={{ color: "#0d1e2a" }}>{student.status}</p></div>
-                <div><span className="font-semibold" style={{ color: "#9ca3af" }}>Enrolled</span><p style={{ color: "#0d1e2a" }}>{fmtDate(student.enrolledDate)}</p></div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                {[["Curriculum",student.curriculum],["Grade",student.grade],["Status",student.status],["Enrolled",fmtDate(student.enrolledDate)]].map(([k,v])=>(
+                  <div key={k}><p className="text-xs font-bold uppercase tracking-wider" style={{color:"#9ca3af"}}>{k}</p><p className="mt-0.5" style={{color:"#0d1e2a"}}>{v}</p></div>
+                ))}
               </div>
             </Section>
-
-            {/* Lesson packages */}
             <Section title="Lesson Packages">
-              <div className="flex items-center gap-6 mb-4">
-                <div className="text-center">
-                  <p className="text-3xl font-bold" style={{ color: "#0d1e2a" }}>{totalBought}</p>
-                  <p className="text-xs font-bold uppercase tracking-wider mt-1" style={{ color: "#9ca3af" }}>Total Bought</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold" style={{ color: remaining <= 2 ? "#d97706" : "#059669" }}>{remaining}</p>
-                  <p className="text-xs font-bold uppercase tracking-wider mt-1" style={{ color: "#9ca3af" }}>Estimated Remaining</p>
-                </div>
+              <div className="flex gap-8 mb-4">
+                {[["Total Bought",total,"#0d1e2a"],["Estimated Remaining",rem,rem<=2?"#d97706":"#059669"]].map(([k,v,c])=>(
+                  <div key={k} className="text-center">
+                    <p className="text-3xl font-bold" style={{color:c}}>{v}</p>
+                    <p className="text-xs font-bold uppercase tracking-wider mt-1" style={{color:"#9ca3af"}}>{k}</p>
+                  </div>
+                ))}
               </div>
-              {packages.length > 0 ? (
-                <TableWrap>
-                  <thead><tr>
-                    <TH>Date</TH><TH>Qty</TH><TH>Note</TH>
-                  </tr></thead>
-                  <tbody>
-                    {packages.sort((a,b) => b.date.localeCompare(a.date)).map(p => (
-                      <TR key={p.id}>
-                        <TD>{fmtDate(p.date)}</TD>
-                        <TD><span className="font-semibold">{p.quantity} lessons</span></TD>
-                        <TD>{p.note || "—"}</TD>
-                      </TR>
-                    ))}
-                  </tbody>
-                </TableWrap>
-              ) : <p className="text-sm" style={{ color: "#9ca3af" }}>No packages recorded yet.</p>}
+              {purchases.length>0 && (
+                <TableWrap><thead><tr><TH>Date</TH><TH>Qty</TH><TH>Note</TH></tr></thead>
+                <tbody>{purchases.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>(
+                  <TR key={p.id}><TD>{fmtDate(p.date)}</TD><TD className="font-semibold">{p.quantity}</TD><TD>{p.note||"—"}</TD></TR>
+                ))}</tbody></TableWrap>
+              )}
             </Section>
-
-            {/* Tutors & subjects */}
             <Section title="Linked Tutors">
-              {lessonLinks.length === 0
-                ? <p className="text-sm" style={{ color: "#9ca3af" }}>No tutors assigned yet.</p>
-                : (
-                <div className="space-y-3">
-                  {lessonLinks.map(lk => {
-                    const tutor = data.tutors.find(t => t.id === lk.tutorId);
-                    const subject = data.subjects.find(s => s.id === lk.subjectId);
-                    if (!tutor) return null;
-                    return (
-                      <div key={lk.id} className="flex items-center justify-between p-3 rounded-xl"
-                        style={{ background: "#f8faf9", border: "1px solid #eef2f1" }}>
+              {tutorLinks.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No tutors yet.</p>:(
+                <div className="space-y-2">
+                  {tutorLinks.map(lk=>{
+                    const t=data.tutors.find(t=>t.id===lk.tutorId);
+                    const s=data.subjects.find(s=>s.id===lk.subjectId);
+                    return t?(
+                      <div key={lk.id} className="flex items-center justify-between p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
                         <div>
-                          <p className="text-sm font-semibold" style={{ color: "#0d1e2a" }}>{tutor.firstName} {tutor.lastName}</p>
-                          <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>{subject?.name || "—"}</p>
+                          <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{t.firstName} {t.lastName}</p>
+                          <p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{s?.name||"—"}</p>
                         </div>
-                        <Btn size="sm" variant="secondary" onClick={() => { setNoteModal(tutor.id); setNoteText(""); }}>
-                          Leave Feedback
-                        </Btn>
+                        <Btn size="sm" variant="secondary" onClick={()=>{setNoteModal(t.id);setNoteText("");}}>Leave Feedback</Btn>
                       </div>
-                    );
+                    ):null;
                   })}
                 </div>
               )}
             </Section>
-
-            {/* Tutor notes visible to parent */}
-            {tutorNotes.length > 0 && (
+            {tutorNotes.length>0 && (
               <Section title="Notes from Tutors">
-                <div className="space-y-3">
-                  {tutorNotes.map(n => {
-                    const tutor = data.tutors.find(t => t.id === n.tutorId);
-                    const typeColor = n.type === "compliment" ? "green" : n.type === "complaint" ? "red" : "gray";
-                    return (
-                      <div key={n.id} className="p-3 rounded-xl" style={{ background: "#f8faf9", border: "1px solid #eef2f1" }}>
-                        <div className="flex items-center gap-2 mb-1">
-                          <Badge color={typeColor}>{n.type}</Badge>
-                          <span className="text-xs" style={{ color: "#9ca3af" }}>{tutor?.firstName} {tutor?.lastName} · {fmtDate(n.date)}</span>
-                        </div>
-                        <p className="text-sm" style={{ color: "#374151" }}>{n.note}</p>
+                {tutorNotes.map(n=>{
+                  const t=data.tutors.find(t=>t.id===n.tutorId);
+                  return (
+                    <div key={n.id} className="p-3 rounded-xl mb-2" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge color={n.type==="compliment"?"green":n.type==="complaint"?"red":"gray"}>{n.type}</Badge>
+                        <span className="text-xs" style={{color:"#9ca3af"}}>{t?.firstName} {t?.lastName} · {fmtDate(n.date)}</span>
                       </div>
-                    );
-                  })}
-                </div>
+                      <p className="text-sm" style={{color:"#374151"}}>{n.note}</p>
+                    </div>
+                  );
+                })}
               </Section>
             )}
           </div>
         );
       })()}
-
-      {/* Note modal */}
-      {noteModal && (() => {
-        const tutor = data.tutors.find(t => t.id === noteModal);
+      {noteModal&&(()=>{
+        const t=data.tutors.find(t=>t.id===noteModal);
         return (
-          <Modal title={`Leave feedback about ${tutor?.firstName} ${tutor?.lastName}`} onClose={() => setNoteModal(null)}>
-            <Txt label="Your feedback" value={noteText} onChange={e => setNoteText(e.target.value)}
-              placeholder="Share your feedback about this tutor..." />
-            <p className="text-xs mb-4" style={{ color: "#9ca3af" }}>This note will be seen by the admin and tutor. It won't appear in your view after submission.</p>
+          <Modal title={`Feedback — ${t?.firstName} ${t?.lastName}`} onClose={()=>setNoteModal(null)}>
+            <Txt label="Your feedback" value={noteText} onChange={e=>setNoteText(e.target.value)} placeholder="Share your feedback..."/>
+            <p className="text-xs mb-4" style={{color:"#9ca3af"}}>Seen by admin and tutor only. Won't appear in your view after submitting.</p>
             <div className="flex gap-2 justify-end">
-              <Btn variant="secondary" onClick={() => setNoteModal(null)}>Cancel</Btn>
-              <Btn onClick={() => handleSubmitNote(noteModal)}>Submit Feedback</Btn>
+              <Btn variant="secondary" onClick={()=>setNoteModal(null)}>Cancel</Btn>
+              <Btn onClick={()=>submit(noteModal)}>Submit</Btn>
             </div>
           </Modal>
         );
@@ -2973,219 +2910,491 @@ function ParentView({ data, setData, parentRef }) {
   );
 }
 
-// ── TUTOR VIEW ────────────────────────────────────────────────────────────────
-function TutorView({ data, setData, tutorRef }) {
-  const tutor = data.tutors.find(t => t.id === tutorRef);
-  const profile = data.tutorProfiles?.find(p => p.tutorId === tutorRef);
-  const [editingProfile, setEditingProfile] = useState(!tutor);
-  const [form, setForm] = useState({
-    firstName: tutor?.firstName || "",
-    lastName: tutor?.lastName || "",
-    email: tutor?.email || "",
-    phone: tutor?.phone || "",
-    emergencyName: profile?.emergencyName || "",
-    emergencyPhone: profile?.emergencyPhone || "",
-    syllabi: profile?.syllabi || [],
-    levels: profile?.levels || [],
-    subjectIds: tutor?.subjectIds || [],
-    bio: profile?.bio || "",
-  });
-  const [selectedStudentId, setSelectedStudentId] = useState(null);
+// ── CENTRE OWNER VIEW ────────────────────────────────────────────────────────
+function CentreOwnerView({ data, setData, ownerRef }) {
+  const owner = data.centreOwners?.find(o=>o.id===ownerRef);
+  const centre = owner ? data.centres.find(c=>c.id===owner.centreId) : null;
+  if (!owner||!centre) return <div className="p-8 text-center" style={{color:"#9ca3af"}}>Centre owner record not found.</div>;
 
-  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const [usageModal, setUsageModal] = useState(null); // studentId
+  const [usageForm, setUsageForm] = useState({ qty:"", note:"" });
+  const [topupModal, setTopupModal] = useState(false);
+  const [topupForm, setTopupForm] = useState({ qty:"", note:"" });
 
-  if (!tutor && !editingProfile) return null;
+  const centreStudents = data.students.filter(s=>s.centreId===centre.id);
+  const pools = (data.centrePools||[]).filter(p=>p.centreId===centre.id);
+  const allUsage = (data.centreLessonUsage||[]).filter(u=>u.centreId===centre.id);
 
-  const assignedLinks = tutor ? data.links.filter(l => l.tutorId === tutor.id) : [];
-  const assignedStudentIds = [...new Set(assignedLinks.map(l => l.studentId))];
-  const assignedStudents = assignedStudentIds.map(id => data.students.find(s => s.id === id)).filter(Boolean);
+  const totalBought = pools.reduce((s,p)=>s+p.totalBought,0);
+  const totalUsed = allUsage.reduce((s,u)=>s+u.quantity,0);
+  const remaining = totalBought - totalUsed;
+  const low = remaining <= 20 && totalBought > 0;
 
-  const parentNotes = data.parentTutorNotes?.filter(n => n.tutorId === tutorRef) || [];
+  const getStudentUsed = (studentId) => allUsage.filter(u=>u.studentId===studentId).reduce((s,u)=>s+u.quantity,0);
 
-  const toggleArr = (arr, val) => arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val];
-
-  const saveProfile = () => {
-    if (!form.firstName || !form.email) return;
-    setData(d => {
-      const tExists = d.tutors.find(t => t.id === tutorRef);
-      const updatedTutors = tExists
-        ? d.tutors.map(t => t.id === tutorRef ? { ...t, firstName: form.firstName, lastName: form.lastName, email: form.email, phone: form.phone, subjectIds: form.subjectIds } : t)
-        : d.tutors;
-      const profExists = d.tutorProfiles?.find(p => p.tutorId === tutorRef);
-      const updatedProfiles = profExists
-        ? (d.tutorProfiles || []).map(p => p.tutorId === tutorRef ? { ...p, emergencyName: form.emergencyName, emergencyPhone: form.emergencyPhone, syllabi: form.syllabi, levels: form.levels, bio: form.bio } : p)
-        : [...(d.tutorProfiles || []), { tutorId: tutorRef, emergencyName: form.emergencyName, emergencyPhone: form.emergencyPhone, ratePerLesson: 0, syllabi: form.syllabi, levels: form.levels, bio: form.bio }];
-      return { ...d, tutors: updatedTutors, tutorProfiles: updatedProfiles };
-    });
-    setEditingProfile(false);
+  const logUsage = () => {
+    const qty = parseInt(usageForm.qty)||0;
+    if (!qty||!usageModal) return;
+    setData(d=>({...d, centreLessonUsage:[...(d.centreLessonUsage||[]), { id:"clu"+uid(), centreId:centre.id, studentId:usageModal, quantity:qty, date:today(), note:usageForm.note }]}));
+    setUsageModal(null); setUsageForm({qty:"",note:""});
   };
 
-  if (editingProfile) {
-    return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: "#0d1e2a" }}>Your Profile</h1>
-          <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>Keep your details up to date</p>
-        </div>
-        <Section title="Personal Details">
-          <div className="grid grid-cols-2 gap-4">
-            <Inp label="First Name" value={form.firstName} onChange={e => set("firstName", e.target.value)} />
-            <Inp label="Last Name" value={form.lastName} onChange={e => set("lastName", e.target.value)} />
-            <Inp label="Email" type="email" value={form.email} onChange={e => set("email", e.target.value)} />
-            <Inp label="Phone" value={form.phone} onChange={e => set("phone", e.target.value)} />
-          </div>
-        </Section>
-        <Section title="Emergency Contact">
-          <div className="grid grid-cols-2 gap-4">
-            <Inp label="Contact Name" value={form.emergencyName} onChange={e => set("emergencyName", e.target.value)} />
-            <Inp label="Contact Phone" value={form.emergencyPhone} onChange={e => set("emergencyPhone", e.target.value)} />
-          </div>
-        </Section>
-        <Section title="Subjects & Syllabi I Tutor">
-          <div className="mb-4">
-            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>Subjects</p>
-            <div className="flex flex-wrap gap-2">
-              {data.subjects.map(s => (
-                <button key={s.id} onClick={() => set("subjectIds", toggleArr(form.subjectIds, s.id))}
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
-                  style={form.subjectIds.includes(s.id)
-                    ? { background: B.teal, color: "white" }
-                    : { background: "#f8faf9", color: "#374151", border: "1px solid #e5e7eb" }}>
-                  {s.name}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="mb-4">
-            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>Syllabi</p>
-            <div className="flex flex-wrap gap-2">
-              {["IEB","CAPS","Cambridge"].map(s => (
-                <button key={s} onClick={() => set("syllabi", toggleArr(form.syllabi, s))}
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
-                  style={form.syllabi.includes(s)
-                    ? { background: B.coral, color: "white" }
-                    : { background: "#f8faf9", color: "#374151", border: "1px solid #e5e7eb" }}>
-                  {s}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>Grade Levels</p>
-            <div className="flex flex-wrap gap-2">
-              {["Grade 8","Grade 9","Grade 10","Grade 11","Grade 12","IGCSE","AS Level","A Level"].map(l => (
-                <button key={l} onClick={() => set("levels", toggleArr(form.levels, l))}
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
-                  style={form.levels.includes(l)
-                    ? { background: B.tealDark, color: "white" }
-                    : { background: "#f8faf9", color: "#374151", border: "1px solid #e5e7eb" }}>
-                  {l}
-                </button>
-              ))}
-            </div>
-          </div>
-        </Section>
-        <div className="flex justify-end gap-2">
-          {tutor && <Btn variant="secondary" onClick={() => setEditingProfile(false)}>Cancel</Btn>}
-          <Btn onClick={saveProfile}><CheckCircle size={15} /> Save Profile</Btn>
-        </div>
-      </div>
-    );
-  }
-
-  const selectedStudent = assignedStudents.find(s => s.id === selectedStudentId);
+  const logTopup = () => {
+    const qty = parseInt(topupForm.qty)||0;
+    if (!qty) return;
+    setData(d=>({...d, centrePools:[...(d.centrePools||[]), { id:"cp"+uid(), centreId:centre.id, totalBought:qty, date:today(), note:topupForm.note }]}));
+    setTopupModal(false); setTopupForm({qty:"",note:""});
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: "#0d1e2a" }}>Welcome, {tutor.firstName}</h1>
-          <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>Your students and schedule</p>
+          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>{centre.name}</h1>
+          <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>Centre lesson pool and student overview</p>
         </div>
-        <Btn variant="secondary" size="sm" onClick={() => setEditingProfile(true)}><Edit2 size={14} /> Edit Profile</Btn>
+        <Btn onClick={()=>setTopupModal(true)}><Plus size={15}/> Record Top-up</Btn>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <KPI title="Students Assigned" value={assignedStudentIds.length} icon={Users} color="teal" />
-        <KPI title="Active Subjects" value={assignedLinks.length} icon={BookMarked} color="coral" />
-        <KPI title="Syllabi" value={(profile?.syllabi || []).join(", ") || "—"} icon={GraduationCap} color="indigo" />
-      </div>
-
-      {/* Parent feedback notes */}
-      {parentNotes.length > 0 && (
-        <Section title="Parent Feedback">
-          <div className="space-y-3">
-            {parentNotes.map(n => {
-              const parent = data.parents?.find(p => p.id === n.parentId);
-              return (
-                <div key={n.id} className="p-3 rounded-xl" style={{ background: "#f8faf9", border: "1px solid #eef2f1" }}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge color="teal">Parent Note</Badge>
-                    <span className="text-xs" style={{ color: "#9ca3af" }}>{parent ? `${parent.firstName} ${parent.lastName}` : "Parent"} · {fmtDate(n.date)}</span>
-                  </div>
-                  <p className="text-sm" style={{ color: "#374151" }}>{n.note}</p>
-                </div>
-              );
-            })}
+      {low && (
+        <div className="rounded-2xl px-5 py-4 flex items-start gap-3" style={{background:"#fef3c7",border:"1px solid #fde68a"}}>
+          <span className="text-xl">⚠️</span>
+          <div>
+            <p className="text-sm font-bold" style={{color:"#92400e"}}>Lesson pool running low — only {remaining} lessons remaining!</p>
+            <p className="text-xs mt-0.5" style={{color:"#b45309"}}>Consider purchasing a top-up block soon.</p>
           </div>
-        </Section>
+        </div>
       )}
 
-      {/* Assigned students list */}
-      <Section title="My Students">
-        {assignedStudents.length === 0
-          ? <p className="text-sm" style={{ color: "#9ca3af" }}>No students assigned yet. Admin will link students to you.</p>
-          : (
-          <div className="space-y-2">
-            {assignedStudents.map(s => {
-              const sLinks = assignedLinks.filter(l => l.studentId === s.id);
-              const subjects = sLinks.map(l => data.subjects.find(sub => sub.id === l.subjectId)?.name).filter(Boolean);
-              return (
-                <div key={s.id}
-                  className="flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all"
-                  style={{ background: selectedStudentId === s.id ? B.tealLight : "#f8faf9", border: `1px solid ${selectedStudentId === s.id ? B.teal : "#eef2f1"}` }}
-                  onClick={() => setSelectedStudentId(selectedStudentId === s.id ? null : s.id)}>
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: "#0d1e2a" }}>{s.firstName} {s.lastName}</p>
-                    <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>{s.curriculum} · {s.grade} · {subjects.join(", ")}</p>
-                  </div>
-                  <ChevronRight size={16} style={{ color: "#9ca3af", transform: selectedStudentId === s.id ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
-                </div>
-              );
-            })}
-          </div>
+      <div className="grid grid-cols-3 gap-4">
+        <KPI title="Total Lessons Bought" value={totalBought} icon={BookMarked} color="teal"/>
+        <KPI title="Lessons Used" value={totalUsed} icon={CheckCircle} color="coral"/>
+        <KPI title="Remaining" value={remaining} sub={low?"⚠ Running low":undefined} icon={TrendingUp} color={low?"amber":"green"}/>
+      </div>
+
+      <Section title="Lesson Pool Purchases"
+        action={<Btn size="sm" onClick={()=>setTopupModal(true)}><Plus size={13}/> Top Up</Btn>}>
+        {pools.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No purchases recorded.</p>:(
+          <TableWrap><thead><tr><TH>Date</TH><TH>Qty</TH><TH>Note</TH></tr></thead>
+          <tbody>{pools.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>(
+            <TR key={p.id}><TD>{fmtDate(p.date)}</TD><TD className="font-semibold">{p.totalBought}</TD><TD>{p.note||"—"}</TD></TR>
+          ))}</tbody></TableWrap>
         )}
       </Section>
 
-      {/* Student detail expand */}
-      {selectedStudent && (() => {
-        const sLinks = assignedLinks.filter(l => l.studentId === selectedStudent.id);
-        const subjects = sLinks.map(l => data.subjects.find(sub => sub.id === l.subjectId)?.name).filter(Boolean);
-        const purchases = data.purchases.filter(p => p.studentId === selectedStudent.id);
-        const totalBought = purchases.reduce((s, p) => s + p.quantity, 0);
-        const siblings = data.siblings.filter(sb => sb.studentId1 === selectedStudent.id || sb.studentId2 === selectedStudent.id)
-          .map(sb => data.students.find(s => s.id === (sb.studentId1 === selectedStudent.id ? sb.studentId2 : sb.studentId1))).filter(Boolean);
-        return (
-          <Section title={`${selectedStudent.firstName} ${selectedStudent.lastName} — Full Profile`}>
-            <div className="grid grid-cols-2 gap-4 text-sm mb-5">
-              <div><span className="font-bold text-xs uppercase tracking-wider" style={{ color: "#9ca3af" }}>Curriculum</span><p className="mt-0.5" style={{ color: "#0d1e2a" }}>{selectedStudent.curriculum}</p></div>
-              <div><span className="font-bold text-xs uppercase tracking-wider" style={{ color: "#9ca3af" }}>Grade</span><p className="mt-0.5" style={{ color: "#0d1e2a" }}>{selectedStudent.grade}</p></div>
-              <div><span className="font-bold text-xs uppercase tracking-wider" style={{ color: "#9ca3af" }}>Subjects with you</span><p className="mt-0.5" style={{ color: "#0d1e2a" }}>{subjects.join(", ") || "—"}</p></div>
-              <div><span className="font-bold text-xs uppercase tracking-wider" style={{ color: "#9ca3af" }}>Total Lessons Bought</span><p className="mt-0.5" style={{ color: "#0d1e2a" }}>{totalBought}</p></div>
-              {siblings.length > 0 && <div className="col-span-2"><span className="font-bold text-xs uppercase tracking-wider" style={{ color: "#9ca3af" }}>Siblings</span><p className="mt-0.5" style={{ color: "#0d1e2a" }}>{siblings.map(s => `${s.firstName} ${s.lastName}`).join(", ")}</p></div>}
+      <Section title="Students & Lesson Usage">
+        {centreStudents.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No students at this centre.</p>:(
+          <TableWrap>
+            <thead><tr><TH>Student</TH><TH>Curriculum</TH><TH>Grade</TH><TH>Lessons Used</TH><TH></TH></tr></thead>
+            <tbody>
+              {centreStudents.map(s=>{
+                const used = getStudentUsed(s.id);
+                const tutorLinks = data.links.filter(l=>l.studentId===s.id);
+                const subjects = [...new Set(tutorLinks.map(l=>data.subjects.find(sub=>sub.id===l.subjectId)?.name).filter(Boolean))];
+                return (
+                  <TR key={s.id}>
+                    <TD>
+                      <p className="font-semibold" style={{color:"#0d1e2a"}}>{s.firstName} {s.lastName}</p>
+                      <p className="text-xs" style={{color:"#6b7280"}}>{subjects.join(", ")||"No subjects"}</p>
+                    </TD>
+                    <TD><Badge color={CURR_COLOR[s.curriculum]||"gray"}>{s.curriculum}</Badge></TD>
+                    <TD>{s.grade}</TD>
+                    <TD>
+                      <span className="font-bold text-lg" style={{color:"#0d1e2a"}}>{used}</span>
+                      <span className="text-xs ml-1" style={{color:"#9ca3af"}}>lessons</span>
+                    </TD>
+                    <TD><Btn size="sm" variant="secondary" onClick={()=>{setUsageModal(s.id);setUsageForm({qty:"",note:""});}}>Log Usage</Btn></TD>
+                  </TR>
+                );
+              })}
+            </tbody>
+          </TableWrap>
+        )}
+      </Section>
+
+      {usageModal&&(
+        <Modal title="Log Lesson Usage" onClose={()=>setUsageModal(null)}>
+          {(()=>{const s=data.students.find(s=>s.id===usageModal); return <p className="text-sm mb-4" style={{color:"#6b7280"}}>Recording usage for <strong>{s?.firstName} {s?.lastName}</strong></p>; })()}
+          <Inp label="Lessons Used" type="number" value={usageForm.qty} onChange={e=>setUsageForm(f=>({...f,qty:e.target.value}))}/>
+          <Inp label="Note (optional)" value={usageForm.note} onChange={e=>setUsageForm(f=>({...f,note:e.target.value}))}/>
+          <div className="flex gap-2 justify-end">
+            <Btn variant="secondary" onClick={()=>setUsageModal(null)}>Cancel</Btn>
+            <Btn onClick={logUsage}>Save</Btn>
+          </div>
+        </Modal>
+      )}
+      {topupModal&&(
+        <Modal title="Record Lesson Top-up" onClose={()=>setTopupModal(false)}>
+          <p className="text-sm mb-4" style={{color:"#6b7280"}}>Add a new block of lessons to {centre.name}'s pool.</p>
+          <Inp label="Lessons Purchased" type="number" value={topupForm.qty} onChange={e=>setTopupForm(f=>({...f,qty:e.target.value}))}/>
+          <Inp label="Note (optional)" value={topupForm.note} onChange={e=>setTopupForm(f=>({...f,note:e.target.value}))}/>
+          <div className="flex gap-2 justify-end">
+            <Btn variant="secondary" onClick={()=>setTopupModal(false)}>Cancel</Btn>
+            <Btn onClick={logTopup}><CheckCircle size={15}/> Save Top-up</Btn>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ── TUTOR VIEW ────────────────────────────────────────────────────────────────
+function TutorView({ data, setData, tutorRef }) {
+  const tutor = data.tutors.find(t=>t.id===tutorRef);
+  const profile = data.tutorProfiles?.find(p=>p.tutorId===tutorRef);
+  const [editingProfile, setEditingProfile] = useState(!tutor);
+  const [form, setForm] = useState({
+    firstName:tutor?.firstName||"", lastName:tutor?.lastName||"",
+    email:tutor?.email||"", phone:tutor?.phone||"",
+    emergencyName:profile?.emergencyName||"", emergencyPhone:profile?.emergencyPhone||"",
+    syllabi:profile?.syllabi||[], levels:profile?.levels||[],
+    subjectIds:tutor?.subjectIds||[], bio:profile?.bio||"",
+  });
+  const [tab, setTab] = useState("students"); // students | chat | resources
+  const [selStudentId, setSelStudentId] = useState(null);
+  const [chatMsg, setChatMsg] = useState("");
+  const [resModal, setResModal] = useState(null); // studentId
+  const [resForm, setResForm] = useState({ name:"", url:"" });
+  const [schedModal, setSchedModal] = useState(null); // studentId
+  const [schedForm, setSchedForm] = useState({ date:"", time:"", duration:"60", platform:"", meetingLink:"", note:"", subjectId:"", fixed:false });
+
+  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+  const toggle = (arr,val) => arr.includes(val)?arr.filter(x=>x!==val):[...arr,val];
+
+  if (!tutor && !editingProfile) return null;
+
+  const assignedLinks = tutor ? data.links.filter(l=>l.tutorId===tutor.id) : [];
+  const assignedStudentIds = [...new Set(assignedLinks.map(l=>l.studentId))];
+  const assignedStudents = assignedStudentIds.map(id=>data.students.find(s=>s.id===id)).filter(Boolean);
+  const parentNotes = data.parentTutorNotes?.filter(n=>n.tutorId===tutorRef)||[];
+
+  const saveProfile = () => {
+    if (!form.firstName||!form.email) return;
+    setData(d=>{
+      const updTutors = d.tutors.find(t=>t.id===tutorRef)
+        ? d.tutors.map(t=>t.id===tutorRef?{...t,firstName:form.firstName,lastName:form.lastName,email:form.email,phone:form.phone,subjectIds:form.subjectIds}:t)
+        : d.tutors;
+      const profExists = d.tutorProfiles?.find(p=>p.tutorId===tutorRef);
+      const updProfiles = profExists
+        ? (d.tutorProfiles||[]).map(p=>p.tutorId===tutorRef?{...p,emergencyName:form.emergencyName,emergencyPhone:form.emergencyPhone,syllabi:form.syllabi,levels:form.levels,bio:form.bio}:p)
+        : [...(d.tutorProfiles||[]),{tutorId:tutorRef,emergencyName:form.emergencyName,emergencyPhone:form.emergencyPhone,ratePerLesson:0,syllabi:form.syllabi,levels:form.levels,bio:form.bio}];
+      return {...d,tutors:updTutors,tutorProfiles:updProfiles};
+    });
+    setEditingProfile(false);
+  };
+
+  if (editingProfile) return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Your Profile</h1>
+      <Section title="Personal Details">
+        <div className="grid grid-cols-2 gap-4">
+          <Inp label="First Name" value={form.firstName} onChange={e=>set("firstName",e.target.value)}/>
+          <Inp label="Last Name" value={form.lastName} onChange={e=>set("lastName",e.target.value)}/>
+          <Inp label="Email" type="email" value={form.email} onChange={e=>set("email",e.target.value)}/>
+          <Inp label="Phone" value={form.phone} onChange={e=>set("phone",e.target.value)}/>
+        </div>
+      </Section>
+      <Section title="Emergency Contact">
+        <div className="grid grid-cols-2 gap-4">
+          <Inp label="Name" value={form.emergencyName} onChange={e=>set("emergencyName",e.target.value)}/>
+          <Inp label="Phone" value={form.emergencyPhone} onChange={e=>set("emergencyPhone",e.target.value)}/>
+        </div>
+      </Section>
+      <Section title="Subjects, Syllabi & Levels">
+        {[
+          ["Subjects",data.subjects.map(s=>({id:s.id,label:s.name})),"subjectIds",B.teal],
+          ["Syllabi",[{id:"IEB",label:"IEB"},{id:"CAPS",label:"CAPS"},{id:"Cambridge",label:"Cambridge"}],"syllabi",B.coral],
+          ["Levels",["Grade 8","Grade 9","Grade 10","Grade 11","Grade 12","IGCSE","AS Level","A Level"].map(l=>({id:l,label:l})),"levels",B.tealDark],
+        ].map(([title,items,field,color])=>(
+          <div key={field} className="mb-4">
+            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>{title}</p>
+            <div className="flex flex-wrap gap-2">
+              {items.map(item=>(
+                <button key={item.id} onClick={()=>set(field,toggle(form[field],item.id))}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  style={form[field].includes(item.id)?{background:color,color:"white"}:{background:"#f8faf9",color:"#374151",border:"1px solid #e5e7eb"}}>
+                  {item.label}
+                </button>
+              ))}
             </div>
-            {purchases.length > 0 && (
-              <>
-                <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#9ca3af" }}>Lesson Purchase History</p>
-                <TableWrap>
-                  <thead><tr><TH>Date</TH><TH>Qty</TH><TH>Note</TH></tr></thead>
-                  <tbody>{purchases.sort((a,b) => b.date.localeCompare(a.date)).map(p => (
-                    <TR key={p.id}><TD>{fmtDate(p.date)}</TD><TD>{p.quantity}</TD><TD>{p.note || "—"}</TD></TR>
-                  ))}</tbody>
-                </TableWrap>
-              </>
-            )}
-          </Section>
+          </div>
+        ))}
+      </Section>
+      <div className="flex justify-end gap-2">
+        {tutor&&<Btn variant="secondary" onClick={()=>setEditingProfile(false)}>Cancel</Btn>}
+        <Btn onClick={saveProfile}><CheckCircle size={15}/> Save Profile</Btn>
+      </div>
+    </div>
+  );
+
+  const sendChat = (studentId) => {
+    if (!chatMsg.trim()) return;
+    const now = new Date();
+    setData(d=>({...d, chatMessages:[...(d.chatMessages||[]),{
+      id:"cm"+uid(), tutorId:tutor.id, studentId,
+      fromRole:"tutor", message:chatMsg.trim(),
+      date:today(), time:now.toTimeString().slice(0,5),
+    }]}));
+    setChatMsg("");
+  };
+
+  const shareResource = () => {
+    if (!resForm.name||!resForm.url) return;
+    setData(d=>({...d, resources:[...(d.resources||[]),{
+      id:"res"+uid(), fromTutorId:tutor.id, toStudentId:resModal,
+      name:resForm.name, url:resForm.url, type:"pdf", date:today(),
+    }]}));
+    setResForm({name:"",url:""}); setResModal(null);
+  };
+
+  const shareLesson = () => {
+    if (!schedForm.date||!schedForm.time) return;
+    setData(d=>({...d, scheduledLessons:[...(d.scheduledLessons||[]),{
+      id:"sl"+uid(), studentId:schedModal, tutorId:tutor.id,
+      subjectId:schedForm.subjectId, date:schedForm.date, time:schedForm.time,
+      duration:parseInt(schedForm.duration)||60,
+      meetingLink:schedForm.meetingLink, platform:schedForm.platform,
+      fixed:schedForm.fixed, note:schedForm.note,
+    }]}));
+    setSchedForm({date:"",time:"",duration:"60",platform:"",meetingLink:"",note:"",subjectId:"",fixed:false});
+    setSchedModal(null);
+  };
+
+  const tabStyle = (id) => tab===id
+    ? {background:B.teal,color:"white"}
+    : {background:"white",color:"#374151",border:"1px solid #e5e7eb"};
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Welcome, {tutor.firstName}</h1>
+          <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>Your students and teaching hub</p>
+        </div>
+        <Btn variant="secondary" size="sm" onClick={()=>setEditingProfile(true)}><Edit2 size={14}/> Edit Profile</Btn>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <KPI title="Students Assigned" value={assignedStudentIds.length} icon={Users} color="teal"/>
+        <KPI title="Active Subjects" value={assignedLinks.length} icon={BookMarked} color="coral"/>
+        <KPI title="Syllabi" value={(profile?.syllabi||[]).join(", ")||"—"} icon={GraduationCap} color="indigo"/>
+      </div>
+
+      {parentNotes.length>0 && (
+        <Section title="Parent Feedback">
+          {parentNotes.map(n=>{
+            const par=data.parents?.find(p=>p.id===n.parentId);
+            return (
+              <div key={n.id} className="p-3 rounded-xl mb-2" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+                <div className="flex gap-2 mb-1">
+                  <Badge color="teal">Parent Note</Badge>
+                  <span className="text-xs" style={{color:"#9ca3af"}}>{par?`${par.firstName} ${par.lastName}`:"Parent"} · {fmtDate(n.date)}</span>
+                </div>
+                <p className="text-sm" style={{color:"#374151"}}>{n.note}</p>
+              </div>
+            );
+          })}
+        </Section>
+      )}
+
+      {/* Tabs */}
+      <div className="flex gap-2">
+        {[["students","My Students"],["chat","Messages"],["resources","Resources"],["schedule","Schedule"]].map(([id,label])=>(
+          <button key={id} onClick={()=>setTab(id)} className="px-4 py-2 rounded-xl text-sm font-semibold transition-all" style={tabStyle(id)}>{label}</button>
+        ))}
+      </div>
+
+      {tab==="students" && (
+        <Section title="My Students">
+          {assignedStudents.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No students assigned yet.</p>:(
+            <div className="space-y-2">
+              {assignedStudents.map(s=>{
+                const sLinks=assignedLinks.filter(l=>l.studentId===s.id);
+                const subjs=sLinks.map(l=>data.subjects.find(sub=>sub.id===l.subjectId)?.name).filter(Boolean);
+                const open=selStudentId===s.id;
+                const purchases=data.purchases.filter(p=>p.studentId===s.id);
+                const totalBought=purchases.reduce((t,p)=>t+p.quantity,0);
+                const siblings=data.siblings.filter(sb=>sb.studentId1===s.id||sb.studentId2===s.id)
+                  .map(sb=>data.students.find(st=>st.id===(sb.studentId1===s.id?sb.studentId2:sb.studentId1))).filter(Boolean);
+                return (
+                  <div key={s.id}>
+                    <div className="flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all"
+                      style={{background:open?B.tealLight:"#f8faf9",border:`1px solid ${open?B.teal:"#eef2f1"}`}}
+                      onClick={()=>setSelStudentId(open?null:s.id)}>
+                      <div>
+                        <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{s.firstName} {s.lastName}</p>
+                        <p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{s.curriculum} · {s.grade} · {subjs.join(", ")}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setResModal(s.id);setResForm({name:"",url:""});}}>Share Resource</Btn>
+                        <Btn size="sm" onClick={e=>{e.stopPropagation();setSchedModal(s.id);setSchedForm({date:"",time:"",duration:"60",platform:"",meetingLink:"",note:"",subjectId:sLinks[0]?.subjectId||"",fixed:false});}}><CalendarDays size={13}/> Share Lesson Link</Btn>
+                        <ChevronRight size={16} style={{color:"#9ca3af",transform:open?"rotate(90deg)":"none",transition:"transform 0.2s"}}/>
+                      </div>
+                    </div>
+                    {open && (
+                      <div className="mx-3 mt-1 p-4 rounded-xl" style={{background:"white",border:"1px solid #eef2f1"}}>
+                        <div className="grid grid-cols-3 gap-4 text-sm mb-3">
+                          {[["Curriculum",s.curriculum],["Grade",s.grade],["Total Lessons Bought",String(totalBought)]].map(([k,v])=>(
+                            <div key={k}><p className="text-xs font-bold uppercase tracking-wider" style={{color:"#9ca3af"}}>{k}</p><p className="mt-0.5" style={{color:"#0d1e2a"}}>{v}</p></div>
+                          ))}
+                          {siblings.length>0&&<div className="col-span-3"><p className="text-xs font-bold uppercase tracking-wider" style={{color:"#9ca3af"}}>Siblings</p><p className="mt-0.5" style={{color:"#0d1e2a"}}>{siblings.map(s=>`${s.firstName} ${s.lastName}`).join(", ")}</p></div>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Section>
+      )}
+
+      {tab==="chat" && (
+        <div className="space-y-4">
+          {assignedStudents.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No students assigned.</p>:
+          assignedStudents.map(s=>{
+            const msgs=(data.chatMessages||[]).filter(m=>m.tutorId===tutor.id&&m.studentId===s.id).sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
+            return (
+              <Section key={s.id} title={`Chat with ${s.firstName} ${s.lastName}`}>
+                <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
+                  {msgs.length===0?<p className="text-sm text-center py-4" style={{color:"#9ca3af"}}>No messages yet. Start the conversation.</p>:
+                  msgs.map(m=>(
+                    <div key={m.id} className={`flex ${m.fromRole==="tutor"?"justify-end":"justify-start"}`}>
+                      <div className="max-w-xs px-4 py-2.5 rounded-2xl text-sm"
+                        style={m.fromRole==="tutor"?{background:B.teal,color:"white"}:{background:"#f8faf9",color:"#374151",border:"1px solid #eef2f1"}}>
+                        <p>{m.message}</p>
+                        <p className="text-xs mt-1 opacity-60">{m.time} · {fmtDate(m.date)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input className="flex-1 border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
+                    placeholder="Type a message…" value={selStudentId===s.id?chatMsg:""} 
+                    onChange={e=>{setSelStudentId(s.id);setChatMsg(e.target.value);}}
+                    onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat(s.id);} }}/>
+                  <Btn onClick={()=>sendChat(s.id)}>Send</Btn>
+                </div>
+              </Section>
+            );
+          })}
+        </div>
+      )}
+
+      {tab==="resources" && (
+        <div className="space-y-4">
+          {assignedStudents.map(s=>{
+            const res=(data.resources||[]).filter(r=>r.fromTutorId===tutor.id&&r.toStudentId===s.id);
+            return (
+              <Section key={s.id} title={`Resources for ${s.firstName} ${s.lastName}`}
+                action={<Btn size="sm" onClick={()=>{setResModal(s.id);setResForm({name:"",url:""});}}><Plus size={13}/> Share</Btn>}>
+                {res.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No resources shared yet.</p>:(
+                  <div className="space-y-2">
+                    {res.map(r=>(
+                      <div key={r.id} className="flex items-center gap-3 p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{background:B.coralLight}}>
+                          <FileText size={15} style={{color:B.coral}}/>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold truncate" style={{color:"#0d1e2a"}}>{r.name}</p>
+                          <p className="text-xs" style={{color:"#9ca3af"}}>{fmtDate(r.date)}</p>
+                        </div>
+                        <a href={r.url} target="_blank" rel="noopener noreferrer">
+                          <Btn size="sm" variant="secondary">Open</Btn>
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Section>
+            );
+          })}
+        </div>
+      )}
+
+      {tab==="schedule" && (
+        <div className="space-y-4">
+          {assignedStudents.map(s=>{
+            const lessons=(data.scheduledLessons||[]).filter(l=>l.tutorId===tutor.id&&l.studentId===s.id).sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
+            return (
+              <Section key={s.id} title={`Scheduled Lessons — ${s.firstName} ${s.lastName}`}
+                action={<Btn size="sm" onClick={()=>{
+                  const sLinks=assignedLinks.filter(l=>l.studentId===s.id);
+                  setSchedModal(s.id);
+                  setSchedForm({date:"",time:"",duration:"60",platform:"",meetingLink:"",note:"",subjectId:sLinks[0]?.subjectId||"",fixed:false});
+                }}><Plus size={13}/> Add Lesson</Btn>}>
+                {lessons.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No lessons scheduled.</p>:(
+                  <div className="space-y-2">
+                    {lessons.map(l=>{
+                      const subj=data.subjects.find(sub=>sub.id===l.subjectId);
+                      return (
+                        <div key={l.id} className="flex items-start gap-3 p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+                          <div className="text-center min-w-12">
+                            <p className="text-xs font-bold uppercase" style={{color:"#9ca3af"}}>{new Date(l.date+"T00:00:00").toLocaleString("en-ZA",{month:"short"})}</p>
+                            <p className="text-2xl font-bold leading-none" style={{color:"#0d1e2a"}}>{new Date(l.date+"T00:00:00").getDate()}</p>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{l.time} · {subj?.name||"—"}</p>
+                              {l.fixed&&<Badge color="teal">Fixed</Badge>}
+                              {l.platform&&<Badge color="gray">{l.platform}</Badge>}
+                            </div>
+                            {l.note&&<p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{l.note}</p>}
+                            {l.meetingLink&&<a href={l.meetingLink} target="_blank" rel="noopener noreferrer" className="text-xs mt-1 inline-block font-semibold" style={{color:B.tealDark}}>Join Meeting →</a>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </Section>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Share resource modal */}
+      {resModal&&(
+        <Modal title={`Share Resource — ${data.students.find(s=>s.id===resModal)?.firstName}`} onClose={()=>setResModal(null)}>
+          <Inp label="File / Resource Name" value={resForm.name} onChange={e=>setResForm(f=>({...f,name:e.target.value}))} placeholder="e.g. Algebra Notes Term 2.pdf"/>
+          <Inp label="Link / URL" value={resForm.url} onChange={e=>setResForm(f=>({...f,url:e.target.value}))} placeholder="https://drive.google.com/..."/>
+          <div className="flex gap-2 justify-end">
+            <Btn variant="secondary" onClick={()=>setResModal(null)}>Cancel</Btn>
+            <Btn onClick={shareResource}><Plus size={15}/> Share</Btn>
+          </div>
+        </Modal>
+      )}
+
+      {/* Share lesson link modal */}
+      {schedModal&&(()=>{
+        const sLinks=assignedLinks.filter(l=>l.studentId===schedModal);
+        const s=data.students.find(s=>s.id===schedModal);
+        return (
+          <Modal title={`Share Lesson — ${s?.firstName}`} onClose={()=>setSchedModal(null)}>
+            <Sel label="Subject" value={schedForm.subjectId} onChange={e=>setSchedForm(f=>({...f,subjectId:e.target.value}))}
+              options={sLinks.map(l=>({value:l.subjectId,label:data.subjects.find(sub=>sub.id===l.subjectId)?.name||l.subjectId}))}
+              placeholder="Select subject"/>
+            <div className="grid grid-cols-2 gap-4">
+              <Inp label="Date" type="date" value={schedForm.date} onChange={e=>setSchedForm(f=>({...f,date:e.target.value}))}/>
+              <Inp label="Time" type="time" value={schedForm.time} onChange={e=>setSchedForm(f=>({...f,time:e.target.value}))}/>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Inp label="Duration (min)" type="number" value={schedForm.duration} onChange={e=>setSchedForm(f=>({...f,duration:e.target.value}))}/>
+              <Inp label="Platform (e.g. Zoom, Teams, Meet)" value={schedForm.platform} onChange={e=>setSchedForm(f=>({...f,platform:e.target.value}))}/>
+            </div>
+            <Inp label="Meeting Link" value={schedForm.meetingLink} onChange={e=>setSchedForm(f=>({...f,meetingLink:e.target.value}))} placeholder="https://..."/>
+            <Inp label="Note (optional)" value={schedForm.note} onChange={e=>setSchedForm(f=>({...f,note:e.target.value}))}/>
+            <Field label="">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={schedForm.fixed} onChange={e=>setSchedForm(f=>({...f,fixed:e.target.checked}))} className="w-4 h-4 rounded"/>
+                <span className="text-sm" style={{color:"#374151"}}>Fixed / recurring lesson slot</span>
+              </label>
+            </Field>
+            <div className="flex gap-2 justify-end">
+              <Btn variant="secondary" onClick={()=>setSchedModal(null)}>Cancel</Btn>
+              <Btn onClick={shareLesson}><CalendarDays size={15}/> Share</Btn>
+            </div>
+          </Modal>
         );
       })()}
     </div>
@@ -3194,186 +3403,367 @@ function TutorView({ data, setData, tutorRef }) {
 
 // ── STUDENT VIEW ──────────────────────────────────────────────────────────────
 function StudentView({ data, setData, studentRef }) {
-  const student = data.students.find(s => s.id === studentRef);
-  if (!student) return <div className="p-8 text-center" style={{ color: "#9ca3af" }}>Student record not found.</div>;
+  const student = data.students.find(s=>s.id===studentRef);
+  if (!student) return <div className="p-8 text-center" style={{color:"#9ca3af"}}>Student not found.</div>;
 
   const isAcademy = ACADEMY_STUDENT_IDS.includes(studentRef);
+  const [tab, setTab] = useState("schedule");
+  const [chatMsg, setChatMsg] = useState("");
+  const [chatTutor, setChatTutor] = useState(null);
+  const [schedModal, setSchedModal] = useState(false);
+  const [schedForm, setSchedForm] = useState({ tutorId:"", subjectId:"", date:"", time:"", duration:"60", platform:"", meetingLink:"", note:"", fixed:false });
+
+  const myLinks = data.links.filter(l=>l.studentId===studentRef);
+  const myTutors = [...new Set(myLinks.map(l=>l.tutorId))].map(id=>data.tutors.find(t=>t.id===id)).filter(Boolean);
+  const myResources = (data.resources||[]).filter(r=>r.toStudentId===studentRef);
+  const mySchedule = (data.scheduledLessons||[]).filter(l=>l.studentId===studentRef).sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
+
+  const sendMsg = (tutorId) => {
+    if (!chatMsg.trim()) return;
+    const now = new Date();
+    setData(d=>({...d, chatMessages:[...(d.chatMessages||[]),{
+      id:"cm"+uid(), tutorId, studentId:studentRef,
+      fromRole:"student", message:chatMsg.trim(),
+      date:today(), time:now.toTimeString().slice(0,5),
+    }]}));
+    setChatMsg("");
+  };
+
+  const addSelfLesson = () => {
+    if (!schedForm.date||!schedForm.time) return;
+    setData(d=>({...d, scheduledLessons:[...(d.scheduledLessons||[]),{
+      id:"sl"+uid(), studentId:studentRef,
+      tutorId:schedForm.tutorId||"", subjectId:schedForm.subjectId,
+      date:schedForm.date, time:schedForm.time,
+      duration:parseInt(schedForm.duration)||60,
+      meetingLink:schedForm.meetingLink, platform:schedForm.platform,
+      fixed:schedForm.fixed, note:schedForm.note,
+    }]}));
+    setSchedForm({tutorId:"",subjectId:"",date:"",time:"",duration:"60",platform:"",meetingLink:"",note:"",fixed:false});
+    setSchedModal(false);
+  };
+
+  const tabStyle = (id) => tab===id
+    ?{background:B.teal,color:"white"}
+    :{background:"white",color:"#374151",border:"1px solid #e5e7eb"};
 
   if (!isAcademy) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-center space-y-3">
-        <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: B.tealLight }}>
-          <BookOpen size={28} style={{ color: B.tealDark }} />
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Hi, {student.firstName}</h1>
+          <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>{student.curriculum} · {student.grade}</p>
         </div>
-        <h2 className="text-lg font-bold" style={{ color: "#0d1e2a" }}>Academy Access Not Enabled</h2>
-        <p className="text-sm max-w-sm" style={{ color: "#6b7280" }}>Your account does not currently have Academy access. Please contact LEARN TO LINK.</p>
+        <div className="flex gap-2 flex-wrap">
+          {[["schedule","My Schedule"],["chat","Chat"],["resources","Resources"]].map(([id,label])=>(
+            <button key={id} onClick={()=>setTab(id)} className="px-4 py-2 rounded-xl text-sm font-semibold transition-all" style={tabStyle(id)}>{label}</button>
+          ))}
+        </div>
+        {tab==="schedule" && (
+          <Section title="My Lesson Schedule"
+            action={<Btn size="sm" onClick={()=>setSchedModal(true)}><Plus size={13}/> Add Lesson</Btn>}>
+            {mySchedule.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No lessons scheduled yet. Add your own or wait for your tutor to share a link.</p>:(
+              <div className="space-y-2">
+                {mySchedule.map(l=>{
+                  const tutor=data.tutors.find(t=>t.id===l.tutorId);
+                  const subj=data.subjects.find(s=>s.id===l.subjectId);
+                  return (
+                    <div key={l.id} className="flex items-start gap-3 p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+                      <div className="text-center min-w-12">
+                        <p className="text-xs font-bold uppercase" style={{color:"#9ca3af"}}>{new Date(l.date+"T00:00:00").toLocaleString("en-ZA",{month:"short"})}</p>
+                        <p className="text-2xl font-bold leading-none" style={{color:"#0d1e2a"}}>{new Date(l.date+"T00:00:00").getDate()}</p>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{l.time} {subj?`· ${subj.name}`:""}</p>
+                          {tutor&&<span className="text-xs" style={{color:"#6b7280"}}>with {tutor.firstName}</span>}
+                          {l.fixed&&<Badge color="teal">Fixed</Badge>}
+                          {l.platform&&<Badge color="gray">{l.platform}</Badge>}
+                        </div>
+                        {l.note&&<p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{l.note}</p>}
+                        {l.meetingLink&&<a href={l.meetingLink} target="_blank" rel="noopener noreferrer" className="text-xs mt-1 inline-block font-semibold" style={{color:B.tealDark}}>Join Meeting →</a>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Section>
+        )}
+        {tab==="chat" && (
+          <div className="space-y-4">
+            {myTutors.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No tutors assigned yet.</p>:
+            myTutors.map(t=>{
+              const msgs=(data.chatMessages||[]).filter(m=>m.tutorId===t.id&&m.studentId===studentRef).sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
+              return (
+                <Section key={t.id} title={`Chat with ${t.firstName} ${t.lastName}`}>
+                  <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
+                    {msgs.length===0?<p className="text-sm text-center py-4" style={{color:"#9ca3af"}}>No messages yet.</p>:
+                    msgs.map(m=>(
+                      <div key={m.id} className={`flex ${m.fromRole==="student"?"justify-end":"justify-start"}`}>
+                        <div className="max-w-xs px-4 py-2.5 rounded-2xl text-sm"
+                          style={m.fromRole==="student"?{background:B.teal,color:"white"}:{background:"#f8faf9",color:"#374151",border:"1px solid #eef2f1"}}>
+                          <p>{m.message}</p>
+                          <p className="text-xs mt-1 opacity-60">{m.time} · {fmtDate(m.date)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input className="flex-1 border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
+                      placeholder="Type a message…" value={chatTutor===t.id?chatMsg:""}
+                      onChange={e=>{setChatTutor(t.id);setChatMsg(e.target.value);}}
+                      onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg(t.id);}}}/>
+                    <Btn onClick={()=>sendMsg(t.id)}>Send</Btn>
+                  </div>
+                </Section>
+              );
+            })}
+          </div>
+        )}
+        {tab==="resources" && (
+          <Section title="Resources from My Tutors">
+            {myResources.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No resources shared yet.</p>:(
+              <div className="space-y-2">
+                {myResources.map(r=>{
+                  const tutor=data.tutors.find(t=>t.id===r.fromTutorId);
+                  return (
+                    <div key={r.id} className="flex items-center gap-3 p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{background:B.coralLight}}>
+                        <FileText size={15} style={{color:B.coral}}/>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate" style={{color:"#0d1e2a"}}>{r.name}</p>
+                        <p className="text-xs" style={{color:"#9ca3af"}}>From {tutor?.firstName} {tutor?.lastName} · {fmtDate(r.date)}</p>
+                      </div>
+                      <a href={r.url} target="_blank" rel="noopener noreferrer">
+                        <Btn size="sm" variant="secondary">Open</Btn>
+                      </a>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Section>
+        )}
+        {schedModal&&(
+          <Modal title="Add Lesson to My Schedule" onClose={()=>setSchedModal(false)}>
+            <p className="text-sm mb-4" style={{color:"#6b7280"}}>Add a lesson for your own reference. This won't affect anything else.</p>
+            <Sel label="Tutor" value={schedForm.tutorId} onChange={e=>setSchedForm(f=>({...f,tutorId:e.target.value}))}
+              options={myTutors.map(t=>({value:t.id,label:`${t.firstName} ${t.lastName}`}))} placeholder="Select tutor (optional)"/>
+            <Sel label="Subject" value={schedForm.subjectId} onChange={e=>setSchedForm(f=>({...f,subjectId:e.target.value}))}
+              options={myLinks.map(l=>({value:l.subjectId,label:data.subjects.find(s=>s.id===l.subjectId)?.name||l.subjectId}))} placeholder="Select subject"/>
+            <div className="grid grid-cols-2 gap-4">
+              <Inp label="Date" type="date" value={schedForm.date} onChange={e=>setSchedForm(f=>({...f,date:e.target.value}))}/>
+              <Inp label="Time" type="time" value={schedForm.time} onChange={e=>setSchedForm(f=>({...f,time:e.target.value}))}/>
+            </div>
+            <Inp label="Platform (e.g. Zoom, Teams, Meet)" value={schedForm.platform} onChange={e=>setSchedForm(f=>({...f,platform:e.target.value}))}/>
+            <Inp label="Meeting Link (optional)" value={schedForm.meetingLink} onChange={e=>setSchedForm(f=>({...f,meetingLink:e.target.value}))} placeholder="https://..."/>
+            <Inp label="Note (optional)" value={schedForm.note} onChange={e=>setSchedForm(f=>({...f,note:e.target.value}))}/>
+            <Field label="">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={schedForm.fixed} onChange={e=>setSchedForm(f=>({...f,fixed:e.target.checked}))} className="w-4 h-4 rounded"/>
+                <span className="text-sm" style={{color:"#374151"}}>Fixed / recurring slot</span>
+              </label>
+            </Field>
+            <div className="flex gap-2 justify-end">
+              <Btn variant="secondary" onClick={()=>setSchedModal(false)}>Cancel</Btn>
+              <Btn onClick={addSelfLesson}><CalendarDays size={15}/> Add to Schedule</Btn>
+            </div>
+          </Modal>
+        )}
       </div>
     );
   }
 
-  return <AcademyPage data={data} setData={setData} studentId={studentRef} />;
+  // Academy student — same tabs + academy
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Hi, {student.firstName}</h1>
+        <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>{student.curriculum} · {student.grade}</p>
+      </div>
+      <div className="flex gap-2 flex-wrap">
+        {[["schedule","My Schedule"],["chat","Chat"],["resources","Resources"],["academy","Academy"]].map(([id,label])=>(
+          <button key={id} onClick={()=>setTab(id)} className="px-4 py-2 rounded-xl text-sm font-semibold transition-all" style={tabStyle(id)}>{label}</button>
+        ))}
+      </div>
+      {tab==="academy"&&<AcademyPage data={data} setData={setData} studentId={studentRef}/>}
+      {tab==="schedule"&&(
+        <Section title="My Lesson Schedule" action={<Btn size="sm" onClick={()=>setSchedModal(true)}><Plus size={13}/> Add</Btn>}>
+          {mySchedule.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No lessons scheduled yet.</p>:(
+            <div className="space-y-2">{mySchedule.map(l=>{
+              const tutor=data.tutors.find(t=>t.id===l.tutorId);
+              const subj=data.subjects.find(s=>s.id===l.subjectId);
+              return (
+                <div key={l.id} className="flex items-start gap-3 p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+                  <div className="text-center min-w-12">
+                    <p className="text-xs font-bold uppercase" style={{color:"#9ca3af"}}>{new Date(l.date+"T00:00:00").toLocaleString("en-ZA",{month:"short"})}</p>
+                    <p className="text-2xl font-bold leading-none" style={{color:"#0d1e2a"}}>{new Date(l.date+"T00:00:00").getDate()}</p>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{l.time} {subj?`· ${subj.name}`:""}</p>
+                      {tutor&&<span className="text-xs" style={{color:"#6b7280"}}>with {tutor.firstName}</span>}
+                      {l.fixed&&<Badge color="teal">Fixed</Badge>}
+                      {l.platform&&<Badge color="gray">{l.platform}</Badge>}
+                    </div>
+                    {l.meetingLink&&<a href={l.meetingLink} target="_blank" rel="noopener noreferrer" className="text-xs mt-1 inline-block font-semibold" style={{color:B.tealDark}}>Join Meeting →</a>}
+                  </div>
+                </div>
+              );
+            })}</div>
+          )}
+        </Section>
+      )}
+      {tab==="chat"&&(
+        <div className="space-y-4">{myTutors.map(t=>{
+          const msgs=(data.chatMessages||[]).filter(m=>m.tutorId===t.id&&m.studentId===studentRef).sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
+          return (
+            <Section key={t.id} title={`Chat with ${t.firstName} ${t.lastName}`}>
+              <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
+                {msgs.length===0?<p className="text-sm text-center py-4" style={{color:"#9ca3af"}}>No messages yet.</p>:
+                msgs.map(m=>(
+                  <div key={m.id} className={`flex ${m.fromRole==="student"?"justify-end":"justify-start"}`}>
+                    <div className="max-w-xs px-4 py-2.5 rounded-2xl text-sm"
+                      style={m.fromRole==="student"?{background:B.teal,color:"white"}:{background:"#f8faf9",color:"#374151",border:"1px solid #eef2f1"}}>
+                      <p>{m.message}</p>
+                      <p className="text-xs mt-1 opacity-60">{m.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input className="flex-1 border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
+                  placeholder="Type a message…" value={chatTutor===t.id?chatMsg:""}
+                  onChange={e=>{setChatTutor(t.id);setChatMsg(e.target.value);}}
+                  onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg(t.id);}}}/>
+                <Btn onClick={()=>sendMsg(t.id)}>Send</Btn>
+              </div>
+            </Section>
+          );
+        })}</div>
+      )}
+      {tab==="resources"&&(
+        <Section title="Resources from My Tutors">
+          {myResources.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No resources shared yet.</p>:(
+            <div className="space-y-2">{myResources.map(r=>{
+              const tutor=data.tutors.find(t=>t.id===r.fromTutorId);
+              return (
+                <div key={r.id} className="flex items-center gap-3 p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{background:B.coralLight}}>
+                    <FileText size={15} style={{color:B.coral}}/>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold truncate" style={{color:"#0d1e2a"}}>{r.name}</p>
+                    <p className="text-xs" style={{color:"#9ca3af"}}>From {tutor?.firstName} · {fmtDate(r.date)}</p>
+                  </div>
+                  <a href={r.url} target="_blank" rel="noopener noreferrer"><Btn size="sm" variant="secondary">Open</Btn></a>
+                </div>
+              );
+            })}</div>
+          )}
+        </Section>
+      )}
+      {schedModal&&(
+        <Modal title="Add Lesson to Schedule" onClose={()=>setSchedModal(false)}>
+          <Sel label="Tutor" value={schedForm.tutorId} onChange={e=>setSchedForm(f=>({...f,tutorId:e.target.value}))}
+            options={myTutors.map(t=>({value:t.id,label:`${t.firstName} ${t.lastName}`}))} placeholder="Select tutor"/>
+          <Sel label="Subject" value={schedForm.subjectId} onChange={e=>setSchedForm(f=>({...f,subjectId:e.target.value}))}
+            options={myLinks.map(l=>({value:l.subjectId,label:data.subjects.find(s=>s.id===l.subjectId)?.name||l.subjectId}))} placeholder="Select subject"/>
+          <div className="grid grid-cols-2 gap-4">
+            <Inp label="Date" type="date" value={schedForm.date} onChange={e=>setSchedForm(f=>({...f,date:e.target.value}))}/>
+            <Inp label="Time" type="time" value={schedForm.time} onChange={e=>setSchedForm(f=>({...f,time:e.target.value}))}/>
+          </div>
+          <Inp label="Platform" value={schedForm.platform} onChange={e=>setSchedForm(f=>({...f,platform:e.target.value}))} placeholder="Zoom / Teams / Google Meet / other"/>
+          <Inp label="Meeting Link (optional)" value={schedForm.meetingLink} onChange={e=>setSchedForm(f=>({...f,meetingLink:e.target.value}))} placeholder="https://..."/>
+          <div className="flex gap-2 justify-end mt-2">
+            <Btn variant="secondary" onClick={()=>setSchedModal(false)}>Cancel</Btn>
+            <Btn onClick={addSelfLesson}><CalendarDays size={15}/> Add</Btn>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
 }
 
-// ── OWNER VIEW ────────────────────────────────────────────────────────────────
+// ── OWNER PAYROLL PAGE ────────────────────────────────────────────────────────
 function OwnerPayrollPage({ data, setData }) {
-  const [month, setMonth] = useState(today().slice(0, 7));
-  const [payModal, setPayModal] = useState(null); // tutorId
-  const [payForm, setPayForm] = useState({ lessons: "", rate: "" });
-
-  const payments = data.tutorPayments || [];
-  const monthPayments = payments.filter(p => p.month === month);
-
-  const getMonthPayment = (tutorId) => monthPayments.find(p => p.tutorId === tutorId);
+  const [month, setMonth] = useState(today().slice(0,7));
+  const [payModal, setPayModal] = useState(null);
+  const [payForm, setPayForm] = useState({ lessons:"", rate:"" });
+  const payments = data.tutorPayments||[];
+  const monthPayments = payments.filter(p=>p.month===month);
+  const months6 = lastNMonths(6);
 
   const logPayment = (tutorId) => {
-    const lessons = parseInt(payForm.lessons) || 0;
-    const rate = parseFloat(payForm.rate) || 0;
-    const total = lessons * rate;
-    const tutor = data.tutors.find(t => t.id === tutorId);
-    const expId = "exp" + uid();
-    const payId = "tp" + uid();
-    const expense = {
-      id: expId,
-      description: `Tutor pay — ${tutor?.firstName} ${tutor?.lastName} (${fmtMonth(month)})`,
-      amount: total,
-      date: today(),
-      category: "tutor",
-    };
-    const payment = {
-      id: payId,
-      tutorId,
-      month,
-      lessonsDelivered: lessons,
-      ratePerLesson: rate,
-      total,
-      paid: true,
-      paidDate: today(),
-      expenseId: expId,
-    };
-    setData(d => ({
+    const lessons=parseInt(payForm.lessons)||0;
+    const rate=parseFloat(payForm.rate)||0;
+    const total=lessons*rate;
+    const tutor=data.tutors.find(t=>t.id===tutorId);
+    const expId="exp"+uid(); const payId="tp"+uid();
+    setData(d=>({
       ...d,
-      tutorPayments: [...(d.tutorPayments || []).filter(p => !(p.tutorId === tutorId && p.month === month)), payment],
-      expenses: [...(d.expenses || []), expense],
-      financials: d.financials.map(f =>
-        f.month === month ? { ...f, expenses: f.expenses + total } : f
-      ),
+      tutorPayments:[...(d.tutorPayments||[]).filter(p=>!(p.tutorId===tutorId&&p.month===month)),
+        {id:payId,tutorId,month,lessonsDelivered:lessons,ratePerLesson:rate,total,paid:true,paidDate:today(),expenseId:expId}],
+      expenses:[...(d.expenses||[]),{id:expId,description:`Tutor pay — ${tutor?.firstName} ${tutor?.lastName} (${fmtMonth(month)})`,amount:total,date:today(),category:"tutor"}],
+      financials:d.financials.map(f=>f.month===month?{...f,expenses:f.expenses+total}:f),
     }));
-    setPayModal(null);
-    setPayForm({ lessons: "", rate: "" });
+    setPayModal(null); setPayForm({lessons:"",rate:""});
   };
-
-  const months6 = lastNMonths(6);
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: "#0d1e2a" }}>Tutor Payroll</h1>
-        <p className="text-sm mt-0.5" style={{ color: "#6b7280" }}>Monthly breakdown and payment logging</p>
+        <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Tutor Payroll</h1>
+        <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>Monthly payment breakdown</p>
       </div>
-
-      {/* Month selector */}
       <div className="flex gap-2 flex-wrap">
-        {months6.map(m => (
-          <button key={m.key} onClick={() => setMonth(m.key)}
+        {months6.map(m=>(
+          <button key={m.key} onClick={()=>setMonth(m.key)}
             className="px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all"
-            style={month === m.key
-              ? { background: B.tealDark, color: "white" }
-              : { background: "white", color: "#374151", border: "1px solid #e5e7eb" }}>
+            style={month===m.key?{background:B.tealDark,color:"white"}:{background:"white",color:"#374151",border:"1px solid #e5e7eb"}}>
             {m.label}
           </button>
         ))}
       </div>
-
-      {/* Summary KPIs */}
       <div className="grid grid-cols-3 gap-4">
-        <KPI title="Tutors to Pay"
-          value={data.tutors.filter(t => t.status === "Active").length}
-          icon={GraduationCap} color="teal" />
-        <KPI title="Total Payroll This Month"
-          value={fmtZAR(monthPayments.reduce((s, p) => s + p.total, 0))}
-          icon={DollarSign} color="coral" />
-        <KPI title="Payments Logged"
-          value={`${monthPayments.filter(p => p.paid).length} / ${data.tutors.filter(t => t.status === "Active").length}`}
-          icon={CheckCircle} color="green" />
+        <KPI title="Tutors to Pay" value={data.tutors.filter(t=>t.status==="Active").length} icon={GraduationCap} color="teal"/>
+        <KPI title="Total This Month" value={fmtZAR(monthPayments.reduce((s,p)=>s+p.total,0))} icon={DollarSign} color="coral"/>
+        <KPI title="Logged" value={`${monthPayments.filter(p=>p.paid).length}/${data.tutors.filter(t=>t.status==="Active").length}`} icon={CheckCircle} color="green"/>
       </div>
-
-      {/* Tutor payment table */}
-      <Section title={`Tutor Payments — ${fmtMonth(month)}`}>
+      <Section title={`Payments — ${fmtMonth(month)}`}>
         <TableWrap>
-          <thead><tr>
-            <TH>Tutor</TH><TH>Subjects</TH><TH>Rate/Lesson</TH><TH>Lessons</TH><TH>Total</TH><TH>Status</TH><TH></TH>
-          </tr></thead>
-          <tbody>
-            {data.tutors.filter(t => t.status === "Active").map(tutor => {
-              const profile = data.tutorProfiles?.find(p => p.tutorId === tutor.id);
-              const payment = getMonthPayment(tutor.id);
-              const subjects = tutor.subjectIds.map(sid => data.subjects.find(s => s.id === sid)?.name).filter(Boolean);
-              return (
-                <TR key={tutor.id}>
-                  <TD><span className="font-semibold">{tutor.firstName} {tutor.lastName}</span></TD>
-                  <TD><span className="text-xs">{subjects.join(", ") || "—"}</span></TD>
-                  <TD>{payment ? fmtZAR(payment.ratePerLesson) : profile ? fmtZAR(profile.ratePerLesson) : "—"}</TD>
-                  <TD>{payment ? payment.lessonsDelivered : "—"}</TD>
-                  <TD><span className="font-semibold">{payment ? fmtZAR(payment.total) : "—"}</span></TD>
-                  <TD>
-                    {payment?.paid
-                      ? <Badge color="green">Paid {fmtDate(payment.paidDate)}</Badge>
-                      : <Badge color="yellow">Pending</Badge>}
-                  </TD>
-                  <TD>
-                    {!payment?.paid && (
-                      <Btn size="sm" onClick={() => {
-                        setPayModal(tutor.id);
-                        setPayForm({ lessons: "", rate: String(profile?.ratePerLesson || "") });
-                      }}>Log Payment</Btn>
-                    )}
-                  </TD>
-                </TR>
-              );
-            })}
-          </tbody>
+          <thead><tr><TH>Tutor</TH><TH>Subjects</TH><TH>Rate</TH><TH>Lessons</TH><TH>Total</TH><TH>Status</TH><TH></TH></tr></thead>
+          <tbody>{data.tutors.filter(t=>t.status==="Active").map(tutor=>{
+            const prof=data.tutorProfiles?.find(p=>p.tutorId===tutor.id);
+            const pay=monthPayments.find(p=>p.tutorId===tutor.id);
+            const subjs=tutor.subjectIds.map(sid=>data.subjects.find(s=>s.id===sid)?.name).filter(Boolean);
+            return (
+              <TR key={tutor.id}>
+                <TD><span className="font-semibold">{tutor.firstName} {tutor.lastName}</span></TD>
+                <TD><span className="text-xs">{subjs.join(", ")||"—"}</span></TD>
+                <TD>{pay?fmtZAR(pay.ratePerLesson):prof?fmtZAR(prof.ratePerLesson):"—"}</TD>
+                <TD>{pay?pay.lessonsDelivered:"—"}</TD>
+                <TD><span className="font-semibold">{pay?fmtZAR(pay.total):"—"}</span></TD>
+                <TD>{pay?.paid?<Badge color="green">Paid</Badge>:<Badge color="yellow">Pending</Badge>}</TD>
+                <TD>{!pay?.paid&&<Btn size="sm" onClick={()=>{setPayModal(tutor.id);setPayForm({lessons:"",rate:String(prof?.ratePerLesson||"")});}}>Log Payment</Btn>}</TD>
+              </TR>
+            );
+          })}</tbody>
         </TableWrap>
       </Section>
-
-      {/* Expenses from tutor payments */}
-      {(data.expenses || []).filter(e => e.category === "tutor").length > 0 && (
-        <Section title="Tutor Payment Expenses (All Time)">
-          <TableWrap>
-            <thead><tr><TH>Date</TH><TH>Description</TH><TH>Amount</TH></tr></thead>
-            <tbody>
-              {(data.expenses || []).filter(e => e.category === "tutor").sort((a,b) => b.date.localeCompare(a.date)).map(e => (
-                <TR key={e.id}>
-                  <TD>{fmtDate(e.date)}</TD>
-                  <TD>{e.description}</TD>
-                  <TD><span className="font-semibold">{fmtZAR(e.amount)}</span></TD>
-                </TR>
-              ))}
-            </tbody>
-          </TableWrap>
-        </Section>
-      )}
-
-      {/* Pay modal */}
-      {payModal && (() => {
-        const tutor = data.tutors.find(t => t.id === payModal);
-        const total = (parseInt(payForm.lessons) || 0) * (parseFloat(payForm.rate) || 0);
+      {payModal&&(()=>{
+        const tutor=data.tutors.find(t=>t.id===payModal);
+        const total=(parseInt(payForm.lessons)||0)*(parseFloat(payForm.rate)||0);
         return (
-          <Modal title={`Log Payment — ${tutor?.firstName} ${tutor?.lastName}`} onClose={() => setPayModal(null)}>
-            <Inp label="Lessons Delivered" type="number" value={payForm.lessons}
-              onChange={e => setPayForm(f => ({ ...f, lessons: e.target.value }))} />
-            <Inp label="Rate per Lesson (R)" type="number" value={payForm.rate}
-              onChange={e => setPayForm(f => ({ ...f, rate: e.target.value }))} />
-            {total > 0 && (
-              <div className="rounded-xl p-3 mb-4" style={{ background: B.tealLight }}>
-                <p className="text-sm font-bold" style={{ color: B.tealDark }}>Total: {fmtZAR(total)}</p>
-                <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>This will be recorded as an expense in Accounting.</p>
-              </div>
-            )}
+          <Modal title={`Log Payment — ${tutor?.firstName} ${tutor?.lastName}`} onClose={()=>setPayModal(null)}>
+            <Inp label="Lessons Delivered" type="number" value={payForm.lessons} onChange={e=>setPayForm(f=>({...f,lessons:e.target.value}))}/>
+            <Inp label="Rate per Lesson (R)" type="number" value={payForm.rate} onChange={e=>setPayForm(f=>({...f,rate:e.target.value}))}/>
+            {total>0&&<div className="rounded-xl p-3 mb-4" style={{background:B.tealLight}}><p className="text-sm font-bold" style={{color:B.tealDark}}>Total: {fmtZAR(total)}</p><p className="text-xs mt-0.5" style={{color:"#6b7280"}}>Will be logged as an expense in Accounting.</p></div>}
             <div className="flex gap-2 justify-end">
-              <Btn variant="secondary" onClick={() => setPayModal(null)}>Cancel</Btn>
-              <Btn onClick={() => logPayment(payModal)} disabled={!payForm.lessons || !payForm.rate}>
-                <CheckCircle size={15} /> Confirm Payment
-              </Btn>
+              <Btn variant="secondary" onClick={()=>setPayModal(null)}>Cancel</Btn>
+              <Btn onClick={()=>logPayment(payModal)} disabled={!payForm.lessons||!payForm.rate}><CheckCircle size={15}/> Confirm</Btn>
             </div>
           </Modal>
         );
@@ -3386,179 +3776,181 @@ function OwnerPayrollPage({ data, setData }) {
 // ─── APP ──────────────────────────────────────────────────────────────────────
 
 const NAV_ADMIN = [
-  { id: "dashboard",  label: "Dashboard",  icon: LayoutDashboard },
-  { id: "students",   label: "Students",   icon: Users           },
-  { id: "tutors",     label: "Tutors",     icon: GraduationCap   },
-  { id: "links",      label: "Links",      icon: LinkIcon        },
-  { id: "centres",    label: "Centres",    icon: Building2       },
-  { id: "accounting", label: "Accounting", icon: DollarSign      },
-  { id: "stats",      label: "Stats",      icon: BarChart2       },
-  { id: "reports",    label: "Reports",    icon: FileText        },
-  { id: "settings",   label: "Settings",   icon: SettingsIcon    },
-  { id: "academy",    label: "Academy",    icon: BookOpen, divider: true },
+  { id:"dashboard",  label:"Dashboard",  icon:LayoutDashboard },
+  { id:"students",   label:"Students",   icon:Users           },
+  { id:"tutors",     label:"Tutors",     icon:GraduationCap   },
+  { id:"links",      label:"Links",      icon:LinkIcon        },
+  { id:"centres",    label:"Centres",    icon:Building2       },
+  { id:"accounting", label:"Accounting", icon:DollarSign      },
+  { id:"stats",      label:"Stats",      icon:BarChart2       },
+  { id:"reports",    label:"Reports",    icon:FileText        },
+  { id:"settings",   label:"Settings",   icon:SettingsIcon    },
+  { id:"academy",    label:"Academy",    icon:BookOpen, divider:true },
 ];
-
-const NAV_OWNER = [
-  ...NAV_ADMIN,
-  { id: "payroll", label: "Payroll", icon: DollarSign, divider: false },
-];
-
-const NAV_TUTOR   = [{ id: "tutor_home", label: "My Dashboard", icon: LayoutDashboard }, { id: "tutor_students", label: "My Students", icon: Users }];
-const NAV_PARENT  = [{ id: "parent_home", label: "My Children", icon: Users }];
-const NAV_STUDENT = [{ id: "academy", label: "Academy", icon: BookOpen }];
+const NAV_OWNER   = [...NAV_ADMIN, { id:"payroll", label:"Payroll", icon:DollarSign }];
+const NAV_CO      = [{ id:"co_home", label:"Centre Overview", icon:Building2 }];
+const NAV_TUTOR   = [{ id:"tutor_home", label:"My Dashboard", icon:LayoutDashboard }];
+const NAV_PARENT  = [{ id:"parent_home", label:"My Children", icon:Users }];
+const NAV_STUDENT = [{ id:"student_home", label:"My Space", icon:BookOpen }];
 
 export default function App() {
   const [activeAccount, setActiveAccount] = useState("admin1");
   const [page, setPage] = useState("dashboard");
   const [data, setData] = useState({
-    students:         INIT_STUDENTS,
-    tutors:           INIT_TUTORS,
-    subjects:         INIT_SUBJECTS,
-    links:            INIT_LINKS,
-    siblings:         INIT_SIBLINGS,
-    tutorNotes:       INIT_TUTOR_NOTES,
-    centres:          INIT_CENTRES,
-    centreNotes:      INIT_CENTRE_NOTES,
-    purchases:        INIT_PURCHASES,
-    financials:       INIT_FINANCIALS,
-    courses:          INIT_COURSES,
-    modules:          INIT_MODULES,
-    lessons:          INIT_LESSONS,
-    quizzes:          INIT_QUIZZES,
-    enrolments:       INIT_ENROLMENTS,
-    progress:         INIT_PROGRESS,
-    announcements:    INIT_ANNOUNCEMENTS,
-    parents:          INIT_PARENTS,
-    tutorProfiles:    INIT_TUTOR_PROFILES,
-    parentTutorNotes: INIT_PARENT_TUTOR_NOTES,
-    tutorPayments:    INIT_TUTOR_PAYMENTS,
-    expenses:         INIT_EXPENSES,
+    students:           INIT_STUDENTS,
+    tutors:             INIT_TUTORS,
+    subjects:           INIT_SUBJECTS,
+    links:              INIT_LINKS,
+    siblings:           INIT_SIBLINGS,
+    tutorNotes:         INIT_TUTOR_NOTES,
+    centres:            INIT_CENTRES,
+    centreNotes:        INIT_CENTRE_NOTES,
+    purchases:          INIT_PURCHASES,
+    financials:         INIT_FINANCIALS,
+    courses:            INIT_COURSES,
+    modules:            INIT_MODULES,
+    lessons:            INIT_LESSONS,
+    quizzes:            INIT_QUIZZES,
+    enrolments:         INIT_ENROLMENTS,
+    progress:           INIT_PROGRESS,
+    announcements:      INIT_ANNOUNCEMENTS,
+    parents:            INIT_PARENTS,
+    tutorProfiles:      INIT_TUTOR_PROFILES,
+    parentTutorNotes:   INIT_PARENT_TUTOR_NOTES,
+    tutorPayments:      INIT_TUTOR_PAYMENTS,
+    expenses:           INIT_EXPENSES,
+    centrePools:        INIT_CENTRE_POOLS,
+    centreLessonUsage:  INIT_CENTRE_LESSON_USAGE,
+    centreOwners:       INIT_CENTRE_OWNERS,
+    resources:          INIT_RESOURCES,
+    chatMessages:       INIT_CHAT_MESSAGES,
+    scheduledLessons:   INIT_SCHEDULED_LESSONS,
   });
 
-  const account = ROLE_ACCOUNTS.find(a => a.id === activeAccount) || ROLE_ACCOUNTS[0];
-  const { role, ref: roleRef } = account;
+  const account = ROLE_ACCOUNTS.find(a=>a.id===activeAccount)||ROLE_ACCOUNTS[0];
+  const { role, ref:roleRef } = account;
 
-  // When switching accounts, reset to appropriate default page
-  const switchAccount = (accountId) => {
-    const acc = ROLE_ACCOUNTS.find(a => a.id === accountId);
+  const switchAccount = (id) => {
+    const acc = ROLE_ACCOUNTS.find(a=>a.id===id);
     if (!acc) return;
-    setActiveAccount(accountId);
-    if (acc.role === "admin" || acc.role === "owner") setPage("dashboard");
-    else if (acc.role === "tutor") setPage("tutor_home");
-    else if (acc.role === "parent") setPage("parent_home");
-    else if (acc.role === "student") setPage("academy");
+    setActiveAccount(id);
+    const defaults = { admin:"dashboard", owner:"dashboard", centreOwner:"co_home", tutor:"tutor_home", parent:"parent_home", student:"student_home" };
+    setPage(defaults[acc.role]||"dashboard");
   };
 
-  const unassigned = useMemo(
-    () => data.students.filter(s => !data.links.some(l => l.studentId === s.id)).length,
-    [data.students, data.links]
-  );
+  const unassigned = useMemo(()=>data.students.filter(s=>!data.links.some(l=>l.studentId===s.id)).length,[data.students,data.links]);
 
-  // Determine nav items for current role
-  const navItems = role === "owner" ? NAV_OWNER
-    : role === "tutor" ? NAV_TUTOR
-    : role === "parent" ? NAV_PARENT
-    : role === "student" ? NAV_STUDENT
-    : NAV_ADMIN;
+  const navItems = role==="owner"?NAV_OWNER:role==="centreOwner"?NAV_CO:role==="tutor"?NAV_TUTOR:role==="parent"?NAV_PARENT:role==="student"?NAV_STUDENT:NAV_ADMIN;
+  const validPages = navItems.map(n=>n.id);
+  const effectivePage = validPages.includes(page)?page:validPages[0];
 
-  // Ensure page is valid for role when role changes
-  const validPages = navItems.map(n => n.id);
-  const effectivePage = validPages.includes(page) ? page : validPages[0];
-
-  // Admin/Owner pages
   const adminPages = {
-    dashboard:  <Dashboard      data={data} onNav={setPage} />,
-    students:   <StudentsPage   data={data} setData={setData} />,
-    tutors:     <TutorsPage     data={data} setData={setData} />,
-    links:      <LinksPage      data={data} setData={setData} />,
-    centres:    <CentresPage    data={data} setData={setData} />,
-    accounting: <AccountingPage data={data} setData={setData} />,
-    stats:      <StatsPage      data={data} />,
-    reports:    <ReportsPage    data={data} />,
-    settings:   <SettingsPage   data={data} setData={setData} />,
-    academy:    <AcademyPage    data={data} setData={setData} />,
-    payroll:    <OwnerPayrollPage data={data} setData={setData} />,
+    dashboard:<Dashboard data={data} onNav={setPage}/>,
+    students:<StudentsPage data={data} setData={setData}/>,
+    tutors:<TutorsPage data={data} setData={setData}/>,
+    links:<LinksPage data={data} setData={setData}/>,
+    centres:<CentresPage data={data} setData={setData}/>,
+    accounting:<AccountingPage data={data} setData={setData}/>,
+    stats:<StatsPage data={data}/>,
+    reports:<ReportsPage data={data}/>,
+    settings:<SettingsPage data={data} setData={setData}/>,
+    academy:<AcademyPage data={data} setData={setData}/>,
+    payroll:<OwnerPayrollPage data={data} setData={setData}/>,
   };
 
   const renderContent = () => {
-    if (role === "admin" || role === "owner") return adminPages[effectivePage] || null;
-    if (role === "tutor")   return <TutorView   data={data} setData={setData} tutorRef={roleRef} />;
-    if (role === "parent")  return <ParentView  data={data} setData={setData} parentRef={roleRef} />;
-    if (role === "student") return <StudentView data={data} setData={setData} studentRef={roleRef} />;
+    if (role==="admin"||role==="owner") return adminPages[effectivePage]||null;
+    if (role==="centreOwner") return <CentreOwnerView data={data} setData={setData} ownerRef={roleRef}/>;
+    if (role==="tutor")  return <TutorView  data={data} setData={setData} tutorRef={roleRef}/>;
+    if (role==="parent") return <ParentView data={data} setData={setData} parentRef={roleRef}/>;
+    if (role==="student") return <StudentView data={data} setData={setData} studentRef={roleRef}/>;
     return null;
   };
 
-  const roleColors = { admin: B.teal, owner: B.gold, tutor: B.coral, parent: "#8b5cf6", student: "#10b981" };
-  const roleColor = roleColors[role] || B.teal;
+  const roleColors = { admin:B.teal, owner:B.gold, centreOwner:"#8b5cf6", tutor:B.coral, parent:"#ec4899", student:"#10b981" };
+  const roleColor = roleColors[role]||B.teal;
 
   return (
     <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
-        .to-root, .to-root * { font-family: 'Sora', sans-serif; box-sizing: border-box; }
-        .to-root .recharts-cartesian-axis-tick-value tspan,
-        .to-root .recharts-legend-item-text { font-family: 'Sora', sans-serif !important; font-size: 11px; }
-        .to-nav-item { transition: background 0.15s, color 0.15s; }
-        .to-nav-item:hover { background: rgba(148,203,209,0.1) !important; color: rgba(255,255,255,0.8) !important; }
+        .to-root,.to-root*{font-family:'Sora',sans-serif;box-sizing:border-box;}
+        .to-root .recharts-cartesian-axis-tick-value tspan,.to-root .recharts-legend-item-text{font-family:'Sora',sans-serif!important;font-size:11px;}
+        .to-nav-item{transition:background 0.15s,color 0.15s;}
+        .to-nav-item:hover{background:rgba(148,203,209,0.1)!important;color:rgba(255,255,255,0.8)!important;}
       `}</style>
-      <div className="to-root flex h-screen overflow-hidden" style={{ background: "#f4f8f7" }}>
+      <div className="to-root flex h-screen overflow-hidden" style={{background:"#f4f8f7"}}>
 
-        {/* ── Sidebar ── */}
-        <aside className="w-60 flex flex-col shrink-0 overflow-hidden"
-          style={{ background: "#0d1e2a", borderRight: "1px solid rgba(255,255,255,0.05)" }}>
-
+        <aside className="w-60 flex flex-col shrink-0 overflow-hidden" style={{background:"#0d1e2a",borderRight:"1px solid rgba(255,255,255,0.05)"}}>
           {/* Logo */}
-          <div className="px-5 py-5 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+          <div className="px-5 py-5 shrink-0" style={{borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: "rgba(148,203,209,0.15)", border: "1px solid rgba(148,203,209,0.3)" }}>
-                <LogoMark size={24} />
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:"rgba(148,203,209,0.15)",border:"1px solid rgba(148,203,209,0.3)"}}>
+                <LogoMark size={24}/>
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold tracking-[0.14em] uppercase leading-none" style={{ color: B.teal }}>LEARN TO LINK</p>
-                <p className="text-xs mt-1 font-medium" style={{ color: "rgba(255,255,255,0.28)" }}>TutorOps · CRM+LMS</p>
+                <p className="text-xs font-bold tracking-[0.14em] uppercase leading-none" style={{color:B.teal}}>LEARN TO LINK</p>
+                <p className="text-xs mt-1 font-medium" style={{color:"rgba(255,255,255,0.28)"}}>TutorOps · CRM+LMS</p>
               </div>
             </div>
           </div>
 
-          {/* Role indicator */}
-          <div className="px-4 py-3 shrink-0" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-            <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: "rgba(255,255,255,0.25)" }}>Viewing as</p>
-            <select value={activeAccount} onChange={e => switchAccount(e.target.value)}
+          {/* Role switcher */}
+          <div className="px-4 py-3 shrink-0" style={{borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+            <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{color:"rgba(255,255,255,0.25)"}}>Viewing as</p>
+            <select value={activeAccount} onChange={e=>switchAccount(e.target.value)}
               className="w-full rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none"
-              style={{ background: "rgba(255,255,255,0.08)", color: roleColor, border: `1px solid ${roleColor}44` }}>
-              {ROLE_ACCOUNTS.map(a => (
-                <option key={a.id} value={a.id} style={{ background: "#0d1e2a", color: "white" }}>{a.label}</option>
-              ))}
+              style={{background:"rgba(255,255,255,0.08)",color:roleColor,border:`1px solid ${roleColor}44`}}>
+              {["Admin & Owner","",].map(()=>null)}
+              <optgroup label="Admin & Owner" style={{background:"#0d1e2a"}}>
+                {ROLE_ACCOUNTS.filter(a=>["admin","owner"].includes(a.role)).map(a=>(
+                  <option key={a.id} value={a.id} style={{background:"#0d1e2a",color:"white"}}>{a.label}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Centre Owners" style={{background:"#0d1e2a"}}>
+                {ROLE_ACCOUNTS.filter(a=>a.role==="centreOwner").map(a=>(
+                  <option key={a.id} value={a.id} style={{background:"#0d1e2a",color:"white"}}>{a.label}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Tutors" style={{background:"#0d1e2a"}}>
+                {ROLE_ACCOUNTS.filter(a=>a.role==="tutor").map(a=>(
+                  <option key={a.id} value={a.id} style={{background:"#0d1e2a",color:"white"}}>{a.label}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Parents" style={{background:"#0d1e2a"}}>
+                {ROLE_ACCOUNTS.filter(a=>a.role==="parent").map(a=>(
+                  <option key={a.id} value={a.id} style={{background:"#0d1e2a",color:"white"}}>{a.label}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Students" style={{background:"#0d1e2a"}}>
+                {ROLE_ACCOUNTS.filter(a=>a.role==="student").map(a=>(
+                  <option key={a.id} value={a.id} style={{background:"#0d1e2a",color:"white"}}>{a.label}</option>
+                ))}
+              </optgroup>
             </select>
           </div>
 
           {/* Nav */}
           <nav className="flex-1 px-3 py-4 overflow-y-auto">
-            {navItems.map(n => {
-              const active = effectivePage === n.id;
-              const isAc = n.id === "academy";
+            {navItems.map(n=>{
+              const active=effectivePage===n.id;
+              const isAc=n.id==="academy";
               return (
                 <div key={n.id}>
-                  {n.divider && (
+                  {n.divider&&(
                     <div className="my-3 px-1 flex items-center gap-2">
-                      <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
-                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "rgba(255,255,255,0.18)" }}>Academy</span>
-                      <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+                      <div className="flex-1 h-px" style={{background:"rgba(255,255,255,0.07)"}}/>
+                      <span className="text-xs font-bold uppercase tracking-widest" style={{color:"rgba(255,255,255,0.18)"}}>Academy</span>
+                      <div className="flex-1 h-px" style={{background:"rgba(255,255,255,0.07)"}}/>
                     </div>
                   )}
-                  <button onClick={() => setPage(n.id)}
+                  <button onClick={()=>setPage(n.id)}
                     className="to-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-left mb-0.5"
-                    style={active ? {
-                      background: isAc ? "rgba(215,115,90,0.15)" : `${roleColor}22`,
-                      color:      isAc ? B.coral : roleColor,
-                      boxShadow:  `inset 3px 0 0 ${isAc ? B.coral : roleColor}`,
-                    } : { color: "rgba(255,255,255,0.45)" }}>
-                    <n.icon size={16} />
+                    style={active?{background:isAc?"rgba(215,115,90,0.15)":`${roleColor}22`,color:isAc?B.coral:roleColor,boxShadow:`inset 3px 0 0 ${isAc?B.coral:roleColor}`}:{color:"rgba(255,255,255,0.45)"}}>
+                    <n.icon size={16}/>
                     <span>{n.label}</span>
-                    {n.id === "links" && unassigned > 0 && (
-                      <span className="ml-auto text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
-                        style={{ background: B.coral, color: "white" }}>{unassigned}</span>
+                    {n.id==="links"&&unassigned>0&&(
+                      <span className="ml-auto text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center" style={{background:B.coral,color:"white"}}>{unassigned}</span>
                     )}
                   </button>
                 </div>
@@ -3567,25 +3959,22 @@ export default function App() {
           </nav>
 
           {/* Footer */}
-          <div className="px-4 py-4 shrink-0" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+          <div className="px-4 py-4 shrink-0" style={{borderTop:"1px solid rgba(255,255,255,0.07)"}}>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 uppercase"
-                style={{ background: `${roleColor}22`, color: roleColor, border: `1px solid ${roleColor}44` }}>
+                style={{background:`${roleColor}22`,color:roleColor,border:`1px solid ${roleColor}44`}}>
                 {account.label.slice(0,2)}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold truncate" style={{ color: "rgba(255,255,255,0.75)" }}>{account.label}</p>
-                <p className="text-xs truncate capitalize" style={{ color: roleColor }}>{role}</p>
+                <p className="text-xs font-semibold truncate" style={{color:"rgba(255,255,255,0.75)"}}>{account.label}</p>
+                <p className="text-xs truncate capitalize" style={{color:roleColor}}>{role==="centreOwner"?"Centre Owner":role}</p>
               </div>
             </div>
           </div>
         </aside>
 
-        {/* ── Main ── */}
         <main className="flex-1 overflow-y-auto">
-          <div className="max-w-5xl mx-auto px-6 py-6">
-            {renderContent()}
-          </div>
+          <div className="max-w-5xl mx-auto px-6 py-6">{renderContent()}</div>
         </main>
       </div>
     </>
