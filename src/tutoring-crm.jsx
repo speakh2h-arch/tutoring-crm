@@ -5,7 +5,7 @@ import {
   Link as LinkIcon, DollarSign, BookMarked, TrendingUp,
   CheckCircle, ThumbsUp, ThumbsDown, StickyNote,
   Building2, FileText, MapPin, Printer, AlertTriangle, Eye,
-  CalendarDays, ChevronLeft, ChevronRight, Award, Play
+  CalendarDays, ChevronLeft, ChevronRight, Award, Play, Menu
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -188,23 +188,27 @@ const PACKAGES = [
 ];
 
 const INIT_INVOICES = [
-  { id:"inv1", studentId:"st1", invoiceNumber:"INV-001", date:"2025-01-10", status:"paid", paidDate:"2025-01-14",
+  { id:"inv1", studentId:"st1", invoiceNumber:"INV-001", date:"2026-02-10", status:"paid", paidDate:"2026-02-14",
     lineItems:[
       { id:"li1", description:"Trial Lesson (30 min)", qty:1, unitPrice:115,  lessons:1  },
       { id:"li2", description:"Single Loyalty Package (10)", qty:1, unitPrice:3250, lessons:10 },
     ], total:3365, notes:"" },
-  { id:"inv2", studentId:"st2", invoiceNumber:"INV-002", date:"2025-02-01", status:"paid", paidDate:"2025-02-05",
+  { id:"inv2", studentId:"st2", invoiceNumber:"INV-002", date:"2026-03-01", status:"paid", paidDate:"2026-03-05",
     lineItems:[
       { id:"li3", description:"Single Loyalty Package (10)", qty:1, unitPrice:3250, lessons:10 },
     ], total:3250, notes:"" },
-  { id:"inv3", studentId:"st3", invoiceNumber:"INV-003", date:"2024-11-05", status:"paid", paidDate:"2024-11-08",
+  { id:"inv3", studentId:"st3", invoiceNumber:"INV-003", date:"2026-04-05", status:"paid", paidDate:"2026-04-08",
     lineItems:[
       { id:"li4", description:"Trial Lesson (30 min)", qty:1, unitPrice:115, lessons:1 },
       { id:"li5", description:"Double Loyalty Package (20)", qty:1, unitPrice:6300, lessons:20 },
     ], total:6415, notes:"" },
-  { id:"inv4", studentId:"st5", invoiceNumber:"INV-004", date:"2025-04-02", status:"sent", paidDate:"",
+  { id:"inv4", studentId:"st5", invoiceNumber:"INV-004", date:"2026-05-02", status:"sent", paidDate:"",
     lineItems:[
       { id:"li6", description:"Single Loyalty Package (10)", qty:1, unitPrice:3250, lessons:10 },
+    ], total:3250, notes:"" },
+  { id:"inv5", studentId:"st4", invoiceNumber:"INV-005", date:"2026-05-10", status:"paid", paidDate:"2026-05-12",
+    lineItems:[
+      { id:"li7", description:"Single Loyalty Package (10)", qty:1, unitPrice:3250, lessons:10 },
     ], total:3250, notes:"" },
 ];
 
@@ -322,13 +326,13 @@ const INIT_PURCHASES = [
 
 // Monthly financials — turnover & expenses (manual input)
 const INIT_FINANCIALS = [
-  { id: "fin1", month: "2024-11", turnover: 14500, expenses: 7200 },
-  { id: "fin2", month: "2024-12", turnover: 11000, expenses: 6500 },
-  { id: "fin3", month: "2025-01", turnover: 18000, expenses: 8500 },
-  { id: "fin4", month: "2025-02", turnover: 21000, expenses: 9200 },
-  { id: "fin5", month: "2025-03", turnover: 23500, expenses: 10100 },
-  { id: "fin6", month: "2025-04", turnover: 26000, expenses: 11300 },
-  { id: "fin7", month: "2025-05", turnover: 28000, expenses: 12000 },
+  { id: "fin1", month: "2025-11", turnover: 14500, expenses: 7200 },
+  { id: "fin2", month: "2025-12", turnover: 11000, expenses: 6500 },
+  { id: "fin3", month: "2026-01", turnover: 0,     expenses: 8500 },
+  { id: "fin4", month: "2026-02", turnover: 0,     expenses: 9200 },
+  { id: "fin5", month: "2026-03", turnover: 0,     expenses: 10100 },
+  { id: "fin6", month: "2026-04", turnover: 0,     expenses: 11300 },
+  { id: "fin7", month: "2026-05", turnover: 0,     expenses: 12000 },
 ];
 
 // ─── UTILITIES ────────────────────────────────────────────────────────────────
@@ -502,53 +506,71 @@ const LogoMark = ({ size = 36 }) => {
 
 const Badge = ({ children, color = "gray" }) => {
   const map = {
-    gray:   { bg:"#f1f5f4", text:"#4a5568" }, green: { bg:"#d1fae5", text:"#065f46" },
-    blue:   { bg:"#dbeafe", text:"#1e40af" }, yellow:{ bg:"#fef3c7", text:"#92400e" },
-    red:    { bg:"#fee2e2", text:"#991b1b" }, purple:{ bg:"#ede9fe", text:"#5b21b6" },
-    indigo: { bg:"#e8f5f7", text:"#5a9fa6" }, orange:{ bg:"#ffedd5", text:"#9a3412" },
-    teal:   { bg:"#e8f5f7", text:"#5a9fa6" }, rose:  { bg:"#ffe4e6", text:"#9f1239" },
+    gray:   { bg:"#f1f5f9", text:"#475569", ring:"#cbd5e1" },
+    green:  { bg:"#dcfce7", text:"#15803d", ring:"#86efac" },
+    blue:   { bg:"#dbeafe", text:"#1d4ed8", ring:"#93c5fd" },
+    yellow: { bg:"#fef9c3", text:"#854d0e", ring:"#fde047" },
+    red:    { bg:"#fee2e2", text:"#b91c1c", ring:"#fca5a5" },
+    purple: { bg:"#f3e8ff", text:"#7e22ce", ring:"#d8b4fe" },
+    indigo: { bg:"#e0f2fe", text:"#0369a1", ring:"#7dd3fc" },
+    orange: { bg:"#fff7ed", text:"#c2410c", ring:"#fdba74" },
+    teal:   { bg:"#ccfbf1", text:"#0f766e", ring:"#5eead4" },
+    rose:   { bg:"#ffe4e6", text:"#be123c", ring:"#fda4af" },
   };
   const c = map[color] || map.gray;
-  return <span style={{ background:c.bg, color:c.text }} className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold tracking-wide">{children}</span>;
+  return (
+    <span style={{ background:c.bg, color:c.text, boxShadow:`inset 0 0 0 1px ${c.ring}` }}
+      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide">
+      {children}
+    </span>
+  );
 };
 
 const CURR_COLOR = { IEB:"teal", CAPS:"green", Cambridge:"purple" };
 
 const Modal = ({ title, onClose, children, wide, extraWide }) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background:"rgba(8,18,26,0.65)", backdropFilter:"blur(4px)" }}>
-    <div className={`bg-white rounded-2xl w-full ${extraWide?"max-w-3xl":wide?"max-w-2xl":"max-w-lg"} max-h-[90vh] overflow-y-auto`}
-      style={{ boxShadow:"0 25px 60px rgba(0,0,0,0.25)", border:"1px solid rgba(0,0,0,0.07)" }}>
-      <div className="flex items-center justify-between px-6 py-4 sticky top-0 bg-white z-10 rounded-t-2xl" style={{ borderBottom:"1px solid #eef2f1" }}>
-        <h2 className="text-sm font-bold tracking-tight" style={{ color:"#0d1e2a" }}>{title}</h2>
-        <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center transition-colors" style={{ color:"#6b7280" }}
-          onMouseEnter={e=>e.currentTarget.style.background="#f3f4f6"} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-          <X size={18}/>
+  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" style={{ background:"rgba(5,12,20,0.72)", backdropFilter:"blur(6px)" }}>
+    <div className={`bg-white w-full sm:rounded-2xl rounded-t-2xl ${extraWide?"sm:max-w-3xl":wide?"sm:max-w-2xl":"sm:max-w-lg"} max-h-[92vh] sm:max-h-[90vh] overflow-y-auto`}
+      style={{ boxShadow:"0 32px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08)" }}>
+      {/* drag handle on mobile */}
+      <div className="sm:hidden flex justify-center pt-3 pb-1">
+        <div className="w-10 h-1 rounded-full" style={{background:"#e2e8f0"}}/>
+      </div>
+      <div className="flex items-center justify-between px-6 py-4 sticky top-0 bg-white z-10 sm:rounded-t-2xl"
+        style={{ borderBottom:"1px solid #f1f5f9" }}>
+        <h2 className="text-base font-bold tracking-tight" style={{ color:"#0d1e2a" }}>{title}</h2>
+        <button onClick={onClose}
+          className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:rotate-90"
+          style={{ color:"#94a3b8", background:"#f8fafc" }}
+          onMouseEnter={e=>{e.currentTarget.style.background="#f1f5f9";e.currentTarget.style.color="#0d1e2a";}}
+          onMouseLeave={e=>{e.currentTarget.style.background="#f8fafc";e.currentTarget.style.color="#94a3b8";}}>
+          <X size={16}/>
         </button>
       </div>
-      <div className="px-6 py-5">{children}</div>
+      <div className="px-6 py-5 pb-8 sm:pb-5">{children}</div>
     </div>
   </div>
 );
 
 const Field = ({ label, children, hint }) => (
   <div className="mb-4">
-    {label && <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color:"#9ca3af" }}>{label}</label>}
+    {label && <label className="block text-xs font-semibold mb-1.5" style={{ color:"#64748b" }}>{label}</label>}
     {children}
-    {hint && <p className="text-xs mt-1" style={{ color:"#9ca3af" }}>{hint}</p>}
+    {hint && <p className="text-xs mt-1" style={{ color:"#94a3b8" }}>{hint}</p>}
   </div>
 );
 
 const inp = "w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-all bg-white";
 const Inp = ({ label, hint, ...p }) => (
   <Field label={label} hint={hint}>
-    <input className={inp} style={{ borderColor:"#e5e7eb", color:"#111827" }} {...p}
-      onFocus={e=>{ e.target.style.borderColor=B.teal; e.target.style.boxShadow="0 0 0 3px #e8f5f7"; }}
-      onBlur={e=>{ e.target.style.borderColor="#e5e7eb"; e.target.style.boxShadow="none"; }}/>
+    <input className={inp} style={{ borderColor:"#e2e8f0", color:"#0f172a", background:"#f8fafc" }} {...p}
+      onFocus={e=>{ e.target.style.borderColor=B.tealDark; e.target.style.boxShadow=`0 0 0 3px ${B.tealLight}`; e.target.style.background="white"; }}
+      onBlur={e=>{ e.target.style.borderColor="#e2e8f0"; e.target.style.boxShadow="none"; e.target.style.background="#f8fafc"; }}/>
   </Field>
 );
 const Sel = ({ label, options, placeholder, hint, ...p }) => (
   <Field label={label} hint={hint}>
-    <select className={inp} style={{ borderColor:"#e5e7eb", color:"#111827" }} {...p}>
+    <select className={inp} style={{ borderColor:"#e2e8f0", color:"#0f172a", background:"#f8fafc" }} {...p}>
       {placeholder && <option value="">{placeholder}</option>}
       {options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
@@ -556,24 +578,24 @@ const Sel = ({ label, options, placeholder, hint, ...p }) => (
 );
 const Txt = ({ label, hint, ...p }) => (
   <Field label={label} hint={hint}>
-    <textarea className={inp} style={{ borderColor:"#e5e7eb", color:"#111827" }} rows={3} {...p}
-      onFocus={e=>{ e.target.style.borderColor=B.teal; e.target.style.boxShadow="0 0 0 3px #e8f5f7"; }}
-      onBlur={e=>{ e.target.style.borderColor="#e5e7eb"; e.target.style.boxShadow="none"; }}/>
+    <textarea className={inp} style={{ borderColor:"#e2e8f0", color:"#0f172a", background:"#f8fafc" }} rows={3} {...p}
+      onFocus={e=>{ e.target.style.borderColor=B.tealDark; e.target.style.boxShadow=`0 0 0 3px ${B.tealLight}`; e.target.style.background="white"; }}
+      onBlur={e=>{ e.target.style.borderColor="#e2e8f0"; e.target.style.boxShadow="none"; e.target.style.background="#f8fafc"; }}/>
   </Field>
 );
 
 const Btn = ({ children, onClick, variant="primary", size="md", className="", type="button", disabled }) => {
-  const sz = { sm:"px-3 py-1.5 text-xs", md:"px-4 py-2 text-sm", lg:"px-5 py-2.5 text-sm" }[size];
+  const sz = { sm:"px-3 py-1.5 text-xs gap-1.5", md:"px-4 py-2 text-sm gap-2", lg:"px-5 py-2.5 text-sm gap-2" }[size];
   const vrStyle = {
-    primary:  { background:B.coral,   color:"white",   border:"none" },
-    secondary:{ background:"white",   color:"#374151", border:"1px solid #d1d5db" },
-    danger:   { background:"#dc2626", color:"white",   border:"none" },
-    ghost:    { background:"transparent", color:"#4b5563", border:"none" },
-    success:  { background:"#059669", color:"white",   border:"none" },
+    primary:  { background:`linear-gradient(135deg, ${B.coral} 0%, ${B.coralDark} 100%)`, color:"white", border:"none", boxShadow:`0 1px 3px rgba(183,93,68,0.4), inset 0 1px 0 rgba(255,255,255,0.15)` },
+    secondary:{ background:"white", color:"#334155", border:"1px solid #e2e8f0", boxShadow:"0 1px 2px rgba(0,0,0,0.05)" },
+    danger:   { background:"linear-gradient(135deg,#ef4444,#dc2626)", color:"white", border:"none", boxShadow:"0 1px 3px rgba(220,38,38,0.4)" },
+    ghost:    { background:"transparent", color:"#64748b", border:"none", boxShadow:"none" },
+    success:  { background:"linear-gradient(135deg,#10b981,#059669)", color:"white", border:"none", boxShadow:"0 1px 3px rgba(5,150,105,0.4)" },
   };
   return (
     <button type={type} disabled={disabled} onClick={onClick} style={vrStyle[variant]||vrStyle.primary}
-      className={`inline-flex items-center gap-2 rounded-xl font-semibold transition-all focus:outline-none disabled:opacity-40 hover:opacity-85 active:scale-95 ${sz} ${className}`}>
+      className={`inline-flex items-center rounded-xl font-semibold transition-all focus:outline-none disabled:opacity-40 hover:brightness-110 active:scale-[0.97] ${sz} ${className}`}>
       {children}
     </button>
   );
@@ -581,61 +603,73 @@ const Btn = ({ children, onClick, variant="primary", size="md", className="", ty
 
 const KPI = ({ title, value, sub, icon:Icon, color="teal" }) => {
   const colors = {
-    teal:  { accent:B.teal,     bg:B.tealLight,  }, coral: { accent:B.coral,    bg:B.coralLight },
-    gold:  { accent:B.gold,     bg:B.goldLight,  }, indigo:{ accent:B.tealDark, bg:B.tealLight  },
-    green: { accent:"#10b981",  bg:"#d1fae5"     }, purple:{ accent:"#8b5cf6",  bg:"#ede9fe"    },
-    amber: { accent:"#f59e0b",  bg:"#fef3c7"     }, rose:  { accent:"#f43f5e",  bg:"#ffe4e6"    },
+    teal:   { accent:B.tealDark, bg:"#f0fdfa", bar:B.teal,     icon:"#0d9488" },
+    coral:  { accent:B.coral,    bg:"#fff7f5", bar:B.coral,    icon:B.coral   },
+    gold:   { accent:"#b45309",  bg:"#fffbeb", bar:B.gold,     icon:"#d97706" },
+    indigo: { accent:B.tealDark, bg:"#f0fdfa", bar:B.tealDark, icon:B.tealDark},
+    green:  { accent:"#059669",  bg:"#f0fdf4", bar:"#10b981",  icon:"#059669" },
+    purple: { accent:"#7c3aed",  bg:"#faf5ff", bar:"#8b5cf6",  icon:"#7c3aed" },
+    amber:  { accent:"#b45309",  bg:"#fffbeb", bar:"#f59e0b",  icon:"#d97706" },
+    rose:   { accent:"#be123c",  bg:"#fff1f2", bar:"#f43f5e",  icon:"#e11d48" },
   };
   const c = colors[color]||colors.teal;
   return (
-    <div className="rounded-2xl p-5 bg-white flex items-start gap-4" style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.07)", border:"1px solid #eef2f1" }}>
-      <div className="rounded-xl p-2.5 shrink-0" style={{ background:c.bg }}><Icon size={20} style={{ color:c.accent }}/></div>
-      <div className="min-w-0">
-        <p className="text-xs font-bold uppercase tracking-wider" style={{ color:"#9ca3af" }}>{title}</p>
-        <p className="text-2xl font-bold mt-0.5 leading-none" style={{ color:"#0d1e2a" }}>{value}</p>
-        {sub && <p className="text-xs mt-1" style={{ color:"#6b7280" }}>{sub}</p>}
+    <div className="rounded-2xl bg-white overflow-hidden flex flex-col"
+      style={{ boxShadow:"0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04)", border:"1px solid #e8eef2" }}>
+      <div className="h-1 w-full" style={{ background:`linear-gradient(90deg, ${c.bar}, ${c.bar}88)` }}/>
+      <div className="p-5 flex items-start gap-4">
+        <div className="rounded-xl p-2.5 shrink-0" style={{ background:c.bg }}>
+          <Icon size={20} style={{ color:c.icon }}/>
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color:"#94a3b8" }}>{title}</p>
+          <p className="text-2xl font-extrabold mt-1 leading-none tracking-tight" style={{ color:"#0d1e2a" }}>{value}</p>
+          {sub && <p className="text-xs mt-1.5 font-medium" style={{ color:"#94a3b8" }}>{sub}</p>}
+        </div>
       </div>
     </div>
   );
 };
 
 const TableWrap = ({ children }) => (
-  <div className="overflow-x-auto rounded-2xl" style={{ border:"1px solid #eef2f1" }}>
-    <table className="min-w-full divide-y text-sm" style={{ borderColor:"#eef2f1" }}>{children}</table>
+  <div className="overflow-x-auto rounded-2xl" style={{ border:"1px solid #e8eef2", boxShadow:"0 1px 4px rgba(0,0,0,0.04)" }}>
+    <table className="min-w-full text-sm">{children}</table>
   </div>
 );
 const TH = ({ children, className="" }) => (
-  <th className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-widest ${className}`}
-    style={{ background:"#f8faf9", color:"#9ca3af", borderBottom:"1px solid #eef2f1" }}>{children}</th>
+  <th className={`px-5 py-3.5 text-left text-xs font-bold uppercase tracking-widest whitespace-nowrap ${className}`}
+    style={{ background:"#f1f5f9", color:"#64748b", borderBottom:"2px solid #e2e8f0" }}>{children}</th>
 );
-const TD = ({ children, className="" }) => <td className={`px-4 py-3 ${className}`} style={{ color:"#374151" }}>{children}</td>;
+const TD = ({ children, className="" }) => <td className={`px-5 py-3.5 ${className}`} style={{ color:"#1e293b", borderBottom:"1px solid #f1f5f9" }}>{children}</td>;
 const TR = ({ children, onClick, className="" }) => (
-  <tr onClick={onClick} className={`border-b last:border-0 transition-colors ${onClick?"cursor-pointer":""} ${className}`}
-    style={{ borderColor:"#f5f8f7" }}
-    onMouseEnter={onClick?(e=>{e.currentTarget.style.background="#f0faf8";}):undefined}
-    onMouseLeave={onClick?(e=>{e.currentTarget.style.background="";}):undefined}>
+  <tr onClick={onClick}
+    className={`transition-colors ${onClick?"cursor-pointer":""} ${className}`}
+    onMouseEnter={e=>{e.currentTarget.style.background=onClick?"#f8fafc":"#fafbfc";}}
+    onMouseLeave={e=>{e.currentTarget.style.background="";}}>
     {children}
   </tr>
 );
 
 const SearchBar = ({ value, onChange, placeholder }) => (
   <div className="relative">
-    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color:"#9ca3af" }}/>
-    <input className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none transition-all bg-white"
-      style={{ border:"1px solid #e5e7eb", color:"#111827" }}
+    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color:"#94a3b8" }}/>
+    <input className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none transition-all"
+      style={{ border:"1px solid #e2e8f0", color:"#0f172a", background:"#f8fafc", boxShadow:"0 1px 2px rgba(0,0,0,0.04)" }}
       placeholder={placeholder||"Search…"} value={value} onChange={e=>onChange(e.target.value)}
-      onFocus={e=>{ e.target.style.borderColor=B.teal; e.target.style.boxShadow="0 0 0 3px #e8f5f7"; }}
-      onBlur={e=>{ e.target.style.borderColor="#e5e7eb"; e.target.style.boxShadow="none"; }}/>
+      onFocus={e=>{ e.target.style.borderColor=B.tealDark; e.target.style.boxShadow=`0 0 0 3px ${B.tealLight}`; e.target.style.background="white"; }}
+      onBlur={e=>{ e.target.style.borderColor="#e2e8f0"; e.target.style.boxShadow="0 1px 2px rgba(0,0,0,0.04)"; e.target.style.background="#f8fafc"; }}/>
   </div>
 );
 
 const Section = ({ title, children, action }) => (
-  <div className="bg-white rounded-2xl" style={{ border:"1px solid #eef2f1", boxShadow:"0 1px 3px rgba(0,0,0,0.05)" }}>
-    <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom:"1px solid #f5f8f7" }}>
+  <div className="bg-white rounded-2xl overflow-hidden"
+    style={{ border:"1px solid #e8eef2", boxShadow:"0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.03)" }}>
+    <div className="flex items-center justify-between px-6 py-4"
+      style={{ borderBottom:"1px solid #f1f5f9", background:"#fafbfc" }}>
       <h3 className="text-sm font-bold tracking-tight" style={{ color:"#0d1e2a" }}>{title}</h3>
       {action}
     </div>
-    <div className="p-5">{children}</div>
+    <div className="p-6">{children}</div>
   </div>
 );
 
@@ -670,12 +704,55 @@ function Dashboard({ data, setData, onNav }) {
     newSubjects: links.filter(l => l.createdDate?.startsWith(m.key)).length,
   }));
 
-  // Profit summary
+  // Profit summary — includes invoice income from paid invoices
   const currentMonthKey = today().slice(0, 7);
+  const year = today().slice(0, 4);
+
+  // Invoice income grouped by month
+  const invoiceIncomeByMonth = useMemo(() => {
+    const map = {};
+    (data.invoices || []).filter(inv => inv.status === "paid").forEach(inv => {
+      const month = (inv.paidDate || inv.date || "").slice(0, 7);
+      if (month) map[month] = (map[month] || 0) + (inv.total || 0);
+    });
+    return map;
+  }, [data.invoices]);
+
   const currentFin = financials.find(f => f.month === currentMonthKey);
-  const ytdFin = financials.filter(f => f.month.startsWith(today().slice(0, 4)));
-  const ytdProfit = ytdFin.reduce((s, f) => s + (f.turnover - f.expenses), 0);
-  const currentProfit = currentFin ? currentFin.turnover - currentFin.expenses : null;
+  const currentInvoiceIncome = invoiceIncomeByMonth[currentMonthKey] || 0;
+  const currentIncome  = (currentFin?.turnover || 0) + currentInvoiceIncome;
+  const currentExpenses = currentFin?.expenses || 0;
+  const currentProfit  = currentIncome - currentExpenses;
+  const hasCurrentData = currentFin || currentInvoiceIncome > 0;
+
+  const ytdFin = financials.filter(f => f.month.startsWith(year));
+  const ytdInvoiceIncome = Object.entries(invoiceIncomeByMonth)
+    .filter(([m]) => m.startsWith(year)).reduce((s, [, v]) => s + v, 0);
+  const ytdManualIncome = ytdFin.reduce((s, f) => s + f.turnover, 0);
+  const ytdExpenses = ytdFin.reduce((s, f) => s + f.expenses, 0);
+  const ytdProfit   = (ytdManualIncome + ytdInvoiceIncome) - ytdExpenses;
+
+  // Financial trend: merge invoice income into chart data
+  const allFinMonths = useMemo(() => {
+    const set = new Set([
+      ...financials.map(f => f.month),
+      ...Object.keys(invoiceIncomeByMonth),
+    ]);
+    return [...set].sort((a, b) => a.localeCompare(b)).slice(-6);
+  }, [financials, invoiceIncomeByMonth]);
+
+  const trendData = allFinMonths.map(month => {
+    const fin = financials.find(f => f.month === month);
+    const invIncome = invoiceIncomeByMonth[month] || 0;
+    const totalIncome = (fin?.turnover || 0) + invIncome;
+    const expenses = fin?.expenses || 0;
+    return {
+      month:    fmtMonth(month),
+      Income:   totalIncome,
+      Expenses: expenses,
+      Profit:   totalIncome - expenses,
+    };
+  });
 
   // Students per subject
   const subjectStats = subjects.map(s => ({
@@ -693,15 +770,15 @@ function Dashboard({ data, setData, onNav }) {
         </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KPI title="Active Students"  value={activeStudents}  sub={`of ${students.length} total`}            icon={Users}       color="indigo" />
-        <KPI title="Active Tutors"    value={tutors.filter(t => t.status === "Active").length}  sub="contractors" icon={GraduationCap} color="green" />
-        <KPI title="Current Month Profit" value={currentProfit != null ? fmtZAR(currentProfit) : "—"} sub="turnover minus expenses" icon={TrendingUp} color="teal" />
-        <KPI title="YTD Profit"       value={fmtZAR(ytdProfit)} sub={`${today().slice(0, 4)} year to date`}   icon={DollarSign}  color="purple" />
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <KPI title="Active Students"      value={activeStudents} sub={`of ${students.length} total`}        icon={Users}         color="indigo" />
+        <KPI title="Active Tutors"        value={tutors.filter(t=>t.status==="Active").length} sub="contractors" icon={GraduationCap} color="green" />
+        <KPI title="This Month Income"    value={hasCurrentData ? fmtZAR(currentIncome) : "—"} sub={`expenses: ${fmtZAR(currentExpenses)}`} icon={TrendingUp} color="teal" />
+        <KPI title="YTD Profit"           value={fmtZAR(ytdProfit)} sub={`${year} · income minus expenses`}  icon={DollarSign}    color="purple" />
       </div>
 
       {/* Growth chart */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
         <Section title="New Students & New Subjects per Month">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={growthData} barSize={16}>
@@ -781,20 +858,19 @@ function Dashboard({ data, setData, onNav }) {
         </div>
       )}
 
-      {/* Profit trend */}
-      {financials.length > 0 && (
-        <Section title="Financial Trend (last months)">
+      {/* Financial trend — income includes paid invoices */}
+      {trendData.length > 0 && (
+        <Section title="Financial Trend — Income (invoices + other) vs Expenses">
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={financials.slice(-6).map(f => ({
-              month:    fmtMonth(f.month),
-              Turnover: f.turnover,
-              Expenses: f.expenses,
-              Profit:   f.turnover - f.expenses,
-            }))}>
+            <AreaChart data={trendData}>
               <defs>
                 <linearGradient id="gp" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%"  stopColor="#22c55e" stopOpacity={0.15} />
                   <stop offset="95%" stopColor="#22c55e" stopOpacity={0}    />
+                </linearGradient>
+                <linearGradient id="gi" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%"  stopColor="#94cbd1" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#94cbd1" stopOpacity={0}    />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -802,9 +878,9 @@ function Dashboard({ data, setData, onNav }) {
               <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `R${(v/1000).toFixed(0)}k`} />
               <Tooltip formatter={v => fmtZAR(v)} />
               <Legend />
+              <Area type="monotone" dataKey="Income"   stroke="#94cbd1" fill="url(#gi)" strokeWidth={2} />
               <Area type="monotone" dataKey="Profit"   stroke="#22c55e" fill="url(#gp)" strokeWidth={2} />
-              <Line  type="monotone" dataKey="Turnover" stroke="#94cbd1" strokeWidth={1.5} dot={false} />
-              <Line  type="monotone" dataKey="Expenses" stroke="#ef4444" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
+              <Line type="monotone"  dataKey="Expenses" stroke="#ef4444" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
             </AreaChart>
           </ResponsiveContainer>
         </Section>
@@ -1895,12 +1971,47 @@ function LinksPage({ data, setData }) {
 function AccountingPage({ data, setData }) {
   const [modal, setModal] = useState(null);
   const [form,  setForm]  = useState({});
+  const [tab,   setTab]   = useState("overview"); // "overview" | "invoices" | "expenses"
 
-  const sorted = [...data.financials].sort((a, b) => b.month.localeCompare(a.month));
-  const ytd    = data.financials.filter(f => f.month.startsWith(today().slice(0, 4)));
-  const ytdTurnover = ytd.reduce((s, f) => s + f.turnover, 0);
-  const ytdExpenses = ytd.reduce((s, f) => s + f.expenses, 0);
-  const ytdProfit   = ytdTurnover - ytdExpenses;
+  // ── Invoice income: group paid invoices by month ──────────────────────────
+  const invoiceIncomeByMonth = useMemo(() => {
+    const map = {};
+    (data.invoices || []).filter(inv => inv.status === "paid").forEach(inv => {
+      const month = (inv.paidDate || inv.date || "").slice(0, 7);
+      if (!month) return;
+      map[month] = (map[month] || 0) + (inv.total || 0);
+    });
+    return map; // { "2026-05": 12500, ... }
+  }, [data.invoices]);
+
+  // ── Merge months from both invoices and manual financials ─────────────────
+  const allMonths = useMemo(() => {
+    const set = new Set([
+      ...Object.keys(invoiceIncomeByMonth),
+      ...data.financials.map(f => f.month),
+    ]);
+    return [...set].sort((a, b) => b.localeCompare(a));
+  }, [invoiceIncomeByMonth, data.financials]);
+
+  const getFinancial = (month) => data.financials.find(f => f.month === month) || null;
+
+  // ── YTD calculations ───────────────────────────────────────────────────────
+  const year = today().slice(0, 4);
+  const ytdInvoiceIncome = Object.entries(invoiceIncomeByMonth)
+    .filter(([m]) => m.startsWith(year))
+    .reduce((s, [, v]) => s + v, 0);
+  const ytdManualTurnover = data.financials.filter(f => f.month.startsWith(year)).reduce((s, f) => s + f.turnover, 0);
+  const ytdTotalIncome = ytdInvoiceIncome + ytdManualTurnover;
+  const ytdExpenses    = data.financials.filter(f => f.month.startsWith(year)).reduce((s, f) => s + f.expenses, 0);
+  const ytdProfit      = ytdTotalIncome - ytdExpenses;
+
+  // ── Recent paid invoices for the income feed ───────────────────────────────
+  const recentPaid = useMemo(() =>
+    [...(data.invoices || [])].filter(inv => inv.status === "paid")
+      .sort((a, b) => (b.paidDate || b.date || "").localeCompare(a.paidDate || a.date || ""))
+      .slice(0, 20),
+    [data.invoices]
+  );
 
   const openAdd = () => {
     const m = today().slice(0, 7);
@@ -1909,111 +2020,229 @@ function AccountingPage({ data, setData }) {
   };
 
   const save = () => {
-    if (!form.month || form.turnover === "" || form.expenses === "") return;
-    const entry = { ...form, id: form.id || "fin" + uid(), turnover: Number(form.turnover), expenses: Number(form.expenses) };
-    setData(d => ({
-      ...d,
-      financials: form.id
-        ? d.financials.map(f => f.id === form.id ? entry : f)
-        : [...d.financials, entry],
-    }));
+    if (!form.month || form.expenses === "") return;
+    const existing = data.financials.find(f => f.month === form.month && !form.id);
+    if (existing && !form.id) {
+      // merge into existing record
+      setData(d => ({
+        ...d,
+        financials: d.financials.map(f => f.month === form.month
+          ? { ...f, turnover: (f.turnover||0) + Number(form.turnover||0), expenses: (f.expenses||0) + Number(form.expenses||0) }
+          : f),
+      }));
+    } else {
+      const entry = { ...form, id: form.id || "fin" + uid(), turnover: Number(form.turnover||0), expenses: Number(form.expenses||0) };
+      setData(d => ({
+        ...d,
+        financials: form.id
+          ? d.financials.map(f => f.id === form.id ? entry : f)
+          : [...d.financials, entry],
+      }));
+    }
     setModal(null);
   };
 
   const remove = (id) => setData(d => ({ ...d, financials: d.financials.filter(f => f.id !== id) }));
 
-  const chartData = [...data.financials].sort((a,b) => a.month.localeCompare(b.month)).slice(-12).map(f => ({
-    month:    fmtMonth(f.month),
-    Turnover: f.turnover,
-    Expenses: f.expenses,
-    Profit:   f.turnover - f.expenses,
-  }));
+  // ── Chart: combined income, expenses, profit ───────────────────────────────
+  const chartMonths = [...allMonths].sort((a, b) => a.localeCompare(b)).slice(-12);
+  const chartData = chartMonths.map(month => {
+    const fin = getFinancial(month);
+    const invIncome = invoiceIncomeByMonth[month] || 0;
+    const manualTurnover = fin?.turnover || 0;
+    const totalIncome = invIncome + manualTurnover;
+    const expenses = fin?.expenses || 0;
+    return {
+      month: fmtMonth(month),
+      "Invoice Income": invIncome,
+      "Other Income": manualTurnover,
+      Expenses: expenses,
+      Profit: totalIncome - expenses,
+    };
+  });
+
+  const TabBtn = ({ id, label }) => (
+    <button onClick={() => setTab(id)}
+      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${tab===id ? "text-white" : "text-gray-600 hover:bg-gray-100"}`}
+      style={tab===id ? {background:"#5a9fa6"} : {}}>
+      {label}
+    </button>
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Accounting</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manual monthly overview — turnover minus expenses</p>
+          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Accounting</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Invoice income is pulled automatically from paid invoices</p>
         </div>
-        <Btn onClick={openAdd}><Plus size={15} /> Add Month</Btn>
+        <div className="flex gap-2">
+          <Btn variant="secondary" onClick={openAdd}><Plus size={15}/> Add Expense / Manual Entry</Btn>
+        </div>
       </div>
 
-      {/* YTD summary */}
-      <div className="grid grid-cols-3 gap-4">
-        <KPI title="YTD Turnover"  value={fmtZAR(ytdTurnover)} sub={today().slice(0, 4)} icon={TrendingUp}  color="indigo" />
-        <KPI title="YTD Expenses"  value={fmtZAR(ytdExpenses)} sub={today().slice(0, 4)} icon={DollarSign}  color="rose"   />
-        <KPI title="YTD Profit"    value={fmtZAR(ytdProfit)}   sub={today().slice(0, 4)} icon={CheckCircle} color={ytdProfit >= 0 ? "green" : "rose"} />
+      {/* YTD KPIs */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        <KPI title="Invoice Income YTD"  value={fmtZAR(ytdInvoiceIncome)}  sub="from paid invoices" icon={FileText}    color="teal"  />
+        <KPI title="Other Income YTD"    value={fmtZAR(ytdManualTurnover)} sub="manual entries"     icon={TrendingUp}  color="indigo"/>
+        <KPI title="Expenses YTD"        value={fmtZAR(ytdExpenses)}       sub={year}               icon={DollarSign}  color="rose"  />
+        <KPI title="Net Profit YTD"      value={fmtZAR(ytdProfit)}         sub={year}               icon={CheckCircle} color={ytdProfit >= 0 ? "green" : "rose"} />
       </div>
 
-      {/* Chart */}
-      {chartData.length > 0 && (
-        <Section title="Turnover vs Expenses vs Profit">
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={chartData} barSize={16}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `R${(v/1000).toFixed(0)}k`} />
-              <Tooltip formatter={v => fmtZAR(v)} />
-              <Legend />
-              <Bar dataKey="Turnover" fill="#94cbd1" radius={[4,4,0,0]} />
-              <Bar dataKey="Expenses" fill="#ef4444" radius={[4,4,0,0]} />
-              <Bar dataKey="Profit"   fill="#22c55e" radius={[4,4,0,0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Tabs */}
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+        <TabBtn id="overview"  label="Overview"       />
+        <TabBtn id="invoices"  label="Invoice Income" />
+        <TabBtn id="expenses"  label="Manual Entries" />
+      </div>
+
+      {/* ── OVERVIEW TAB ── */}
+      {tab === "overview" && (
+        <>
+          {chartData.length > 0 && (
+            <Section title="Monthly Income vs Expenses vs Profit">
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={chartData} barSize={14}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
+                  <XAxis dataKey="month" tick={{fontSize:11}}/>
+                  <YAxis tick={{fontSize:11}} tickFormatter={v=>`R${(v/1000).toFixed(0)}k`}/>
+                  <Tooltip formatter={v=>fmtZAR(v)}/>
+                  <Legend/>
+                  <Bar dataKey="Invoice Income" fill="#94cbd1" stackId="income" radius={[0,0,0,0]}/>
+                  <Bar dataKey="Other Income"   fill="#5a9fa6" stackId="income" radius={[4,4,0,0]}/>
+                  <Bar dataKey="Expenses"       fill="#ef4444" radius={[4,4,0,0]}/>
+                  <Bar dataKey="Profit"         fill="#22c55e" radius={[4,4,0,0]}/>
+                </BarChart>
+              </ResponsiveContainer>
+            </Section>
+          )}
+
+          {/* Combined monthly table */}
+          <Section title="Monthly Breakdown">
+            <TableWrap>
+              <thead><tr>
+                <TH>Month</TH>
+                <TH className="text-right">Invoice Income</TH>
+                <TH className="text-right">Other Income</TH>
+                <TH className="text-right">Total Income</TH>
+                <TH className="text-right">Expenses</TH>
+                <TH className="text-right">Profit</TH>
+                <TH>Margin</TH>
+              </tr></thead>
+              <tbody>
+                {allMonths.length === 0 && (
+                  <tr><td colSpan={7} className="text-center text-sm text-gray-400 py-8">No data yet. Mark invoices as paid or add manual entries.</td></tr>
+                )}
+                {allMonths.map(month => {
+                  const fin = getFinancial(month);
+                  const invIncome = invoiceIncomeByMonth[month] || 0;
+                  const manIncome = fin?.turnover || 0;
+                  const totalIncome = invIncome + manIncome;
+                  const expenses = fin?.expenses || 0;
+                  const profit = totalIncome - expenses;
+                  const margin = totalIncome ? ((profit / totalIncome) * 100).toFixed(1) : 0;
+                  return (
+                    <TR key={month}>
+                      <TD className="font-medium">{fmtMonth(month)}</TD>
+                      <TD className="text-right">
+                        {invIncome > 0
+                          ? <span className="font-medium" style={{color:"#5a9fa6"}}>{fmtZAR(invIncome)}</span>
+                          : <span className="text-gray-300">—</span>}
+                      </TD>
+                      <TD className="text-right">
+                        {manIncome > 0 ? fmtZAR(manIncome) : <span className="text-gray-300">—</span>}
+                      </TD>
+                      <TD className="text-right font-semibold">{fmtZAR(totalIncome)}</TD>
+                      <TD className="text-right text-red-600">{expenses > 0 ? fmtZAR(expenses) : <span className="text-gray-300">—</span>}</TD>
+                      <TD className={`text-right font-bold ${profit >= 0 ? "text-green-600" : "text-red-600"}`}>{fmtZAR(profit)}</TD>
+                      <TD>
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 bg-gray-100 rounded-full h-1.5">
+                            <div className={`h-1.5 rounded-full ${profit >= 0 ? "bg-green-500" : "bg-red-500"}`}
+                              style={{width:`${Math.min(Math.abs(Number(margin)),100)}%`}}/>
+                          </div>
+                          <span className="text-xs text-gray-500">{margin}%</span>
+                        </div>
+                      </TD>
+                    </TR>
+                  );
+                })}
+              </tbody>
+            </TableWrap>
+          </Section>
+        </>
+      )}
+
+      {/* ── INVOICE INCOME TAB ── */}
+      {tab === "invoices" && (
+        <Section title="Paid Invoice Income">
+          {recentPaid.length === 0 ? (
+            <div className="text-center py-12 text-gray-400">
+              <FileText size={32} className="mx-auto mb-3 opacity-40"/>
+              <p className="text-sm">No paid invoices yet. Mark invoices as paid in the Invoicing tab and they will appear here automatically.</p>
+            </div>
+          ) : (
+            <TableWrap>
+              <thead><tr>
+                <TH>Invoice #</TH><TH>Student</TH><TH>Date Paid</TH><TH className="text-right">Amount</TH>
+              </tr></thead>
+              <tbody>
+                {recentPaid.map(inv => {
+                  const st = data.students.find(s => s.id === inv.studentId);
+                  return (
+                    <TR key={inv.id}>
+                      <TD className="font-mono text-xs">{inv.invoiceNumber}</TD>
+                      <TD>{st ? `${st.firstName} ${st.lastName}` : "—"}</TD>
+                      <TD>{inv.paidDate || inv.date || "—"}</TD>
+                      <TD className="text-right font-semibold" style={{color:"#5a9fa6"}}>{fmtZAR(inv.total||0)}</TD>
+                    </TR>
+                  );
+                })}
+              </tbody>
+            </TableWrap>
+          )}
         </Section>
       )}
 
-      {/* Table */}
-      <TableWrap>
-        <thead><tr>
-          <TH>Month</TH><TH className="text-right">Turnover</TH><TH className="text-right">Expenses</TH><TH className="text-right">Profit</TH><TH>Margin</TH><TH></TH>
-        </tr></thead>
-        <tbody>
-          {sorted.map(f => {
-            const profit = f.turnover - f.expenses;
-            const margin = f.turnover ? ((profit / f.turnover) * 100).toFixed(1) : 0;
-            return (
-              <TR key={f.id}>
-                <TD className="font-medium">{fmtMonth(f.month)}</TD>
-                <TD className="text-right">{fmtZAR(f.turnover)}</TD>
-                <TD className="text-right text-red-600">{fmtZAR(f.expenses)}</TD>
-                <TD className={`text-right font-semibold ${profit >= 0 ? "text-green-600" : "text-red-600"}`}>{fmtZAR(profit)}</TD>
-                <TD>
-                  <div className="flex items-center gap-2">
-                    <div className="w-20 bg-gray-100 rounded-full h-1.5">
-                      <div className={`h-1.5 rounded-full ${profit >= 0 ? "bg-green-500" : "bg-red-500"}`}
-                        style={{ width: `${Math.min(Math.abs(Number(margin)), 100)}%` }} />
+      {/* ── MANUAL ENTRIES TAB ── */}
+      {tab === "expenses" && (
+        <Section title="Manual Entries (Expenses & Other Income)">
+          <div className="mb-3 flex justify-end">
+            <Btn onClick={openAdd}><Plus size={15}/> Add Entry</Btn>
+          </div>
+          <TableWrap>
+            <thead><tr>
+              <TH>Month</TH><TH className="text-right">Other Income</TH><TH className="text-right">Expenses</TH><TH></TH>
+            </tr></thead>
+            <tbody>
+              {[...data.financials].sort((a,b)=>b.month.localeCompare(a.month)).map(f => (
+                <TR key={f.id}>
+                  <TD className="font-medium">{fmtMonth(f.month)}</TD>
+                  <TD className="text-right">{fmtZAR(f.turnover)}</TD>
+                  <TD className="text-right text-red-600">{fmtZAR(f.expenses)}</TD>
+                  <TD>
+                    <div className="flex gap-1">
+                      <Btn size="sm" variant="ghost" onClick={()=>{setForm({...f});setModal("edit");}}><Edit2 size={13}/></Btn>
+                      <Btn size="sm" variant="ghost" onClick={()=>remove(f.id)}><Trash2 size={13} className="text-red-400"/></Btn>
                     </div>
-                    <span className="text-xs text-gray-500">{margin}%</span>
-                  </div>
-                </TD>
-                <TD>
-                  <div className="flex gap-1">
-                    <Btn size="sm" variant="ghost" onClick={() => { setForm({ ...f }); setModal("edit"); }}><Edit2 size={13} /></Btn>
-                    <Btn size="sm" variant="ghost" onClick={() => remove(f.id)}><Trash2 size={13} className="text-red-400" /></Btn>
-                  </div>
-                </TD>
-              </TR>
-            );
-          })}
-          {sorted.length === 0 && <tr><td colSpan={6} className="text-center text-sm text-gray-400 py-8">No entries yet.</td></tr>}
-        </tbody>
-      </TableWrap>
+                  </TD>
+                </TR>
+              ))}
+              {data.financials.length === 0 && <tr><td colSpan={4} className="text-center text-sm text-gray-400 py-8">No manual entries yet.</td></tr>}
+            </tbody>
+          </TableWrap>
+        </Section>
+      )}
 
       {(modal === "add" || modal === "edit") && (
-        <Modal title={modal === "add" ? "Add Month" : "Edit Month"} onClose={() => setModal(null)}>
+        <Modal title={modal === "add" ? "Add Manual Entry" : "Edit Entry"} onClose={() => setModal(null)}>
+          <p className="text-xs text-gray-500 mb-4 -mt-1">Invoice income is tracked automatically. Use this for expenses and any income not captured by invoices.</p>
           <Inp label="Month" type="month" value={form.month || ""} onChange={e => setForm(f => ({ ...f, month: e.target.value }))} />
-          <Inp label="Turnover (R)" type="number" min={0} value={form.turnover} onChange={e => setForm(f => ({ ...f, turnover: e.target.value }))} />
-          <Inp label="Expenses (R)" type="number" min={0} value={form.expenses} onChange={e => setForm(f => ({ ...f, expenses: e.target.value }))} />
-          {form.turnover !== "" && form.expenses !== "" && (
-            <div className={`p-3 rounded-lg text-sm font-medium mb-4 ${(form.turnover - form.expenses) >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
-              Profit: {fmtZAR(Number(form.turnover) - Number(form.expenses))}
-            </div>
-          )}
+          <Inp label="Other Income (R)" type="number" min={0} placeholder="0" value={form.turnover} onChange={e => setForm(f => ({ ...f, turnover: e.target.value }))} />
+          <Inp label="Expenses (R)" type="number" min={0} placeholder="0" value={form.expenses} onChange={e => setForm(f => ({ ...f, expenses: e.target.value }))} />
           <div className="flex justify-end gap-3 mt-2">
             <Btn variant="secondary" onClick={() => setModal(null)}>Cancel</Btn>
-            <Btn onClick={save} disabled={!form.month || form.turnover === "" || form.expenses === ""}>Save</Btn>
+            <Btn onClick={save} disabled={!form.month}>Save</Btn>
           </div>
         </Modal>
       )}
@@ -5351,6 +5580,7 @@ const NAV_STUDENT = [{ id:"student_home", label:"My Space", icon:BookOpen }];
 export default function App() {
   const [activeAccount, setActiveAccount] = useState("admin1");
   const [page, setPage] = useState("dashboard");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [data, setData] = useState({
     students:           INIT_STUDENTS,
     tutors:             INIT_TUTORS,
@@ -5433,34 +5663,55 @@ export default function App() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
-        .to-root,.to-root*{font-family:'Sora',sans-serif;box-sizing:border-box;}
-        .to-root .recharts-cartesian-axis-tick-value tspan,.to-root .recharts-legend-item-text{font-family:'Sora',sans-serif!important;font-size:11px;}
-        .to-nav-item{transition:background 0.15s,color 0.15s;}
-        .to-nav-item:hover{background:rgba(148,203,209,0.1)!important;color:rgba(255,255,255,0.8)!important;}
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        .to-root,.to-root*{font-family:'Inter',system-ui,sans-serif;box-sizing:border-box;}
+        .to-root .recharts-cartesian-axis-tick-value tspan,.to-root .recharts-legend-item-text{font-family:'Inter',sans-serif!important;font-size:11px;}
+        .to-nav-item{transition:all 0.15s;}
+        .to-nav-item:hover{background:rgba(255,255,255,0.07)!important;color:rgba(255,255,255,0.9)!important;}
+        ::-webkit-scrollbar{width:5px;height:5px;}
+        ::-webkit-scrollbar-track{background:transparent;}
+        ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px;}
+        ::-webkit-scrollbar-thumb:hover{background:#94a3b8;}
+        .sidebar-drawer{transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);}
       `}</style>
-      <div className="to-root flex h-screen overflow-hidden" style={{background:"#f4f8f7"}}>
+      <div className="to-root flex h-screen overflow-hidden" style={{background:"#f0f4f8"}}>
 
-        <aside className="w-60 flex flex-col shrink-0 overflow-hidden" style={{background:"#0d1e2a",borderRight:"1px solid rgba(255,255,255,0.05)"}}>
+        {/* ── Mobile overlay backdrop ── */}
+        {mobileNavOpen && (
+          <div className="fixed inset-0 z-40 md:hidden" style={{background:"rgba(5,12,20,0.6)",backdropFilter:"blur(2px)"}}
+            onClick={()=>setMobileNavOpen(false)}/>
+        )}
+
+        {/* ── Sidebar (desktop: always visible | mobile: drawer) ── */}
+        <aside className={`sidebar-drawer fixed md:relative inset-y-0 left-0 z-50 w-72 md:w-64 flex flex-col shrink-0 overflow-hidden ${mobileNavOpen?"translate-x-0":"-translate-x-full"} md:translate-x-0`}
+          style={{background:"linear-gradient(180deg,#0d1e2a 0%,#0a1720 100%)",borderRight:"1px solid rgba(255,255,255,0.06)",boxShadow:"2px 0 20px rgba(0,0,0,0.18)"}}>
+
           {/* Logo */}
-          <div className="px-5 py-5 shrink-0" style={{borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+          <div className="px-5 py-5 shrink-0" style={{borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:"rgba(148,203,209,0.15)",border:"1px solid rgba(148,203,209,0.3)"}}>
-                <LogoMark size={24}/>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{background:"linear-gradient(135deg,rgba(148,203,209,0.25),rgba(90,159,166,0.15))",border:"1px solid rgba(148,203,209,0.35)",boxShadow:"0 2px 8px rgba(148,203,209,0.15)"}}>
+                <LogoMark size={22}/>
               </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold tracking-[0.14em] uppercase leading-none" style={{color:B.teal}}>LEARN TO LINK</p>
-                <p className="text-xs mt-1 font-medium" style={{color:"rgba(255,255,255,0.28)"}}>TutorOps · CRM+LMS</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-extrabold tracking-[0.16em] uppercase leading-none" style={{color:B.teal}}>LEARN TO LINK</p>
+                <p className="text-xs mt-1 font-medium tracking-wide" style={{color:"rgba(255,255,255,0.22)"}}>TutorOps · CRM+LMS</p>
               </div>
+              {/* Close button on mobile */}
+              <button className="md:hidden w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                style={{color:"rgba(255,255,255,0.4)",background:"rgba(255,255,255,0.06)"}}
+                onClick={()=>setMobileNavOpen(false)}>
+                <X size={16}/>
+              </button>
             </div>
           </div>
 
           {/* Role switcher */}
-          <div className="px-4 py-3 shrink-0" style={{borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
-            <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{color:"rgba(255,255,255,0.25)"}}>Viewing as</p>
-            <select value={activeAccount} onChange={e=>switchAccount(e.target.value)}
+          <div className="px-4 py-3 shrink-0" style={{borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{color:"rgba(255,255,255,0.2)"}}>Viewing as</p>
+            <select value={activeAccount} onChange={e=>{switchAccount(e.target.value);setMobileNavOpen(false);}}
               className="w-full rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none"
-              style={{background:"rgba(255,255,255,0.08)",color:roleColor,border:`1px solid ${roleColor}44`}}>
+              style={{background:"rgba(255,255,255,0.07)",color:roleColor,border:`1px solid ${roleColor}55`}}>
               {["Admin & Owner","",].map(()=>null)}
               <optgroup label="Admin & Owner" style={{background:"#0d1e2a"}}>
                 {ROLE_ACCOUNTS.filter(a=>["admin","owner"].includes(a.role)).map(a=>(
@@ -5491,26 +5742,30 @@ export default function App() {
           </div>
 
           {/* Nav */}
-          <nav className="flex-1 px-3 py-4 overflow-y-auto">
+          <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
             {navItems.map(n=>{
               const active=effectivePage===n.id;
               const isAc=n.id==="academy";
+              const activeColor=isAc?B.coral:roleColor;
               return (
                 <div key={n.id}>
                   {n.divider&&(
-                    <div className="my-3 px-1 flex items-center gap-2">
-                      <div className="flex-1 h-px" style={{background:"rgba(255,255,255,0.07)"}}/>
-                      <span className="text-xs font-bold uppercase tracking-widest" style={{color:"rgba(255,255,255,0.18)"}}>Academy</span>
-                      <div className="flex-1 h-px" style={{background:"rgba(255,255,255,0.07)"}}/>
+                    <div className="my-4 px-2 flex items-center gap-2">
+                      <div className="flex-1 h-px" style={{background:"rgba(255,255,255,0.06)"}}/>
+                      <span className="text-xs font-bold uppercase tracking-widest" style={{color:"rgba(255,255,255,0.15)"}}>Academy</span>
+                      <div className="flex-1 h-px" style={{background:"rgba(255,255,255,0.06)"}}/>
                     </div>
                   )}
-                  <button onClick={()=>setPage(n.id)}
-                    className="to-nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-left mb-0.5"
-                    style={active?{background:isAc?"rgba(215,115,90,0.15)":`${roleColor}22`,color:isAc?B.coral:roleColor,boxShadow:`inset 3px 0 0 ${isAc?B.coral:roleColor}`}:{color:"rgba(255,255,255,0.45)"}}>
-                    <n.icon size={16}/>
-                    <span>{n.label}</span>
+                  <button onClick={()=>{setPage(n.id);setMobileNavOpen(false);}}
+                    className="to-nav-item w-full flex items-center gap-3 px-3 py-3 md:py-2.5 rounded-xl text-xs font-semibold text-left"
+                    style={active
+                      ? {background:`${activeColor}18`,color:activeColor,boxShadow:`inset 2px 0 0 ${activeColor}, 0 1px 4px rgba(0,0,0,0.12)`}
+                      : {color:"rgba(255,255,255,0.4)"}}>
+                    <n.icon size={16} style={{flexShrink:0}}/>
+                    <span className="tracking-wide">{n.label}</span>
                     {n.id==="links"&&unassigned>0&&(
-                      <span className="ml-auto text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center" style={{background:B.coral,color:"white"}}>{unassigned}</span>
+                      <span className="ml-auto text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
+                        style={{background:B.coral,color:"white",fontSize:"10px"}}>{unassigned}</span>
                     )}
                   </button>
                 </div>
@@ -5519,23 +5774,45 @@ export default function App() {
           </nav>
 
           {/* Footer */}
-          <div className="px-4 py-4 shrink-0" style={{borderTop:"1px solid rgba(255,255,255,0.07)"}}>
-            <div className="flex items-center gap-3">
+          <div className="px-4 py-4 shrink-0" style={{borderTop:"1px solid rgba(255,255,255,0.06)"}}>
+            <div className="flex items-center gap-3 p-2 rounded-xl" style={{background:"rgba(255,255,255,0.04)"}}>
               <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 uppercase"
-                style={{background:`${roleColor}22`,color:roleColor,border:`1px solid ${roleColor}44`}}>
+                style={{background:`linear-gradient(135deg,${roleColor}33,${roleColor}18)`,color:roleColor,border:`1px solid ${roleColor}44`}}>
                 {account.label.slice(0,2)}
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold truncate" style={{color:"rgba(255,255,255,0.75)"}}>{account.label}</p>
-                <p className="text-xs truncate capitalize" style={{color:roleColor}}>{role==="centreOwner"?"Centre Owner":role}</p>
+                <p className="text-xs font-semibold truncate" style={{color:"rgba(255,255,255,0.8)"}}>{account.label}</p>
+                <p className="text-xs truncate capitalize font-medium" style={{color:roleColor}}>{role==="centreOwner"?"Centre Owner":role}</p>
               </div>
             </div>
           </div>
         </aside>
 
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-5xl mx-auto px-6 py-6">{renderContent()}</div>
-        </main>
+        {/* ── Main area ── */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+          {/* Mobile top bar */}
+          <header className="md:hidden flex items-center justify-between px-4 py-3 shrink-0"
+            style={{background:"#0d1e2a",borderBottom:"1px solid rgba(255,255,255,0.06)",boxShadow:"0 2px 12px rgba(0,0,0,0.2)"}}>
+            <button onClick={()=>setMobileNavOpen(true)}
+              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{background:"rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.7)"}}>
+              <Menu size={18}/>
+            </button>
+            <div className="flex items-center gap-2">
+              <LogoMark size={18}/>
+              <p className="text-xs font-extrabold tracking-[0.14em] uppercase" style={{color:B.teal}}>LEARN TO LINK</p>
+            </div>
+            <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs uppercase"
+              style={{background:`${roleColor}22`,color:roleColor,border:`1px solid ${roleColor}44`}}>
+              {account.label.slice(0,2)}
+            </div>
+          </header>
+
+          <main className="flex-1 overflow-y-auto">
+            <div className="max-w-5xl mx-auto px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8">{renderContent()}</div>
+          </main>
+        </div>
       </div>
     </>
   );
