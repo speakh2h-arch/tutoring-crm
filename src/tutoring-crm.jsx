@@ -371,6 +371,7 @@ const getLessonBalance = (studentId, data) => {
   const bought = (data.invoices||[])
     .filter(inv=>groupIds.includes(inv.studentId)&&inv.status==="paid")
     .reduce((sum,inv)=>sum+inv.lineItems.reduce((s,li)=>s+(li.lessons||0),0),0);
+  // All completed logs for this student regardless of which tutor delivered them
   const used = (data.lessonLogs||[])
     .filter(l=>groupIds.includes(l.studentId)&&l.status==="completed").length;
   return { bought, used, remaining:bought-used, groupIds, isSiblingGroup:groupIds.length>1 };
@@ -640,10 +641,27 @@ const Section = ({ title, children, action }) => (
 
 // ─── PAGE: DASHBOARD ─────────────────────────────────────────────────────────
 
-function Dashboard({ data, onNav }) {
+function Dashboard({ data, setData, onNav }) {
   const { students, tutors, subjects, links, financials } = data;
 
   const activeStudents = students.filter(s => s.status === "Active").length;
+
+  // Low lesson balance alerts (threshold ≤ 2 remaining)
+  const LOW_THRESHOLD = 2;
+  const lowBalanceStudents = useMemo(() => {
+    const seen = new Set();
+    return students
+      .filter(s => s.status === "Active")
+      .map(s => ({ student: s, bal: getLessonBalance(s.id, data) }))
+      .filter(({ student, bal }) => {
+        // Only show once per sibling group (keyed by sorted group IDs)
+        const key = [...bal.groupIds].sort().join(",");
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return bal.remaining <= LOW_THRESHOLD;
+      })
+      .sort((a, b) => a.bal.remaining - b.bal.remaining);
+  }, [students, data]);
   const months6 = useMemo(() => lastNMonths(6), []);
 
   const growthData = months6.map(m => ({
@@ -714,6 +732,54 @@ function Dashboard({ data, onNav }) {
           </div>
         </Section>
       </div>
+
+      {/* Low lesson balance alerts */}
+      {lowBalanceStudents.length > 0 && (
+        <div className="rounded-2xl p-5" style={{background:"#fff7ed",border:"1px solid #fed7aa"}}>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{background:"#f97316"}}>
+              <AlertTriangle size={14} style={{color:"white"}}/>
+            </div>
+            <h2 className="font-bold text-base" style={{color:"#9a3412"}}>Students Due for Invoicing ({lowBalanceStudents.length})</h2>
+          </div>
+          <div className="space-y-2">
+            {lowBalanceStudents.map(({ student, bal }) => {
+              const alreadyFlagged = (data.invoiceAlerts||{})[student.id];
+              const siblings = bal.groupIds.filter(id=>id!==student.id).map(id=>students.find(s=>s.id===id)?.firstName).filter(Boolean);
+              return (
+                <div key={student.id} className="flex items-center justify-between p-3 rounded-xl"
+                  style={{background:alreadyFlagged?"#f0fdf4":"white",border:`1px solid ${alreadyFlagged?"#86efac":"#fed7aa"}`}}>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{student.firstName} {student.lastName}</p>
+                      {bal.remaining <= 0
+                        ? <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{background:"#fee2e2",color:"#991b1b"}}>Out of lessons</span>
+                        : <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{background:"#ffedd5",color:"#c2410c"}}>{bal.remaining} lesson{bal.remaining!==1?"s":""} left</span>
+                      }
+                      {siblings.length>0 && <span className="text-xs" style={{color:"#9ca3af"}}>+ siblings: {siblings.join(", ")}</span>}
+                    </div>
+                    <p className="text-xs mt-0.5" style={{color:"#9ca3af"}}>{bal.used} used · {bal.bought} bought · {student.curriculum} {student.grade}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Btn size="sm" variant="ghost" onClick={()=>onNav("invoicing")} style={{color:"#ea580c"}}>
+                      <FileText size={13}/> Create Invoice
+                    </Btn>
+                    {!alreadyFlagged
+                      ? <Btn size="sm" variant="secondary" onClick={()=>setData(d=>({...d,invoiceAlerts:{...(d.invoiceAlerts||{}), [student.id]:today()}}))}>
+                          Mark Invoiced
+                        </Btn>
+                      : <div className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-xl" style={{background:"#dcfce7",color:"#166534"}}>
+                          <CheckCircle size={12}/> Invoiced {(data.invoiceAlerts||{})[student.id]}
+                          <button className="ml-1 opacity-60 hover:opacity-100" title="Clear" onClick={()=>setData(d=>{const a={...(d.invoiceAlerts||{})};delete a[student.id];return{...d,invoiceAlerts:a};})}>×</button>
+                        </div>
+                    }
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Profit trend */}
       {financials.length > 0 && (
@@ -4077,22 +4143,71 @@ function TutorView({ data, setData, tutorRef }) {
       )}
 
       {tab==="logbook" && (
-        <div className="space-y-4">
-          {assignedStudents.map(s=>(
-            <Section key={s.id} title={`${s.firstName} ${s.lastName}`}>
-              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-4 w-fit">
-                {[["logbook","Logbook"],["reports","Reports"]].map(([t,l])=>(
-                  <button key={t} onClick={()=>setSelStudentTab(t)}
-                    className="px-3 py-1 rounded-md text-xs font-medium transition-colors"
-                    style={selStudentTab===t?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
-                    {l}
-                  </button>
-                ))}
+        <div className="space-y-3">
+          {assignedStudents.map(s=>{
+            const bal = getLessonBalance(s.id, data);
+            const open = selStudentId===s.id;
+            return (
+              <div key={s.id} className="rounded-2xl overflow-hidden" style={{border:`1px solid ${open?"#94cbd1":"#eef2f1"}`}}>
+                {/* Collapsed header — always visible */}
+                <button className="w-full flex items-center justify-between p-4 transition-colors text-left"
+                  style={{background:open?"#f0f9fa":"#f8faf9"}}
+                  onClick={()=>setSelStudentId(open?null:s.id)}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0" style={{background:"#5a9fa6"}}>
+                      {s.firstName[0]}{s.lastName[0]}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{s.firstName} {s.lastName}</p>
+                      <p className="text-xs mt-0.5" style={{color:"#9ca3af"}}>{s.curriculum} · {s.grade}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {/* Lesson balance pills */}
+                    <div className="flex gap-2 text-xs">
+                      <span className="px-2 py-1 rounded-lg font-semibold" style={{background:"#dcfce7",color:"#166534"}}>
+                        {bal.remaining} left
+                      </span>
+                      <span className="px-2 py-1 rounded-lg font-semibold" style={{background:"#f1f5f9",color:"#475569"}}>
+                        {bal.used} used
+                      </span>
+                      <span className="px-2 py-1 rounded-lg font-semibold" style={{background:"#eff6ff",color:"#1d4ed8"}}>
+                        {bal.bought} bought
+                      </span>
+                    </div>
+                    <ChevronRight size={16} style={{color:"#9ca3af",transform:open?"rotate(90deg)":"none",transition:"transform 0.2s"}}/>
+                  </div>
+                </button>
+                {/* Expanded body */}
+                {open && (
+                  <div className="p-4 border-t" style={{borderColor:"#eef2f1"}}>
+                    {bal.isSiblingGroup && (
+                      <p className="text-xs mb-3 px-3 py-2 rounded-lg" style={{background:"#fef3c7",color:"#92400e"}}>
+                        ⚠ Balance shared with siblings across {bal.groupIds.length} students
+                      </p>
+                    )}
+                    {/* Logbook / Reports toggle */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                        {[["logbook","Logbook"],["reports","Reports"]].map(([t,l])=>(
+                          <button key={t} onClick={()=>setSelStudentTab(t)}
+                            className="px-3 py-1 rounded-md text-xs font-medium transition-colors"
+                            style={selStudentTab===t?{background:"white",color:"#5a9fa6",boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
+                            {l}
+                          </button>
+                        ))}
+                      </div>
+                      {selStudentTab==="logbook" && (
+                        <Btn size="sm" onClick={()=>setLogModal(s.id)}><BookMarked size={12}/> Log Lesson</Btn>
+                      )}
+                    </div>
+                    {selStudentTab==="logbook" && <LogbookView studentId={s.id} data={data} currentTutorId={tutor.id}/>}
+                    {selStudentTab==="reports" && <StudentReportsTab studentId={s.id} data={data} setData={setData} tutorId={tutor.id}/>}
+                  </div>
+                )}
               </div>
-              {selStudentTab==="logbook" && <LogbookView studentId={s.id} data={data} currentTutorId={tutor.id}/>}
-              {selStudentTab==="reports" && <StudentReportsTab studentId={s.id} data={data} setData={setData} tutorId={tutor.id}/>}
-            </Section>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -4577,6 +4692,7 @@ export default function App() {
     invoices:           INIT_INVOICES,
     lessonLogs:         INIT_LESSON_LOGS,
     studentReports:     INIT_STUDENT_REPORTS,
+    invoiceAlerts:      {},
   });
 
   const account = ROLE_ACCOUNTS.find(a=>a.id===activeAccount)||ROLE_ACCOUNTS[0];
@@ -4597,7 +4713,7 @@ export default function App() {
   const effectivePage = validPages.includes(page)?page:validPages[0];
 
   const adminPages = {
-    dashboard:<Dashboard data={data} onNav={setPage}/>,
+    dashboard:<Dashboard data={data} setData={setData} onNav={setPage}/>,
     students:<StudentsPage data={data} setData={setData}/>,
     tutors:<TutorsPage data={data} setData={setData}/>,
     links:<LinksPage data={data} setData={setData}/>,
