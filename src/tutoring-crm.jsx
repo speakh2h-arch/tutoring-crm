@@ -211,12 +211,12 @@ const INIT_INVOICES = [
 const INIT_STUDENT_REPORTS = [
   {
     id:"rpt1", tutorId:"t1", studentId:"st1",
-    date:"2026-05-10", subject:"Mathematics",
-    overallRating:"Good", topicsCovers:"Quadratic equations, Factorisation, Number lines",
-    strengths:"Strong algebraic manipulation, good recall of formulae",
-    areasToImprove:"Word problems require more practice, needs to slow down in timed conditions",
-    nextSteps:"Practice past paper Q3 and Q7 types, focus on setting up equations from word problems",
-    notes:"Sipho has shown great improvement this month. Attendance has been consistent.",
+    month:"2026-05", subjectId:"sub1", subject:"Mathematics",
+    overallRating:"Good",
+    progressNarrative:"Sipho has shown great improvement this month. We covered quadratic equations and factorisation. He is confident with algebraic manipulation and recalls formulae well. Word problems remain an area that needs more attention — he tends to rush the setup phase.",
+    parentNotes:"Sipho is doing really well and has a great attitude in sessions. Please encourage him to attempt at least 2 past paper questions per week between lessons.",
+    nextMonthPlan:"We will move on to functions and graphs (parabola and hyperbola). I also plan to incorporate more timed practice to build exam confidence.",
+    lessonsCompleted:4,
     createdAt:"2026-05-10",
   },
 ];
@@ -362,22 +362,16 @@ const lastNMonths = (n) => {
 
 // Lesson balance: accounts for sibling pooling
 const getLessonBalance = (studentId, data) => {
-  // BFS across sibling graph so chains (A-B-C) are fully resolved
   const group = new Set([studentId]);
-  const queue = [studentId];
-  while (queue.length) {
-    const cur = queue.shift();
-    (data.siblings||[]).forEach(s => {
-      if (s.studentId1===cur && !group.has(s.studentId2)) { group.add(s.studentId2); queue.push(s.studentId2); }
-      if (s.studentId2===cur && !group.has(s.studentId1)) { group.add(s.studentId1); queue.push(s.studentId1); }
-    });
-  }
+  (data.siblings||[]).forEach(s => {
+    if (s.studentId1===studentId) group.add(s.studentId2);
+    if (s.studentId2===studentId) group.add(s.studentId1);
+  });
   const groupIds = [...group];
-  // All paid lessons ever purchased for any member of the family group
   const bought = (data.invoices||[])
     .filter(inv=>groupIds.includes(inv.studentId)&&inv.status==="paid")
     .reduce((sum,inv)=>sum+inv.lineItems.reduce((s,li)=>s+(li.lessons||0),0),0);
-  // All completed lessons used by any member of the family group, regardless of tutor
+  // All completed logs for this student regardless of which tutor delivered them
   const used = (data.lessonLogs||[])
     .filter(l=>groupIds.includes(l.studentId)&&l.status==="completed").length;
   return { bought, used, remaining:bought-used, groupIds, isSiblingGroup:groupIds.length>1 };
@@ -659,14 +653,12 @@ function Dashboard({ data, setData, onNav }) {
     return students
       .filter(s => s.status === "Active")
       .map(s => ({ student: s, bal: getLessonBalance(s.id, data) }))
-      // Filter to low-balance students FIRST, then deduplicate sibling groups
-      .filter(({ bal }) => bal.remaining <= LOW_THRESHOLD)
-      .filter(({ bal }) => {
-        // Show the family once, keyed by all sibling IDs sorted
+      .filter(({ student, bal }) => {
+        // Only show once per sibling group (keyed by sorted group IDs)
         const key = [...bal.groupIds].sort().join(",");
         if (seen.has(key)) return false;
         seen.add(key);
-        return true;
+        return bal.remaining <= LOW_THRESHOLD;
       })
       .sort((a, b) => a.bal.remaining - b.bal.remaining);
   }, [students, data]);
@@ -753,8 +745,7 @@ function Dashboard({ data, setData, onNav }) {
           <div className="space-y-2">
             {lowBalanceStudents.map(({ student, bal }) => {
               const alreadyFlagged = (data.invoiceAlerts||{})[student.id];
-              const siblingStudents = bal.groupIds.filter(id=>id!==student.id).map(id=>students.find(s=>s.id===id)).filter(Boolean);
-              const siblings = siblingStudents.map(s=>s.firstName);
+              const siblings = bal.groupIds.filter(id=>id!==student.id).map(id=>students.find(s=>s.id===id)?.firstName).filter(Boolean);
               return (
                 <div key={student.id} className="flex items-center justify-between p-3 rounded-xl"
                   style={{background:alreadyFlagged?"#f0fdf4":"white",border:`1px solid ${alreadyFlagged?"#86efac":"#fed7aa"}`}}>
@@ -1014,6 +1005,7 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
   const [tab, setTab] = useState("links");
   const [purchaseForm, setPurchaseForm] = useState({ quantity: "", date: today(), note: "" });
   const [siblingId, setSiblingId] = useState("");
+  const [modalStudTab, setModalStudTab] = useState("logbook");
   const bal = getLessonBalance(student.id, data);
 
   const lks      = data.links.filter(l => l.studentId === student.id);
@@ -1196,15 +1188,15 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
           </div>
           <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-4">
             {[["logbook","Logbook"],["reports","Reports"]].map(([t,l])=>(
-              <button key={t} onClick={()=>setParentStudTab(prev=>({...prev,[student.id]:t}))}
+              <button key={t} onClick={()=>setModalStudTab(t)}
                 className="px-3 py-1 rounded-md text-xs font-medium transition-colors"
-                style={(parentStudTab[student.id]||"logbook")===t?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
+                style={modalStudTab===t?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
                 {l}
               </button>
             ))}
           </div>
-          {(parentStudTab[student.id]||"logbook")==="logbook" && <LogbookView studentId={student.id} data={data}/>}
-          {(parentStudTab[student.id]||"logbook")==="reports" && <StudentReportsTab studentId={student.id} data={data} setData={setData}/>}
+          {modalStudTab==="logbook" && <LogbookView studentId={student.id} data={data}/>}
+          {modalStudTab==="reports" && <StudentReportsTab studentId={student.id} data={data} setData={setData} isAdminView={true}/>}
         </div>
       )}
 
@@ -1355,99 +1347,340 @@ function TutorsPage({ data, setData }) {
 }
 
 function TutorDetailModal({ tutor, data, setData, onClose, onEdit }) {
-  const [noteForm, setNoteForm] = useState({ type: "compliment", note: "", date: today() });
-  const notes = data.tutorNotes.filter(n => n.tutorId === tutor.id);
-  const lks   = data.links.filter(l => l.tutorId === tutor.id);
-  const activeStudents = [...new Set(
-    lks.filter(l => data.students.find(s => s.id === l.studentId)?.status === "Active").map(l => l.studentId)
-  )];
+  const [tab, setTab] = useState("students");       // students | notes
+  const [selStudentId, setSelStudentId] = useState(null); // expanded student
+  const [studentTab, setStudentTab] = useState("logbook"); // logbook | reports | schedule | chat
+  const [noteForm, setNoteForm] = useState({ type:"compliment", note:"", date:today() });
+  const [logModal, setLogModal] = useState(null);   // studentId
+  const [schedModal, setSchedModal] = useState(null);
+  const [schedForm, setSchedForm] = useState({ date:"", time:"", duration:"60", platform:"", meetingLink:"", note:"", subjectId:"", fixed:false });
+  const [chatMsg, setChatMsg] = useState("");
+
+  // Assign student form
+  const [assignForm, setAssignForm] = useState({ studentId:"", subjectId:"" });
+  const [showAssign, setShowAssign] = useState(false);
+
+  const notes = data.tutorNotes.filter(n=>n.tutorId===tutor.id);
+  const lks   = data.links.filter(l=>l.tutorId===tutor.id);
+  const assignedStudentIds = [...new Set(lks.map(l=>l.studentId))];
+  const assignedStudents   = assignedStudentIds.map(id=>data.students.find(s=>s.id===id)).filter(Boolean);
+
+  // Subjects this tutor teaches
+  const tutorSubjects = data.subjects.filter(s=>tutor.subjectIds?.includes(s.id));
+
+  // Students not yet assigned any subject with this tutor
+  const unassignedStudents = data.students.filter(s=>s.status==="Active");
+
+  // Eligible subjects for assign form (tutor's subjects, not already linked for this student+subject)
+  const assignableSubjects = assignForm.studentId
+    ? tutorSubjects.filter(s=>!data.links.some(l=>l.tutorId===tutor.id&&l.studentId===assignForm.studentId&&l.subjectId===s.id))
+    : tutorSubjects;
+
+  const addAssignment = () => {
+    if (!assignForm.studentId||!assignForm.subjectId) return;
+    if (data.links.some(l=>l.tutorId===tutor.id&&l.studentId===assignForm.studentId&&l.subjectId===assignForm.subjectId)) return;
+    setData(d=>({...d, links:[...d.links,{id:"lk"+uid(),tutorId:tutor.id,studentId:assignForm.studentId,subjectId:assignForm.subjectId,createdDate:today()}]}));
+    setAssignForm({studentId:"",subjectId:""});
+    setShowAssign(false);
+  };
+
+  const removeAssignment = (linkId) => setData(d=>({...d, links:d.links.filter(l=>l.id!==linkId)}));
 
   const addNote = () => {
     if (!noteForm.note) return;
-    setData(d => ({ ...d, tutorNotes: [...d.tutorNotes, { ...noteForm, id: "tn" + uid(), tutorId: tutor.id }] }));
-    setNoteForm({ type: "compliment", note: "", date: today() });
+    setData(d=>({...d, tutorNotes:[...d.tutorNotes,{...noteForm,id:"tn"+uid(),tutorId:tutor.id}]}));
+    setNoteForm({type:"compliment",note:"",date:today()});
   };
-  const removeNote = (id) => setData(d => ({ ...d, tutorNotes: d.tutorNotes.filter(n => n.id !== id) }));
+  const removeNote = (id) => setData(d=>({...d, tutorNotes:d.tutorNotes.filter(n=>n.id!==id)}));
 
-  const noteIcon = { compliment: <ThumbsUp size={14} className="text-green-500" />, complaint: <ThumbsDown size={14} className="text-red-500" />, general: <StickyNote size={14} className="text-gray-400" /> };
-  const noteColor = { compliment: "green", complaint: "red", general: "gray" };
+  const sendChat = (studentId) => {
+    if (!chatMsg.trim()) return;
+    setData(d=>({...d, chatMessages:[...(d.chatMessages||[]),{id:"cm"+uid(),tutorId:tutor.id,studentId,fromRole:"tutor",message:chatMsg.trim(),date:today(),time:new Date().toTimeString().slice(0,5)}]}));
+    setChatMsg("");
+  };
+
+  const saveSchedule = (studentId) => {
+    if (!schedForm.date||!schedForm.time) return;
+    setData(d=>({...d, scheduledLessons:[...(d.scheduledLessons||[]),{id:"sl"+uid(),tutorId:tutor.id,studentId,...schedForm,createdAt:today()}]}));
+    setSchedModal(null);
+  };
+
+  const noteColor = {compliment:"green",complaint:"red",general:"gray"};
 
   return (
     <Modal title={`${tutor.firstName} ${tutor.lastName}`} onClose={onClose} wide>
-      <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl mb-5">
-        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xl">
+      {/* Header */}
+      <div className="flex items-center gap-4 p-4 rounded-2xl mb-4" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+        <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl text-white" style={{background:B.tealDark}}>
           {tutor.firstName[0]}{tutor.lastName[0]}
         </div>
         <div className="flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <p className="font-semibold text-gray-900">{tutor.firstName} {tutor.lastName}</p>
-            <Badge color={tutor.status === "Active" ? "green" : "gray"}>{tutor.status}</Badge>
+            <Badge color={tutor.status==="Active"?"green":"gray"}>{tutor.status}</Badge>
           </div>
           <p className="text-sm text-gray-500">{tutor.email} · {tutor.phone}</p>
           <div className="flex flex-wrap gap-1 mt-1">
-            {data.subjects.filter(s => tutor.subjectIds?.includes(s.id)).map(s => <Badge key={s.id} color="indigo">{s.name}</Badge>)}
+            {tutorSubjects.map(s=><Badge key={s.id} color="indigo">{s.name}</Badge>)}
           </div>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-bold" style={{ color: B.tealDark }}>{activeStudents.length}</p>
-          <p className="text-xs text-gray-400">active students</p>
-          <Btn size="sm" variant="ghost" className="mt-1" onClick={onEdit}><Edit2 size={13} /> Edit</Btn>
+          <p className="text-3xl font-bold" style={{color:B.tealDark}}>{assignedStudents.length}</p>
+          <p className="text-xs text-gray-400">students</p>
+          <Btn size="sm" variant="ghost" className="mt-1" onClick={onEdit}><Edit2 size={13}/> Edit</Btn>
         </div>
       </div>
 
-      {/* Active students list */}
-      {activeStudents.length > 0 && (
-        <div className="mb-5">
-          <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Current Students</p>
-          <div className="flex flex-wrap gap-2">
-            {activeStudents.map(sid => {
-              const st   = data.students.find(s => s.id === sid);
-              const subjIds = [...new Set(lks.filter(l => l.studentId === sid).map(l => l.subjectId))];
-              return st ? (
-                <div key={sid} className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
-                  <span className="font-medium">{st.firstName} {st.lastName}</span>
-                  {subjIds.map(id => {
-                    const subj = data.subjects.find(x => x.id === id);
-                    return subj ? <Badge key={id} color="indigo">{subj.name}</Badge> : null;
-                  })}
+      {/* Tabs */}
+      <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-xl">
+        {[["students","Students"],["notes","Notes"]].map(([t,l])=>(
+          <button key={t} onClick={()=>setTab(t)}
+            className="flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors"
+            style={tab===t?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
+            {l} {t==="students"&&`(${assignedStudents.length})`} {t==="notes"&&`(${notes.length})`}
+          </button>
+        ))}
+      </div>
+
+      {/* ── STUDENTS TAB ── */}
+      {tab==="students" && (
+        <div className="space-y-3">
+          {/* Assign button */}
+          <div className="flex justify-end">
+            <Btn size="sm" onClick={()=>setShowAssign(v=>!v)}><Plus size={13}/> Assign Student</Btn>
+          </div>
+
+          {/* Assign form */}
+          {showAssign && (
+            <div className="p-4 rounded-2xl space-y-3" style={{background:"#f0f9fa",border:"1px solid #b2e0e4"}}>
+              <p className="text-xs font-bold uppercase tracking-wider" style={{color:B.tealDark}}>Assign a Student to {tutor.firstName}</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Student</label>
+                  <select className={inp} value={assignForm.studentId} onChange={e=>setAssignForm(f=>({...f,studentId:e.target.value,subjectId:""}))}>
+                    <option value="">Select student…</option>
+                    {unassignedStudents.map(s=><option key={s.id} value={s.id}>{s.firstName} {s.lastName} — {s.curriculum} {s.grade}</option>)}
+                  </select>
                 </div>
-              ) : null;
-            })}
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Subject</label>
+                  <select className={inp} value={assignForm.subjectId} onChange={e=>setAssignForm(f=>({...f,subjectId:e.target.value}))} disabled={!assignForm.studentId}>
+                    <option value="">Select subject…</option>
+                    {assignableSubjects.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Btn onClick={addAssignment} disabled={!assignForm.studentId||!assignForm.subjectId}>Assign</Btn>
+                <Btn variant="secondary" onClick={()=>{setShowAssign(false);setAssignForm({studentId:"",subjectId:""});}}>Cancel</Btn>
+              </div>
+            </div>
+          )}
+
+          {/* Student list */}
+          {assignedStudents.length===0 && !showAssign && (
+            <p className="text-sm text-center py-6" style={{color:"#9ca3af"}}>No students assigned yet. Use the button above to assign one.</p>
+          )}
+
+          {assignedStudents.map(s=>{
+            const sLks    = lks.filter(l=>l.studentId===s.id);
+            const sSubjs  = sLks.map(l=>data.subjects.find(sub=>sub.id===l.subjectId)).filter(Boolean);
+            const open    = selStudentId===s.id;
+            const bal     = getLessonBalance(s.id, data);
+            const chatMsgs = (data.chatMessages||[]).filter(m=>m.tutorId===tutor.id&&m.studentId===s.id).sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
+            const sched   = (data.scheduledLessons||[]).filter(l=>l.tutorId===tutor.id&&l.studentId===s.id).sort((a,b)=>a.date.localeCompare(b.date));
+            const parent  = data.parents?.find(p=>p.studentIds?.includes(s.id));
+            return (
+              <div key={s.id} className="rounded-2xl overflow-hidden" style={{border:`1px solid ${open?B.teal:"#eef2f1"}`}}>
+                {/* Collapsed header */}
+                <button className="w-full flex items-center justify-between p-4 text-left transition-colors"
+                  style={{background:open?"#f0f9fa":"#f8faf9"}}
+                  onClick={()=>{ setSelStudentId(open?null:s.id); setStudentTab("logbook"); }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0" style={{background:B.teal}}>
+                      {s.firstName[0]}{s.lastName[0]}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{s.firstName} {s.lastName}</p>
+                      <p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{s.curriculum} · {s.grade} · {sSubjs.map(x=>x.name).join(", ")}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-2 text-xs">
+                      <span className="px-2 py-1 rounded-lg font-semibold" style={{background:"#dcfce7",color:"#166534"}}>{bal.remaining} left</span>
+                      <span className="px-2 py-1 rounded-lg font-semibold" style={{background:"#f1f5f9",color:"#475569"}}>{bal.used} used</span>
+                    </div>
+                    <div className="flex gap-1" onClick={e=>e.stopPropagation()}>
+                      {sLks.map(lk=>(
+                        <button key={lk.id} title="Remove this subject assignment"
+                          className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-red-100 transition-colors"
+                          onClick={()=>removeAssignment(lk.id)}>
+                          <X size={10} style={{color:"#ef4444"}}/>
+                        </button>
+                      ))}
+                    </div>
+                    <ChevronRight size={15} style={{color:"#9ca3af",transform:open?"rotate(90deg)":"none",transition:"transform .2s"}}/>
+                  </div>
+                </button>
+
+                {/* Expanded panel */}
+                {open && (
+                  <div className="border-t p-4 space-y-4" style={{borderColor:"#eef2f1"}}>
+                    {/* Student info */}
+                    <div className="grid grid-cols-2 gap-3 text-xs p-3 rounded-xl" style={{background:"white",border:"1px solid #eef2f1"}}>
+                      {[["Status",s.status],["Curriculum",s.curriculum],["Grade",s.grade],["Enrolled",fmtDate(s.enrolledDate)],
+                        ["Parent",parent?`${parent.firstName} ${parent.lastName}`:"—"],
+                        ["Siblings",getLessonBalance(s.id,data).isSiblingGroup?"Yes (shared pool)":"No"]
+                      ].map(([k,v])=>(
+                        <div key={k}><p className="font-bold uppercase tracking-wider" style={{color:"#9ca3af"}}>{k}</p><p className="mt-0.5 font-medium" style={{color:"#0d1e2a"}}>{v}</p></div>
+                      ))}
+                    </div>
+
+                    {/* Action bar */}
+                    <div className="flex gap-2 flex-wrap">
+                      <Btn size="sm" onClick={()=>setLogModal(s.id)}><BookMarked size={12}/> Log Lesson</Btn>
+                      <Btn size="sm" variant="secondary" onClick={()=>{setSchedModal(s.id);setSchedForm({date:"",time:"",duration:"60",platform:"",meetingLink:"",note:"",subjectId:sLks[0]?.subjectId||"",fixed:false});}}><CalendarDays size={12}/> Schedule</Btn>
+                    </div>
+
+                    {/* Sub-tabs */}
+                    <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+                      {[["logbook","Logbook"],["reports","Reports"],["schedule","Schedule"],["chat","Chat"]].map(([t,l])=>(
+                        <button key={t} onClick={()=>setStudentTab(t)}
+                          className="flex-1 py-1 rounded-md text-xs font-medium transition-colors"
+                          style={studentTab===t?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
+                          {l}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Logbook */}
+                    {studentTab==="logbook" && <LogbookView studentId={s.id} data={data} currentTutorId={tutor.id}/>}
+
+                    {/* Reports */}
+                    {studentTab==="reports" && <StudentReportsTab studentId={s.id} data={data} setData={setData} tutorId={tutor.id}/>}
+
+                    {/* Schedule */}
+                    {studentTab==="schedule" && (
+                      <div className="space-y-2">
+                        {sched.length===0 && <p className="text-sm text-center py-4" style={{color:"#9ca3af"}}>No scheduled lessons yet.</p>}
+                        {sched.map(sl=>{
+                          const subj=data.subjects.find(x=>x.id===sl.subjectId);
+                          return (
+                            <div key={sl.id} className="flex items-center justify-between p-3 rounded-xl" style={{background:"white",border:"1px solid #eef2f1"}}>
+                              <div>
+                                <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{fmtDate(sl.date)} {sl.time && `at ${sl.time}`}</p>
+                                <p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{subj?.name||"—"} · {sl.duration} min · {sl.platform||"Platform TBC"} {sl.fixed?"· Fixed":""}</p>
+                                {sl.meetingLink && <a href={sl.meetingLink} target="_blank" rel="noreferrer" className="text-xs underline" style={{color:B.teal}}>Join link</a>}
+                              </div>
+                              <Btn size="sm" variant="ghost" onClick={()=>setData(d=>({...d,scheduledLessons:(d.scheduledLessons||[]).filter(x=>x.id!==sl.id)}))}><Trash2 size={12} className="text-red-400"/></Btn>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Chat */}
+                    {studentTab==="chat" && (
+                      <div>
+                        <div className="space-y-2 max-h-52 overflow-y-auto mb-3 p-2 rounded-xl" style={{background:"#f8faf9"}}>
+                          {chatMsgs.length===0 && <p className="text-xs text-center py-4" style={{color:"#9ca3af"}}>No messages yet.</p>}
+                          {chatMsgs.map(m=>(
+                            <div key={m.id} className={`flex ${m.fromRole==="tutor"?"justify-end":"justify-start"}`}>
+                              <div className="max-w-xs px-3 py-2 rounded-2xl text-sm"
+                                style={m.fromRole==="tutor"?{background:B.teal,color:"white"}:{background:"white",border:"1px solid #e5e7eb",color:"#374151"}}>
+                                <p>{m.message}</p>
+                                <p className="text-xs mt-0.5 opacity-70">{m.date} {m.time}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <input className={`${inp} flex-1`} placeholder="Send a message…" value={chatMsg}
+                            onChange={e=>setChatMsg(e.target.value)}
+                            onKeyDown={e=>e.key==="Enter"&&sendChat(s.id)}/>
+                          <Btn onClick={()=>sendChat(s.id)} disabled={!chatMsg.trim()}>Send</Btn>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── NOTES TAB ── */}
+      {tab==="notes" && (
+        <div>
+          <div className="flex gap-2 mb-4 p-3 rounded-xl flex-wrap" style={{background:"#f8faf9"}}>
+            <select className={`${inp} w-36`} value={noteForm.type} onChange={e=>setNoteForm(f=>({...f,type:e.target.value}))}>
+              {NOTE_TYPES.map(t=><option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
+            </select>
+            <input className={`${inp} flex-1`} placeholder="Write note…" value={noteForm.note} onChange={e=>setNoteForm(f=>({...f,note:e.target.value}))}/>
+            <input className={`${inp} w-36`} type="date" value={noteForm.date} onChange={e=>setNoteForm(f=>({...f,date:e.target.value}))}/>
+            <Btn onClick={addNote} disabled={!noteForm.note}><Plus size={14}/> Add</Btn>
+          </div>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {notes.length===0 && <p className="text-sm text-gray-400 text-center py-4">No notes yet.</p>}
+            {[...notes].sort((a,b)=>b.date.localeCompare(a.date)).map(n=>(
+              <div key={n.id} className="flex items-start gap-3 p-3 border border-gray-200 rounded-xl">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge color={noteColor[n.type]}>{n.type}</Badge>
+                    <span className="text-xs text-gray-400">{fmtDate(n.date)}</span>
+                  </div>
+                  <p className="text-sm text-gray-700">{n.note}</p>
+                </div>
+                <Btn size="sm" variant="ghost" onClick={()=>removeNote(n.id)}><Trash2 size={12} className="text-red-400"/></Btn>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Notes */}
-      <div className="border-t border-gray-100 pt-4">
-        <p className="text-sm font-semibold text-gray-700 mb-3">Notes ({notes.length})</p>
-        <div className="flex gap-2 mb-4 p-3 bg-gray-50 rounded-xl flex-wrap">
-          <select className={`${inp} w-36`} value={noteForm.type} onChange={e => setNoteForm(f => ({ ...f, type: e.target.value }))}>
-            {NOTE_TYPES.map(t => <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-          </select>
-          <input className={`${inp} flex-1`} placeholder="Write note…" value={noteForm.note} onChange={e => setNoteForm(f => ({ ...f, note: e.target.value }))} />
-          <input className={`${inp} w-36`} type="date" value={noteForm.date} onChange={e => setNoteForm(f => ({ ...f, date: e.target.value }))} />
-          <Btn onClick={addNote} disabled={!noteForm.note}><Plus size={14} /> Add</Btn>
-        </div>
-        <div className="space-y-2 max-h-56 overflow-y-auto">
-          {notes.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No notes yet.</p>}
-          {[...notes].sort((a, b) => b.date.localeCompare(a.date)).map(n => (
-            <div key={n.id} className="flex items-start gap-3 p-3 border border-gray-200 rounded-xl">
-              <div className="mt-0.5">{noteIcon[n.type]}</div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Badge color={noteColor[n.type]}>{n.type}</Badge>
-                  <span className="text-xs text-gray-400">{fmtDate(n.date)}</span>
-                </div>
-                <p className="text-sm text-gray-700">{n.note}</p>
+      {/* Log Lesson modal */}
+      {logModal && <LogLessonModal studentId={logModal} tutorId={tutor.id} data={data} setData={setData} onClose={()=>setLogModal(null)}/>}
+
+      {/* Schedule modal */}
+      {schedModal && (
+        <Modal title={`Schedule Lesson — ${data.students.find(s=>s.id===schedModal)?.firstName}`} onClose={()=>setSchedModal(null)}>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <Inp label="Date" type="date" value={schedForm.date} onChange={e=>setSchedForm(f=>({...f,date:e.target.value}))}/>
+              <Inp label="Time" type="time" value={schedForm.time} onChange={e=>setSchedForm(f=>({...f,time:e.target.value}))}/>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Duration (min)</label>
+                <select className={inp} value={schedForm.duration} onChange={e=>setSchedForm(f=>({...f,duration:e.target.value}))}>
+                  {["30","45","60","90","120"].map(d=><option key={d} value={d}>{d} min</option>)}
+                </select>
               </div>
-              <Btn size="sm" variant="ghost" onClick={() => removeNote(n.id)}><Trash2 size={12} className="text-red-400" /></Btn>
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Subject</label>
+                <select className={inp} value={schedForm.subjectId} onChange={e=>setSchedForm(f=>({...f,subjectId:e.target.value}))}>
+                  <option value="">Select…</option>
+                  {lks.filter(l=>l.studentId===schedModal).map(l=>{const sub=data.subjects.find(s=>s.id===l.subjectId);return sub?<option key={l.id} value={l.subjectId}>{sub.name}</option>:null;})}
+                </select>
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
+            <Inp label="Platform (e.g. Zoom, Teams, Google Meet)" value={schedForm.platform} onChange={e=>setSchedForm(f=>({...f,platform:e.target.value}))}/>
+            <Inp label="Meeting Link" value={schedForm.meetingLink} onChange={e=>setSchedForm(f=>({...f,meetingLink:e.target.value}))} placeholder="https://…"/>
+            <Inp label="Note (optional)" value={schedForm.note} onChange={e=>setSchedForm(f=>({...f,note:e.target.value}))}/>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" checked={schedForm.fixed} onChange={e=>setSchedForm(f=>({...f,fixed:e.target.checked}))}/>
+              Fixed recurring slot
+            </label>
+            <div className="flex gap-2 justify-end">
+              <Btn variant="secondary" onClick={()=>setSchedModal(null)}>Cancel</Btn>
+              <Btn onClick={()=>saveSchedule(schedModal)} disabled={!schedForm.date||!schedForm.time}>Save</Btn>
+            </div>
+          </div>
+        </Modal>
+      )}
     </Modal>
   );
 }
+
 
 // ─── PAGE: LINKS ──────────────────────────────────────────────────────────────
 
@@ -3251,115 +3484,292 @@ function ReportsPage({ data }) {
 
 // ─── STUDENT REPORTS TAB ──────────────────────────────────────────────────────
 function StudentReportsTab({ studentId, data, setData, tutorId, isAdminView }) {
-  const student = data.students.find(s=>s.id===studentId);
-  const reports = (data.studentReports||[])
+  const student  = data.students.find(s=>s.id===studentId);
+  const reports  = (data.studentReports||[])
     .filter(r=>r.studentId===studentId)
-    .sort((a,b)=>b.date.localeCompare(a.date));
+    .sort((a,b)=>b.month.localeCompare(a.month));
   const canCreate = !!tutorId;
+
   const [creating, setCreating] = useState(false);
-  const [viewRpt, setViewRpt] = useState(null);
-  const emptyForm = { date:today(), subject:"", overallRating:"Good", topicsCovers:"", strengths:"", areasToImprove:"", nextSteps:"", notes:"" };
+  const [viewRpt,  setViewRpt]  = useState(null);
+  const [dlLoading, setDlLoading] = useState(false);
+
+  // Only show subjects this student is linked to (for this tutor if applicable)
+  const linkedSubjects = tutorId
+    ? data.links.filter(l=>l.studentId===studentId&&l.tutorId===tutorId).map(l=>data.subjects.find(s=>s.id===l.subjectId)).filter(Boolean)
+    : data.links.filter(l=>l.studentId===studentId).map(l=>data.subjects.find(s=>s.id===l.subjectId)).filter(Boolean);
+  const uniqueSubjects = linkedSubjects.filter((s,i,a)=>a.findIndex(x=>x.id===s.id)===i);
+
+  const currentMonth = today().slice(0,7);
+  const emptyForm = { month:currentMonth, subjectId:uniqueSubjects[0]?.id||"", overallRating:"Good", progressNarrative:"", parentNotes:"", nextMonthPlan:"" };
   const [form, setFrm] = useState(emptyForm);
-  const ratingOpts = ["Excellent","Good","Satisfactory","Needs Improvement"];
+
+  const getLessonsThisMonth = (subjectId, month) =>
+    (data.lessonLogs||[]).filter(l=>l.studentId===studentId&&l.subjectId===subjectId&&l.date.startsWith(month)&&l.status==="completed").length;
 
   const saveReport = () => {
-    if (!form.subject||!form.topicsCovers) return;
-    setData(d=>({...d, studentReports:[...(d.studentReports||[]),{id:"rpt"+uid(),tutorId:tutorId||"admin",studentId,...form,createdAt:today()}]}));
+    if (!form.subjectId||!form.progressNarrative||!form.nextMonthPlan) return;
+    const subj = data.subjects.find(s=>s.id===form.subjectId);
+    const lessonsCompleted = getLessonsThisMonth(form.subjectId, form.month);
+    setData(d=>({...d, studentReports:[...(d.studentReports||[]),{
+      id:"rpt"+uid(), tutorId:tutorId||"admin", studentId,
+      month:form.month, subjectId:form.subjectId, subject:subj?.name||"",
+      overallRating:form.overallRating,
+      progressNarrative:form.progressNarrative,
+      parentNotes:form.parentNotes,
+      nextMonthPlan:form.nextMonthPlan,
+      lessonsCompleted,
+      createdAt:today(),
+    }]}));
     setFrm(emptyForm); setCreating(false);
   };
+
   const deleteReport = (id) => setData(d=>({...d, studentReports:(d.studentReports||[]).filter(r=>r.id!==id)}));
 
+  // ── PDF download ───────────────────────────────────────────────────────────
+  const downloadPDF = async (rpt) => {
+    setDlLoading(rpt.id);
+    try {
+      if (!window.jspdf) {
+        await new Promise((res,rej)=>{
+          const s=document.createElement('script');
+          s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+          s.onload=res; s.onerror=rej; document.head.appendChild(s);
+        });
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:'mm', format:'a4' });
+      const W=210, H=297;
+      const tealD=[90,159,166], tealL=[148,203,209], coral=[215,115,90], dark=[13,30,42], gray=[107,114,128], white=[255,255,255];
+
+      const tutor = data.tutors.find(t=>t.id===rpt.tutorId);
+      const subj  = data.subjects.find(s=>s.id===rpt.subjectId);
+      const monthLabel = rpt.month ? new Date(rpt.month+'-01T12:00:00').toLocaleString('en-ZA',{month:'long',year:'numeric'}) : '';
+
+      // ── Header band ──
+      doc.setFillColor(...tealD); doc.rect(0,0,W,38,'F');
+      doc.setFillColor(...coral); doc.rect(0,38,W,2,'F');
+
+      // Brand
+      doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(24);
+      doc.text('LEARN TO LINK',14,18);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      doc.text('Empowering learners, one lesson at a time.',14,26);
+
+      // Report label (right)
+      doc.setFont('helvetica','bold'); doc.setFontSize(11);
+      doc.text('MONTHLY PROGRESS REPORT',W-14,17,{align:'right'});
+      doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      doc.text(monthLabel,W-14,25,{align:'right'});
+
+      // ── Student info box ──
+      let y=48;
+      doc.setFillColor(248,250,249); doc.roundedRect(14,y,W-28,30,3,3,'F');
+      doc.setTextColor(...dark); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+      doc.text(`${student?.firstName||''} ${student?.lastName||''}`,20,y+10);
+      const info=[['Subject',subj?.name||rpt.subject||'—'],['Grade',student?.grade||'—'],['Curriculum',student?.curriculum||'—'],['Tutor',`${tutor?.firstName||''} ${tutor?.lastName||''}`.trim()||'—']];
+      doc.setFontSize(8);
+      info.forEach(([k,v],i)=>{
+        const x=20+(i*46);
+        doc.setFont('helvetica','bold'); doc.setTextColor(...gray); doc.text(k.toUpperCase(),x,y+18);
+        doc.setFont('helvetica','normal'); doc.setTextColor(...dark); doc.text(String(v),x,y+24);
+      });
+
+      // ── Rating + lessons badge ──
+      y+=38;
+      const rColors={Excellent:[22,163,74],Good:[...tealD],Satisfactory:[217,119,6],'Needs Improvement':[220,38,38]};
+      const rc=rColors[rpt.overallRating]||gray;
+      doc.setFillColor(...rc); doc.roundedRect(14,y,58,9,2,2,'F');
+      doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+      doc.text(`Overall: ${rpt.overallRating}`,43,y+6,{align:'center'});
+      if (rpt.lessonsCompleted!==undefined) {
+        doc.setFillColor(240,249,250); doc.roundedRect(76,y,62,9,2,2,'F');
+        doc.setTextColor(...tealD); doc.setFont('helvetica','normal');
+        doc.text(`Lessons completed: ${rpt.lessonsCompleted}`,107,y+6,{align:'center'});
+      }
+
+      // ── Section helper ──
+      y+=16;
+      const addSection = (title, body, accent) => {
+        if (!body) return;
+        if (y > H-50) { doc.addPage(); y=20; }
+        doc.setTextColor(...accent); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+        doc.text(title,14,y);
+        doc.setDrawColor(...accent); doc.setLineWidth(0.4); doc.line(14,y+2,W-14,y+2);
+        y+=8;
+        doc.setTextColor(...dark); doc.setFont('helvetica','normal'); doc.setFontSize(10);
+        const lines=doc.splitTextToSize(body,W-28);
+        lines.forEach(line=>{ if(y>H-25){doc.addPage();y=20;} doc.text(line,14,y); y+=6; });
+        y+=6;
+      };
+
+      addSection('Section 1 — Progress & Improvement', rpt.progressNarrative, tealD);
+      if (rpt.parentNotes) addSection('Notes to Parent', rpt.parentNotes, coral);
+      addSection('Section 2 — Looking Ahead: Next Month Plan', rpt.nextMonthPlan, tealD);
+
+      // Section 3 — auto summary
+      const s3=[`Lessons completed this month: ${rpt.lessonsCompleted??'—'}`,`Overall rating: ${rpt.overallRating}`,`Report prepared by: ${tutor?.firstName||''} ${tutor?.lastName||''}`.trim(),`Date created: ${rpt.createdAt||''}`].join('\n');
+      addSection('Section 3 — Summary Overview', s3, gray);
+
+      // ── Footer ──
+      const footerY=H-10;
+      doc.setFillColor(...tealD); doc.rect(0,footerY-6,W,16,'F');
+      doc.setTextColor(...white); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+      doc.text('LEARN TO LINK  |  learntolink.co.za  |  info@learntolink.co.za',W/2,footerY,{align:'center'});
+
+      const fname=`${student?.firstName||'Student'}_${student?.lastName||''}_${rpt.month||''}_${subj?.name||rpt.subject||'Report'}.pdf`.replace(/\s+/g,'_');
+      doc.save(fname);
+    } catch(e) { console.error(e); alert('PDF generation failed. Please try again.'); }
+    setDlLoading(null);
+  };
+
+  // ── Form ──
   if (creating) return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-base" style={{color:"#0d1e2a"}}>New Report — {student?.firstName} {student?.lastName}</h3>
+        <h3 className="font-bold text-base" style={{color:"#0d1e2a"}}>Monthly Report — {student?.firstName} {student?.lastName}</h3>
         <Btn variant="ghost" size="sm" onClick={()=>{setCreating(false);setFrm(emptyForm);}}>Cancel</Btn>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+
+      {/* Info row */}
+      <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Date</label>
-          <input className={inp} type="date" value={form.date} onChange={e=>setFrm(f=>({...f,date:e.target.value}))}/>
+          <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Month *</label>
+          <input className={inp} type="month" value={form.month} onChange={e=>setFrm(f=>({...f,month:e.target.value}))}/>
         </div>
         <div>
           <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Subject *</label>
-          <select className={inp} value={form.subject} onChange={e=>setFrm(f=>({...f,subject:e.target.value}))}>
+          <select className={inp} value={form.subjectId} onChange={e=>setFrm(f=>({...f,subjectId:e.target.value}))}>
             <option value="">Select subject…</option>
-            {data.subjects.map(s=><option key={s.id} value={s.name}>{s.name}</option>)}
+            {(uniqueSubjects.length ? uniqueSubjects : data.subjects).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
         <div>
           <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Overall Rating</label>
           <select className={inp} value={form.overallRating} onChange={e=>setFrm(f=>({...f,overallRating:e.target.value}))}>
-            {ratingOpts.map(r=><option key={r} value={r}>{r}</option>)}
+            {["Excellent","Good","Satisfactory","Needs Improvement"].map(r=><option key={r} value={r}>{r}</option>)}
           </select>
         </div>
       </div>
-      {[
-        ["Topics Covered *","topicsCovers","List the topics covered in this period…"],
-        ["Strengths","strengths","What is the student doing well?"],
-        ["Areas to Improve","areasToImprove","Where does the student need more work?"],
-        ["Next Steps","nextSteps","What should the student focus on next?"],
-        ["Additional Notes","notes","Any other observations…"],
-      ].map(([label,field,ph])=>(
-        <div key={field}>
-          <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>{label}</label>
-          <textarea className={`${inp} w-full`} rows={2} placeholder={ph} value={form[field]} onChange={e=>setFrm(f=>({...f,[field]:e.target.value}))}/>
+
+      {form.subjectId && form.month && (
+        <div className="text-xs px-3 py-2 rounded-lg" style={{background:"#f0f9fa",color:"#5a9fa6"}}>
+          Lessons completed in {form.month} for this subject: <strong>{getLessonsThisMonth(form.subjectId, form.month)}</strong> (auto-calculated from lesson log)
         </div>
-      ))}
+      )}
+
+      {/* Section 1 */}
+      <div className="rounded-2xl p-4" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+        <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#5a9fa6"}}>Section 1 — Progress & Improvement *</p>
+        <p className="text-xs mb-2" style={{color:"#9ca3af"}}>Describe what the student improved on, what they struggled with, and anything you want the parent to know.</p>
+        <textarea className={`${inp} w-full`} rows={5} placeholder="e.g. This month we focused on quadratic equations. Sipho has shown good improvement with factorisation but still struggles with word problems. Please encourage daily practice…" value={form.progressNarrative} onChange={e=>setFrm(f=>({...f,progressNarrative:e.target.value}))}/>
+      </div>
+
+      {/* Notes to parent (optional but highlighted) */}
+      <div className="rounded-2xl p-4" style={{background:"#fff7ed",border:"1px solid #fed7aa"}}>
+        <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#c2410c"}}>Notes to Parent (optional)</p>
+        <p className="text-xs mb-2" style={{color:"#9ca3af"}}>Any specific messages, concerns, or requests for the parent.</p>
+        <textarea className={`${inp} w-full`} rows={3} placeholder="e.g. Please ensure homework is completed before each session…" value={form.parentNotes} onChange={e=>setFrm(f=>({...f,parentNotes:e.target.value}))}/>
+      </div>
+
+      {/* Section 2 */}
+      <div className="rounded-2xl p-4" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+        <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#5a9fa6"}}>Section 2 — Next Month Plan *</p>
+        <p className="text-xs mb-2" style={{color:"#9ca3af"}}>What topics or skills will you cover next month? What are the key goals?</p>
+        <textarea className={`${inp} w-full`} rows={4} placeholder="e.g. Next month we will cover functions and graphs (parabola and hyperbola). The goal is to build confidence with sketching and interpretation before the mid-year exams…" value={form.nextMonthPlan} onChange={e=>setFrm(f=>({...f,nextMonthPlan:e.target.value}))}/>
+      </div>
+
       <div className="flex gap-2 pt-2">
-        <Btn onClick={saveReport} disabled={!form.subject||!form.topicsCovers}>Save Report</Btn>
+        <Btn onClick={saveReport} disabled={!form.subjectId||!form.progressNarrative||!form.nextMonthPlan}>Save Report</Btn>
         <Btn variant="secondary" onClick={()=>{setCreating(false);setFrm(emptyForm);}}>Cancel</Btn>
       </div>
     </div>
   );
 
+  // ── Single report view ──
   if (viewRpt) {
-    const tutor = data.tutors.find(t=>t.id===viewRpt.tutorId);
+    const rptTutor = data.tutors.find(t=>t.id===viewRpt.tutorId);
+    const rptSubj  = data.subjects.find(s=>s.id===viewRpt.subjectId);
     const rcMap = {Excellent:"green",Good:"teal",Satisfactory:"yellow","Needs Improvement":"red"};
+    const monthLabel = viewRpt.month ? new Date(viewRpt.month+'-01T12:00:00').toLocaleString('en-ZA',{month:'long',year:'numeric'}) : '';
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-bold text-base" style={{color:"#0d1e2a"}}>{viewRpt.subject} Report</h3>
-            <p className="text-xs" style={{color:"#9ca3af"}}>{fmtDate(viewRpt.date)} · {tutor?.firstName} {tutor?.lastName}</p>
-          </div>
-          <div className="flex gap-2 items-center">
-            <Badge color={rcMap[viewRpt.overallRating]||"gray"}>{viewRpt.overallRating}</Badge>
-            <Btn variant="ghost" size="sm" onClick={()=>setViewRpt(null)}>← Back</Btn>
+        {/* Report header */}
+        <div className="rounded-2xl p-4" style={{background:"#0d1e2a"}}>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#94cbd1"}}>LEARN TO LINK — Monthly Progress Report</p>
+              <h3 className="font-bold text-lg" style={{color:"white"}}>{student?.firstName} {student?.lastName}</h3>
+              <p className="text-sm mt-0.5" style={{color:"#94cbd1"}}>{rptSubj?.name||viewRpt.subject} · {monthLabel}</p>
+              <p className="text-xs mt-0.5" style={{color:"#6b7280"}}>Tutor: {rptTutor?.firstName} {rptTutor?.lastName} · {student?.curriculum} {student?.grade}</p>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <Badge color={rcMap[viewRpt.overallRating]||"gray"}>{viewRpt.overallRating}</Badge>
+              {viewRpt.lessonsCompleted!==undefined && <span className="text-xs" style={{color:"#9ca3af"}}>{viewRpt.lessonsCompleted} lesson{viewRpt.lessonsCompleted!==1?"s":""} completed</span>}
+            </div>
           </div>
         </div>
-        {[["Topics Covered",viewRpt.topicsCovers],["Strengths",viewRpt.strengths],["Areas to Improve",viewRpt.areasToImprove],["Next Steps",viewRpt.nextSteps],["Additional Notes",viewRpt.notes]].filter(([,v])=>v).map(([label,val])=>(
-          <div key={label} className="p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-            <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#9ca3af"}}>{label}</p>
-            <p className="text-sm whitespace-pre-wrap" style={{color:"#374151"}}>{val}</p>
+
+        {/* Sections */}
+        {[
+          ["Section 1 — Progress & Improvement", viewRpt.progressNarrative, "#5a9fa6"],
+          viewRpt.parentNotes ? ["Notes to Parent", viewRpt.parentNotes, "#d7735a"] : null,
+          ["Section 2 — Next Month Plan", viewRpt.nextMonthPlan, "#5a9fa6"],
+        ].filter(Boolean).map(([label,val,color])=>val?(
+          <div key={label} className="p-4 rounded-2xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
+            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color}}>{label}</p>
+            <p className="text-sm whitespace-pre-wrap leading-relaxed" style={{color:"#374151"}}>{val}</p>
           </div>
-        ))}
+        ):null)}
+
+        {/* Auto section 3 */}
+        <div className="p-4 rounded-2xl" style={{background:"#f0f9fa",border:"1px solid #b2e0e4"}}>
+          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#5a9fa6"}}>Section 3 — Summary Overview</p>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            {[["Lessons Completed",viewRpt.lessonsCompleted??'—'],["Overall Rating",viewRpt.overallRating],["Prepared By",`${rptTutor?.firstName||''} ${rptTutor?.lastName||''}`.trim()||'—'],["Report Date",viewRpt.createdAt||'—']].map(([k,v])=>(
+              <div key={k}><p className="text-xs font-bold uppercase tracking-wider" style={{color:"#9ca3af"}}>{k}</p><p className="mt-0.5 font-medium" style={{color:"#0d1e2a"}}>{v}</p></div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Btn variant="ghost" size="sm" onClick={()=>setViewRpt(null)}>← Back</Btn>
+          <Btn size="sm" onClick={()=>downloadPDF(viewRpt)} disabled={dlLoading===viewRpt.id}>
+            {dlLoading===viewRpt.id ? "Generating…" : <><FileText size={13}/> Download PDF</>}
+          </Btn>
+        </div>
       </div>
     );
   }
 
+  // ── List view ──
   return (
     <div>
-      {canCreate && <div className="flex justify-end mb-4"><Btn onClick={()=>setCreating(true)}><Plus size={14}/> New Report</Btn></div>}
-      {reports.length === 0 && <p className="text-sm text-center py-8" style={{color:"#9ca3af"}}>No reports yet.{canCreate?" Create the first one above.":""}</p>}
+      {canCreate && <div className="flex justify-end mb-4"><Btn onClick={()=>setCreating(true)}><Plus size={14}/> New Monthly Report</Btn></div>}
+      {reports.length === 0 && <p className="text-sm text-center py-8" style={{color:"#9ca3af"}}>No reports yet.{canCreate?" Create one above.":""}</p>}
       <div className="space-y-3">
         {reports.map(r=>{
-          const tutor = data.tutors.find(t=>t.id===r.tutorId);
-          const rcMap = {Excellent:"green",Good:"teal",Satisfactory:"yellow","Needs Improvement":"red"};
+          const rTutor = data.tutors.find(t=>t.id===r.tutorId);
+          const rSubj  = data.subjects.find(s=>s.id===r.subjectId);
+          const rcMap  = {Excellent:"green",Good:"teal",Satisfactory:"yellow","Needs Improvement":"red"};
+          const monthLabel = r.month ? new Date(r.month+'-01T12:00:00').toLocaleString('en-ZA',{month:'long',year:'numeric'}) : r.date||'';
           return (
             <div key={r.id} className="p-4 rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
               style={{background:"#f8faf9",border:"1px solid #eef2f1"}} onClick={()=>setViewRpt(r)}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-bold" style={{color:"#0d1e2a"}}>{r.subject}</p>
+                    <p className="text-sm font-bold" style={{color:"#0d1e2a"}}>{rSubj?.name||r.subject}</p>
                     <Badge color={rcMap[r.overallRating]||"gray"}>{r.overallRating}</Badge>
+                    {r.lessonsCompleted!==undefined && <span className="text-xs px-2 py-0.5 rounded-full" style={{background:"#f0f9fa",color:"#5a9fa6"}}>{r.lessonsCompleted} lessons</span>}
                   </div>
-                  <p className="text-xs mt-0.5" style={{color:"#9ca3af"}}>{fmtDate(r.date)} · {tutor?.firstName} {tutor?.lastName}</p>
-                  {r.topicsCovers && <p className="text-xs mt-1" style={{color:"#6b7280",overflow:"hidden",display:"-webkit-box",WebkitLineClamp:1,WebkitBoxOrient:"vertical"}}>{r.topicsCovers}</p>}
+                  <p className="text-xs mt-0.5" style={{color:"#9ca3af"}}>{monthLabel} · {rTutor?.firstName} {rTutor?.lastName}</p>
                 </div>
                 <div className="flex gap-1 shrink-0" onClick={e=>e.stopPropagation()}>
                   <Btn size="sm" variant="ghost" onClick={()=>setViewRpt(r)}><Eye size={13}/></Btn>
+                  <Btn size="sm" variant="ghost" onClick={()=>downloadPDF(r)} disabled={dlLoading===r.id} title="Download PDF">
+                    {dlLoading===r.id ? "…" : <FileText size={13}/>}
+                  </Btn>
                   {(canCreate||isAdminView) && <Btn size="sm" variant="ghost" onClick={()=>deleteReport(r.id)}><Trash2 size={13} className="text-red-400"/></Btn>}
                 </div>
               </div>
@@ -3370,6 +3780,7 @@ function StudentReportsTab({ studentId, data, setData, tutorId, isAdminView }) {
     </div>
   );
 }
+
 
 function LogbookView({ studentId, data, currentTutorId }) {
   const logs = (data.lessonLogs||[])
