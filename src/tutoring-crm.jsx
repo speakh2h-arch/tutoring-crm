@@ -290,41 +290,82 @@ const buildTutorInvoiceHTML = (tutor, inv, month) => {
   const status = inv.isPaid ? "PAID" : inv.isApproved ? (inv.locked && !inv.statusRec?.tutorApproved ? "AUTO-LOCKED" : "APPROVED") : "PENDING";
   const [yr, mo] = month.split("-");
   const monthLabel = new Date(Number(yr), Number(mo) - 1, 1).toLocaleString("en-ZA", { month: "long", year: "numeric" });
-  const lessonRows = inv.lessonLines.map(l =>
-    `<tr><td>${fmtDate(l.date)}</td><td>${l.studentName}</td><td>${l.subjectLabel}</td><td>${(l.hours).toFixed(2)}h</td><td style="text-transform:capitalize">${l.lessonType}</td><td style="text-align:right">R${l.baseRate}/hr</td>${l.wifiAmt > 0 ? `<td style="text-align:right">R${l.wifiAmt} wifi</td>` : `<td>—</td>`}<td style="text-align:right"><b>R${l.lineTotal.toFixed(2)}</b></td></tr>`
-  ).join("") || `<tr><td colspan="8" style="color:#aaa;text-align:center;padding:12px">No attended lessons this month</td></tr>`;
-  const claimRows = inv.approvedClaims.map(c =>
-    `<tr><td>${fmtDate(c.date)}</td><td>${c.type}</td><td colspan="5">${c.studentNames || "—"}</td><td style="text-align:right"><b>R${Number(c.amount).toFixed(2)}</b></td></tr>`
+  const studentGroups = groupLessonsByStudent(inv.lessonLines);
+
+  // One row per student
+  const studentRows = studentGroups.map((g, i) =>
+    `<tr style="background:${i%2===0?"#fff":"#f9fafb"}">
+      <td style="padding:7px 8px;font-weight:600">${g.studentName}</td>
+      <td style="padding:7px 8px;text-align:center">${g.lessonCount}</td>
+      <td style="padding:7px 8px;color:#555;font-size:10px">${g.dates.join(" · ")}</td>
+      <td style="padding:7px 8px;text-transform:capitalize;color:#555">${g.lessonType}${g.hasWifi?" + WiFi":""}</td>
+      <td style="padding:7px 8px;text-align:right;font-weight:700">R${g.total.toFixed(2)}</td>
+    </tr>`
+  ).join("") || `<tr><td colspan="5" style="color:#aaa;text-align:center;padding:14px">No attended lessons this month</td></tr>`;
+
+  // Claims as line items (same table, visually distinct)
+  const claimItemRows = inv.approvedClaims.map((c, i) =>
+    `<tr style="background:#fffbeb">
+      <td style="padding:7px 8px;font-style:italic;color:#92400e">${c.type}${c.studentNames?" — "+c.studentNames:""}</td>
+      <td style="padding:7px 8px;text-align:center;color:#92400e">1</td>
+      <td style="padding:7px 8px;color:#92400e;font-size:10px">${fmtDate(c.date)}</td>
+      <td style="padding:7px 8px;color:#92400e">Claim</td>
+      <td style="padding:7px 8px;text-align:right;font-weight:700;color:#92400e">R${Number(c.amount).toFixed(2)}</td>
+    </tr>`
   ).join("");
+
+  const hasItems = studentGroups.length > 0 || inv.approvedClaims.length > 0;
+
   return `
     <div style="page-break-after:always;padding:36px 40px;font-family:Arial,sans-serif;font-size:12px;max-width:800px;margin:auto">
       <table width="100%" style="border-collapse:collapse;margin-bottom:20px">
         <tr>
-          <td><h2 style="margin:0;color:#2a7f85;font-size:18px">LEARN TO LINK</h2><p style="margin:2px 0 0;color:#888;font-size:11px">Tutor Invoice</p></td>
-          <td style="text-align:right"><p style="margin:0;font-size:13px;font-weight:bold;color:#2a7f85">${monthLabel}</p><p style="margin:2px 0 0;color:#888;font-size:11px">Generated: ${fmtDate(today())}</p></td>
+          <td><h2 style="margin:0;color:#2a7f85;font-size:18px">LEARN TO LINK</h2><p style="margin:2px 0 0;color:#888;font-size:11px">Tutor Invoice · ${monthLabel}</p></td>
+          <td style="text-align:right">
+            <span style="padding:4px 14px;border-radius:20px;font-size:11px;font-weight:bold;background:${status==="PAID"?"#dcfce7":status==="APPROVED"?"#e8f5f6":status==="AUTO-LOCKED"?"#fef3c7":"#f3f4f6"};color:${status==="PAID"?"#166534":status==="APPROVED"?"#2a7f85":status==="AUTO-LOCKED"?"#92400e":"#6b7280"}">${status}</span>
+            <p style="margin:4px 0 0;color:#888;font-size:10px">Generated: ${fmtDate(today())}</p>
+          </td>
         </tr>
       </table>
-      <table width="100%" style="border-collapse:collapse;background:#f8fafb;border-radius:8px;margin-bottom:20px">
-        <tr><td style="padding:12px 16px"><b>${tutor.firstName} ${tutor.lastName}</b><br/><span style="color:#666;font-size:11px">${tutor.email}${tutor.phone ? " · " + tutor.phone : ""}</span></td>
-        <td style="padding:12px 16px;text-align:right"><span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:bold;background:${status==="PAID"?"#dcfce7":status==="APPROVED"?"#e8f5f6":status==="AUTO-LOCKED"?"#fef3c7":"#f3f4f6"};color:${status==="PAID"?"#166534":status==="APPROVED"?"#2a7f85":status==="AUTO-LOCKED"?"#92400e":"#6b7280"}">${status}</span>${inv.isPaid && inv.statusRec?.paidDate ? `<br/><span style="color:#888;font-size:10px">Paid: ${fmtDate(inv.statusRec.paidDate)}</span>` : ""}</td></tr>
+      <table width="100%" style="border-collapse:collapse;background:#f0f9fa;margin-bottom:24px">
+        <tr>
+          <td style="padding:10px 14px"><b style="font-size:13px">${tutor.firstName} ${tutor.lastName}</b><br/><span style="color:#666;font-size:11px">${tutor.email}${tutor.phone?" · "+tutor.phone:""}</span></td>
+          ${inv.isPaid && inv.statusRec?.paidDate ? `<td style="padding:10px 14px;text-align:right;color:#888;font-size:11px">Paid: ${fmtDate(inv.statusRec.paidDate)}</td>` : ""}
+        </tr>
       </table>
-      <h3 style="color:#333;border-bottom:2px solid #e8f5f6;padding-bottom:6px;margin-bottom:8px">Lessons</h3>
-      <table width="100%" border="0" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:11px">
-        <thead><tr style="background:#e8f5f6"><th style="text-align:left">Date</th><th style="text-align:left">Student</th><th style="text-align:left">Subject</th><th>Duration</th><th>Type</th><th style="text-align:right">Rate</th><th style="text-align:right">WiFi</th><th style="text-align:right">Total</th></tr></thead>
-        <tbody>${lessonRows}</tbody>
+
+      <h3 style="color:#2a7f85;border-bottom:2px solid #e8f5f6;padding-bottom:6px;margin-bottom:0;font-size:13px">Invoice Items</h3>
+      <table width="100%" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:11px">
+        <thead>
+          <tr style="background:#e8f5f6">
+            <th style="padding:7px 8px;text-align:left">Student / Description</th>
+            <th style="padding:7px 8px;text-align:center">Lessons</th>
+            <th style="padding:7px 8px;text-align:left">Dates</th>
+            <th style="padding:7px 8px;text-align:left">Type</th>
+            <th style="padding:7px 8px;text-align:right">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${studentRows}
+          ${inv.approvedClaims.length > 0 ? `
+          <tr><td colspan="5" style="padding:4px 8px;background:#fef3c7;font-size:10px;color:#92400e;font-weight:600;letter-spacing:0.05em">CLAIMS</td></tr>
+          ${claimItemRows}` : ""}
+          ${!hasItems ? `<tr><td colspan="5" style="color:#aaa;text-align:center;padding:16px">No items for this period</td></tr>` : ""}
+        </tbody>
       </table>
-      <p style="text-align:right;margin:6px 0 0;font-size:12px"><b>Lesson Total: R${inv.lessonTotal.toFixed(2)}</b></p>
-      ${inv.approvedClaims.length > 0 ? `
-      <h3 style="color:#333;border-bottom:2px solid #e8f5f6;padding-bottom:6px;margin:20px 0 8px">Approved Claims</h3>
-      <table width="100%" border="0" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:11px">
-        <thead><tr style="background:#e8f5f6"><th style="text-align:left">Date</th><th style="text-align:left">Type</th><th colspan="5" style="text-align:left">Details / Students</th><th style="text-align:right">Amount</th></tr></thead>
-        <tbody>${claimRows}</tbody>
+
+      <table width="100%" style="border-collapse:collapse;margin-top:12px">
+        ${studentGroups.length > 0 ? `<tr><td style="padding:4px 8px;text-align:right;color:#555">Lessons subtotal</td><td style="padding:4px 8px;text-align:right;width:120px">R${inv.lessonTotal.toFixed(2)}</td></tr>` : ""}
+        ${inv.approvedClaims.length > 0 ? `<tr><td style="padding:4px 8px;text-align:right;color:#555">Claims subtotal</td><td style="padding:4px 8px;text-align:right">R${inv.claimsTotal.toFixed(2)}</td></tr>` : ""}
+        <tr style="border-top:2px solid #2a7f85">
+          <td style="padding:10px 8px;text-align:right;font-weight:bold;font-size:13px;color:#2a7f85">Grand Total</td>
+          <td style="padding:10px 8px;text-align:right;font-weight:bold;font-size:15px;color:#2a7f85">R${inv.grandTotal.toFixed(2)}</td>
+        </tr>
       </table>
-      <p style="text-align:right;margin:6px 0 0;font-size:12px"><b>Claims Total: R${inv.claimsTotal.toFixed(2)}</b></p>` : ""}
-      <div style="border-top:2px solid #2a7f85;margin-top:20px;padding-top:14px;display:flex;justify-content:space-between;align-items:center">
-        <span style="color:#888;font-size:10px">${inv.statusRec?.tutorApproved ? `Approved by tutor: ${fmtDate(inv.statusRec.tutorApprovedDate)}` : inv.locked ? "Auto-approved (26th)" : "Awaiting tutor approval"}</span>
-        <span style="font-size:16px;font-weight:bold;color:#2a7f85">Grand Total: R${inv.grandTotal.toFixed(2)}</span>
-      </div>
+
+      <p style="margin-top:20px;color:#aaa;font-size:10px;border-top:1px solid #eee;padding-top:10px">
+        ${inv.statusRec?.tutorApproved ? `Approved by tutor: ${fmtDate(inv.statusRec.tutorApprovedDate)}` : inv.locked ? "Auto-approved on the 26th" : "Awaiting tutor approval"}
+      </p>
     </div>`;
 };
 
@@ -333,6 +374,27 @@ const printInvoiceWindow = (bodyContent, title) => {
   const html = `<!DOCTYPE html><html><head><title>${title}</title><style>body{margin:0}table th,table td{border:1px solid #e8e8e8;padding:4px 8px}@media print{.no-print{display:none}}</style></head><body>${bodyContent}</body></html>`;
   const win = window.open("", "_blank");
   if (win) { win.document.write(html); win.document.close(); win.print(); }
+};
+
+// Group invoice lesson lines by student (one row per student)
+const groupLessonsByStudent = (lessonLines) => {
+  const map = {};
+  lessonLines.forEach(l => {
+    if (!map[l.studentId]) map[l.studentId] = { studentId:l.studentId, studentName:l.studentName, lines:[] };
+    map[l.studentId].lines.push(l);
+  });
+  return Object.values(map).map(g => {
+    const sorted = [...g.lines].sort((a,b)=>a.date.localeCompare(b.date));
+    return {
+      studentId:   g.studentId,
+      studentName: g.studentName,
+      lessonCount: g.lines.length,
+      dates:       sorted.map(l=>fmtDate(l.date)),
+      total:       g.lines.reduce((s,l)=>s+l.lineTotal, 0),
+      lessonType:  g.lines[0]?.lessonType || "regular",
+      hasWifi:     g.lines.some(l=>l.wifiAmt>0),
+    };
+  });
 };
 
 // Returns last N month keys as "YYYY-MM"
@@ -3844,50 +3906,74 @@ function TutorPortal({ tutor, data, setData }) {
               )}
             </div>
 
-            {/* Lesson lines */}
-            <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-3">
-              <h4 className="text-sm font-semibold text-gray-700">Lesson Lines</h4>
-              {inv.lessonLines.length === 0 ? (
-                <p className="text-sm text-gray-400">No attended lessons for this month.</p>
-              ) : (
-                <div className="divide-y divide-gray-100">
-                  {inv.lessonLines.map(l => (
-                    <div key={l.id} className="flex items-center justify-between py-2.5 text-sm">
-                      <div>
-                        <p className="font-medium text-gray-700">{l.studentName} — {l.subjectLabel}</p>
-                        <p className="text-xs text-gray-400">{fmtDate(l.date)} · {l.hours.toFixed(2)}h · <span className="capitalize">{l.lessonType}</span>{l.wifiAmt>0?` · Wifi +${fmtZAR(l.wifiAmt)}`:""}</p>
+            {/* Invoice line items — grouped by student + claims */}
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Invoice Items</p>
+              </div>
+              {(()=>{
+                const groups = groupLessonsByStudent(inv.lessonLines);
+                return (
+                  <div className="divide-y divide-gray-50">
+                    {/* Student lesson rows */}
+                    {groups.length === 0 && inv.allClaims.length === 0 && (
+                      <p className="text-sm text-gray-400 px-4 py-4">No items for this month.</p>
+                    )}
+                    {groups.map(g => (
+                      <div key={g.studentId} className="flex items-start gap-3 px-4 py-3">
+                        <div className="mt-0.5 w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{background:B.tealLight}}>
+                          <Users size={13} style={{color:B.tealDark}}/>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                            <span className="text-sm font-semibold text-gray-800">{g.studentName}</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background:B.tealLight,color:B.tealDark}}>{g.lessonCount} lesson{g.lessonCount!==1?"s":""}</span>
+                            {g.hasWifi && <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">+ WiFi</span>}
+                          </div>
+                          <p className="text-xs text-gray-400">{g.dates.join(" · ")}</p>
+                          <p className="text-xs text-gray-400 mt-0.5 capitalize">{g.lessonType} rate</p>
+                        </div>
+                        <span className="font-semibold text-gray-800 shrink-0">{fmtZAR(g.total)}</span>
                       </div>
-                      <span className="font-semibold text-gray-800">{fmtZAR(l.lineTotal)}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                    {/* Claims as line items */}
+                    {inv.allClaims.length > 0 && (
+                      <>
+                        <div className="px-4 py-1.5 bg-amber-50">
+                          <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Claims</p>
+                        </div>
+                        {inv.allClaims.map(c => (
+                          <div key={c.id} className="flex items-start gap-3 px-4 py-3 bg-amber-50 bg-opacity-40">
+                            <div className="mt-0.5 w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{background:"#fef3c7"}}>
+                              <FileText size={13} style={{color:"#92400e"}}/>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                                <span className="text-sm font-semibold text-gray-800">{c.type}</span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${c.status==="approved"?"bg-green-50 text-green-700":c.status==="rejected"?"bg-red-50 text-red-600":"bg-amber-50 text-amber-700"}`}>{c.status}</span>
+                              </div>
+                              {c.studentNames && <p className="text-xs text-gray-500">{c.studentNames}</p>}
+                              <p className="text-xs text-gray-400">{fmtDate(c.date)}</p>
+                            </div>
+                            <span className={`font-semibold shrink-0 ${c.status==="rejected"?"line-through text-gray-300":"text-gray-800"}`}>{fmtZAR(Number(c.amount))}</span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
-            {/* Claims */}
-            <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-3">
-              <h4 className="text-sm font-semibold text-gray-700">Claims</h4>
-              {inv.allClaims.length > 0 && (
-                <div className="divide-y divide-gray-100 mb-3">
-                  {inv.allClaims.map(c => (
-                    <div key={c.id} className="flex items-center justify-between py-2.5 text-sm">
-                      <div>
-                        <p className="font-medium text-gray-700">{c.type} — {fmtDate(c.date)}</p>
-                        {c.studentNames && <p className="text-xs text-gray-400">{c.studentNames}</p>}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-gray-800">{fmtZAR(Number(c.amount))}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${c.status==="approved"?"bg-green-50 text-green-700":c.status==="rejected"?"bg-red-50 text-red-600":"bg-amber-50 text-amber-700"}`}>{c.status}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Submit new claim */}
-              {!locked && (
-                <div className="border-t border-gray-100 pt-4 space-y-3">
-                  <p className="text-xs font-medium text-gray-600">Submit New Claim</p>
+            {/* Submit new claim */}
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Submit a Claim</p>
+              </div>
+              {isInvoiceLocked(earnMonth) ? (
+                <p className="text-sm text-gray-400 px-4 py-4">This invoice is locked — no new claims can be submitted.</p>
+              ) : (
+                <div className="p-4 space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-xs text-gray-500 mb-1">Type</label>
@@ -4446,12 +4532,14 @@ function PayrollPage({ data, setData }) {
                         </Btn>
                       )}
                       {inv.isApproved && !inv.isPaid && (
-                        <Btn size="sm" onClick={() => markPaid(tutor.id, inv.grandTotal)}>
-                          <Banknote size={13} /> Mark Paid ({fmtZAR(inv.grandTotal)})
-                        </Btn>
-                        <Btn size="sm" variant="secondary" onClick={() => downloadOneTutorPDF(tutor)}>
-                          <Printer size={13} /> Download Invoice
-                        </Btn>
+                        <>
+                          <Btn size="sm" onClick={() => markPaid(tutor.id, inv.grandTotal)}>
+                            <Banknote size={13} /> Mark Paid ({fmtZAR(inv.grandTotal)})
+                          </Btn>
+                          <Btn size="sm" variant="secondary" onClick={() => downloadOneTutorPDF(tutor)}>
+                            <Printer size={13} /> Download Invoice
+                          </Btn>
+                        </>
                       )}
                       {inv.isPaid && (
                         <span className="text-xs text-green-700 bg-green-50 px-3 py-1.5 rounded-lg font-medium">
