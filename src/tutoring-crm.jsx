@@ -2759,11 +2759,373 @@ function LoginPage({ onLogin }) {
   );
 }
 
+// ─── ROLE PORTAL VIEWS ────────────────────────────────────────────────────────
+
+function StudentPortal({ student, data }) {
+  const myLinks      = data.links.filter(l => l.studentId === student.id);
+  const myPurchases  = data.purchases.filter(p => p.studentId === student.id);
+  const totalLessons = myPurchases.reduce((s, p) => s + p.quantity, 0);
+  const myEnrolments = data.enrolments.filter(e => e.studentId === student.id);
+  const myProgress   = data.progress.filter(p => p.studentId === student.id);
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl p-6" style={{ background: `linear-gradient(135deg, ${B.tealLight} 0%, ${B.coralLight} 100%)` }}>
+        <h1 className="text-2xl font-bold" style={{ color: B.tealDark }}>Hello, {student.firstName}! 👋</h1>
+        <p className="text-sm text-gray-500 mt-1">{student.grade} · {student.curriculum}</p>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">My Tutors</h2>
+        {myLinks.length === 0 ? <p className="text-sm text-gray-400">No tutors linked yet.</p> : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {myLinks.map(link => {
+              const tutor   = data.tutors.find(t => t.id === link.tutorId);
+              const subject = data.subjects.find(s => s.id === link.subjectId);
+              return (
+                <div key={link.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0" style={{ background: B.teal }}>
+                    {tutor.firstName[0]}{tutor.lastName[0]}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-gray-800">{tutor.firstName} {tutor.lastName}</p>
+                    <p className="text-xs text-gray-500">{subject.name}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{tutor.email}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100 p-5">
+        <h2 className="text-base font-semibold text-gray-800 mb-3">Lesson Credits</h2>
+        <div className="flex items-start gap-8">
+          <div className="text-center shrink-0">
+            <p className="text-3xl font-bold" style={{ color: B.tealDark }}>{totalLessons}</p>
+            <p className="text-xs text-gray-400 mt-0.5">Total Purchased</p>
+          </div>
+          <div className="flex-1 space-y-1">
+            {myPurchases.map(p => (
+              <div key={p.id} className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-50 last:border-0">
+                <span>{p.date}</span><span className="text-gray-400">{p.note}</span>
+                <span className="font-semibold" style={{ color: B.tealDark }}>{p.quantity} lessons</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {myEnrolments.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">My Courses</h2>
+          <div className="space-y-3">
+            {myEnrolments.map(enr => {
+              const course         = data.courses.find(c => c.id === enr.courseId);
+              const courseLessons  = data.lessons.filter(l => l.courseId === enr.courseId);
+              const completedCount = myProgress.filter(p => p.courseId === enr.courseId && p.completed).length;
+              const pct            = courseLessons.length ? Math.round((completedCount / courseLessons.length) * 100) : 0;
+              const upcoming       = courseLessons.filter(l => !myProgress.find(p => p.lessonId === l.id && p.completed)).slice(0, 3);
+              return (
+                <div key={enr.id} className="bg-white rounded-xl border border-gray-100 p-5">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <p className="font-semibold text-sm text-gray-800">{course.title}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{completedCount} of {courseLessons.length} lessons complete</p>
+                    </div>
+                    <span className="text-sm font-bold" style={{ color: B.tealDark }}>{pct}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden mb-3">
+                    <div className="h-2 rounded-full" style={{ width: `${pct}%`, background: B.teal }} />
+                  </div>
+                  {upcoming.map(l => (
+                    <div key={l.id} className="flex justify-between text-xs text-gray-500 py-0.5">
+                      <span>📖 {l.title}</span>
+                      {l.dueDate && <span className="text-gray-400">Due {l.dueDate}</span>}
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TutorPortal({ tutor, data }) {
+  const myLinks    = data.links.filter(l => l.tutorId === tutor.id);
+  const myNotes    = data.tutorNotes.filter(n => n.tutorId === tutor.id);
+  const mySubjects = data.subjects.filter(s => tutor.subjectIds.includes(s.id));
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl p-6" style={{ background: `linear-gradient(135deg, ${B.tealLight} 0%, ${B.coralLight} 100%)` }}>
+        <h1 className="text-2xl font-bold" style={{ color: B.tealDark }}>Hello, {tutor.firstName}!</h1>
+        <p className="text-sm text-gray-500 mt-1">Subjects: {mySubjects.map(s => s.name).join(" · ")}</p>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">My Students</h2>
+        {myLinks.length === 0 ? <p className="text-sm text-gray-400">No students assigned.</p> : (
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead><tr style={{ background: B.tealLight }}>
+                {["Student","Subject","Grade","Since"].map(h => (
+                  <th key={h} className="text-left px-4 py-3 font-medium text-xs" style={{ color: B.tealDark }}>{h}</th>
+                ))}
+              </tr></thead>
+              <tbody>
+                {myLinks.map(link => {
+                  const st  = data.students.find(s => s.id === link.studentId);
+                  const sub = data.subjects.find(s => s.id === link.subjectId);
+                  return (
+                    <tr key={link.id} className="border-t border-gray-50 hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-800">{st.firstName} {st.lastName}</td>
+                      <td className="px-4 py-3 text-gray-600">{sub.name}</td>
+                      <td className="px-4 py-3 text-gray-500">{st.grade}</td>
+                      <td className="px-4 py-3 text-gray-400">{link.createdDate}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {myNotes.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">Feedback & Notes</h2>
+          <div className="space-y-2">
+            {myNotes.map(n => (
+              <div key={n.id} className="rounded-xl p-4 border" style={{
+                background: n.type === "compliment" ? B.tealLight : B.coralLight,
+                borderColor: n.type === "compliment" ? B.teal : B.coral,
+              }}>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: n.type === "compliment" ? B.tealDark : B.coralDark }}>
+                    {n.type === "compliment" ? "✓ Compliment" : "⚠ Note"}
+                  </span>
+                  <span className="text-xs text-gray-400">{n.date}</span>
+                </div>
+                <p className="text-sm text-gray-700">{n.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl border border-gray-100 p-5">
+        <h2 className="text-base font-semibold text-gray-800 mb-3">My Contact Details</h2>
+        <div className="flex flex-wrap gap-6 text-sm text-gray-600">
+          <div><span className="text-gray-400 mr-2">Email</span>{tutor.email}</div>
+          <div><span className="text-gray-400 mr-2">Phone</span>{tutor.phone}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ParentPortal({ student, data }) {
+  const myLinks      = data.links.filter(l => l.studentId === student.id);
+  const myPurchases  = data.purchases.filter(p => p.studentId === student.id);
+  const totalLessons = myPurchases.reduce((s, p) => s + p.quantity, 0);
+  const myEnrolments = data.enrolments.filter(e => e.studentId === student.id);
+  const myProgress   = data.progress.filter(p => p.studentId === student.id);
+  const siblingLinks = data.siblings.filter(s => s.studentId1 === student.id || s.studentId2 === student.id);
+  const siblingIds   = siblingLinks.flatMap(s => [s.studentId1, s.studentId2]).filter(id => id !== student.id);
+  const siblings     = data.students.filter(s => siblingIds.includes(s.id));
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl p-6" style={{ background: `linear-gradient(135deg, ${B.tealLight} 0%, ${B.coralLight} 100%)` }}>
+        <h1 className="text-2xl font-bold" style={{ color: B.tealDark }}>Parent Portal 👨‍👩‍👦</h1>
+        <p className="text-sm text-gray-500 mt-1">Viewing progress for: <strong>{student.firstName} {student.lastName}</strong></p>
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100 p-5">
+        <h2 className="text-base font-semibold text-gray-800 mb-3">Child Details</h2>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div><span className="text-gray-400 text-xs block mb-0.5">Name</span>{student.firstName} {student.lastName}</div>
+          <div><span className="text-gray-400 text-xs block mb-0.5">Grade</span>{student.grade}</div>
+          <div><span className="text-gray-400 text-xs block mb-0.5">Curriculum</span>{student.curriculum}</div>
+          <div><span className="text-gray-400 text-xs block mb-0.5">Enrolled</span>{student.enrolledDate}</div>
+        </div>
+        {siblings.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-gray-50 text-xs text-gray-400">
+            Sibling also at Learn to Link: {siblings.map(s => `${s.firstName} ${s.lastName}`).join(", ")}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">Assigned Tutors</h2>
+        {myLinks.length === 0 ? <p className="text-sm text-gray-400">No tutors assigned yet.</p> : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {myLinks.map(link => {
+              const tutor   = data.tutors.find(t => t.id === link.tutorId);
+              const subject = data.subjects.find(s => s.id === link.subjectId);
+              return (
+                <div key={link.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0" style={{ background: B.coral }}>
+                    {tutor.firstName[0]}{tutor.lastName[0]}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-gray-800">{tutor.firstName} {tutor.lastName}</p>
+                    <p className="text-xs text-gray-500">{subject.name}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-100 p-5">
+        <h2 className="text-base font-semibold text-gray-800 mb-3">Lesson Credits</h2>
+        <p className="text-3xl font-bold" style={{ color: B.tealDark }}>{totalLessons}</p>
+        <p className="text-xs text-gray-400 mt-1">Total lessons purchased</p>
+      </div>
+
+      {myEnrolments.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">Academy Progress</h2>
+          <div className="space-y-3">
+            {myEnrolments.map(enr => {
+              const course         = data.courses.find(c => c.id === enr.courseId);
+              const courseLessons  = data.lessons.filter(l => l.courseId === enr.courseId);
+              const completedCount = myProgress.filter(p => p.courseId === enr.courseId && p.completed).length;
+              const pct            = courseLessons.length ? Math.round((completedCount / courseLessons.length) * 100) : 0;
+              return (
+                <div key={enr.id} className="bg-white rounded-xl border border-gray-100 p-5">
+                  <div className="flex justify-between items-center mb-2">
+                    <p className="font-semibold text-sm text-gray-800">{course.title}</p>
+                    <span className="font-bold text-sm" style={{ color: B.tealDark }}>{pct}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-2 rounded-full" style={{ width: `${pct}%`, background: B.teal }} />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">{completedCount} of {courseLessons.length} lessons completed</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CentrePortal({ centre, data }) {
+  const myStudents   = data.students.filter(s => s.centreId === centre.id);
+  const myNotes      = data.centreNotes.filter(n => n.centreId === centre.id);
+  const myStudentIds = myStudents.map(s => s.id);
+  const myLinks      = data.links.filter(l => myStudentIds.includes(l.studentId));
+  const myTutorIds   = [...new Set(myLinks.map(l => l.tutorId))];
+  const myTutors     = data.tutors.filter(t => myTutorIds.includes(t.id));
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl p-6" style={{ background: `linear-gradient(135deg, ${B.tealLight} 0%, ${B.coralLight} 100%)` }}>
+        <h1 className="text-2xl font-bold" style={{ color: B.tealDark }}>Hello, {centre.ownerFirstName}! 🏫</h1>
+        <p className="text-sm text-gray-500 mt-1">{centre.name}</p>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          { label: "Students",     value: myStudents.length, color: B.tealDark },
+          { label: "Tutors",       value: myTutors.length,   color: B.coral    },
+          { label: "Active Links", value: myLinks.length,    color: B.gold     },
+        ].map(stat => (
+          <div key={stat.label} className="bg-white rounded-xl border border-gray-100 p-4 text-center">
+            <p className="text-2xl font-bold" style={{ color: stat.color }}>{stat.value}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">Our Students</h2>
+        {myStudents.length === 0 ? <p className="text-sm text-gray-400">No students at this centre yet.</p> : (
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead><tr style={{ background: B.tealLight }}>
+                {["Student","Grade","Curriculum","Tutors"].map(h => (
+                  <th key={h} className="text-left px-4 py-3 font-medium text-xs" style={{ color: B.tealDark }}>{h}</th>
+                ))}
+              </tr></thead>
+              <tbody>
+                {myStudents.map(st => {
+                  const sLinks = data.links.filter(l => l.studentId === st.id);
+                  const tuts   = [...new Set(sLinks.map(l => l.tutorId))].map(tid => data.tutors.find(t => t.id === tid)).filter(Boolean);
+                  return (
+                    <tr key={st.id} className="border-t border-gray-50 hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-800">{st.firstName} {st.lastName}</td>
+                      <td className="px-4 py-3 text-gray-500">{st.grade}</td>
+                      <td className="px-4 py-3 text-gray-500">{st.curriculum}</td>
+                      <td className="px-4 py-3 text-gray-400 text-xs">{tuts.map(t => `${t.firstName} ${t.lastName}`).join(", ") || "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {myNotes.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold text-gray-800 mb-3">Centre Notes</h2>
+          <div className="space-y-2">
+            {myNotes.map(n => (
+              <div key={n.id} className="rounded-xl p-4 border" style={{
+                background: n.type === "complaint" ? B.coralLight : B.tealLight,
+                borderColor: n.type === "complaint" ? B.coral : B.teal,
+              }}>
+                <div className="flex justify-between mb-1">
+                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: n.type === "complaint" ? B.coralDark : B.tealDark }}>{n.type}</span>
+                  <span className="text-xs text-gray-400">{n.date}</span>
+                </div>
+                <p className="text-sm text-gray-700">{n.note}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-xl border border-gray-100 p-5">
+        <h2 className="text-base font-semibold text-gray-800 mb-3">Centre Details</h2>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div><span className="text-gray-400 text-xs block mb-0.5">Address</span>{centre.address}</div>
+          <div><span className="text-gray-400 text-xs block mb-0.5">Phone</span>{centre.phone}</div>
+          <div><span className="text-gray-400 text-xs block mb-0.5">Email</span>{centre.email}</div>
+          <div><span className="text-gray-400 text-xs block mb-0.5">Status</span>{centre.status}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 // ─── APP ──────────────────────────────────────────────────────────────────────
 
+// Role switcher — all options the tester can cycle through
+const ROLE_OPTIONS = (data) => {
+  const opts = [{ role: "admin", label: "Admin / Owner", icon: "🔑", id: "admin" }];
+  data.tutors.forEach(t   => opts.push({ role: "tutor",   label: `Tutor: ${t.firstName} ${t.lastName}`,           icon: "👩‍🏫", id: t.id }));
+  data.students.forEach(s => opts.push({ role: "student", label: `Student: ${s.firstName} ${s.lastName}`,         icon: "🎓", id: s.id }));
+  data.students.forEach(s => opts.push({ role: "parent",  label: `Parent of ${s.firstName} ${s.lastName}`,        icon: "👨‍👩‍👦", id: s.id }));
+  data.centres.forEach(c  => opts.push({ role: "centre",  label: `Centre: ${c.name}`,                             icon: "🏫", id: c.id }));
+  return opts;
+};
+
 export default function App() {
-  const [user, setUser]   = useState(null);
-  const [page, setPage] = useState("dashboard");
+  const [user, setUser]       = useState(null);
+  const [page, setPage]       = useState("dashboard");
+  const [viewRole, setViewRole] = useState("admin");   // active role option key
   const [data, setData] = useState({
     students:      INIT_STUDENTS,
     tutors:        INIT_TUTORS,
@@ -2784,6 +3146,8 @@ export default function App() {
     announcements: INIT_ANNOUNCEMENTS,
   });
 
+  const roleOptions = useMemo(() => ROLE_OPTIONS(data), [data]);
+
   const unassigned = useMemo(
     () => data.students.filter(s => !data.links.some(l => l.studentId === s.id)).length,
     [data.students, data.links]
@@ -2802,57 +3166,94 @@ export default function App() {
     academy:    <AcademyPage  data={data} setData={setData} />,
   };
 
+  // Resolve the portal to show based on active role
+  const portalView = useMemo(() => {
+    const opt = roleOptions.find(o => `${o.role}::${o.id}` === viewRole);
+    if (!opt || opt.role === "admin") return null;
+    switch (opt.role) {
+      case "tutor":   { const t = data.tutors.find(x => x.id === opt.id);   return t ? <TutorPortal   tutor={t}    data={data} /> : null; }
+      case "student": { const s = data.students.find(x => x.id === opt.id); return s ? <StudentPortal student={s} data={data} /> : null; }
+      case "parent":  { const s = data.students.find(x => x.id === opt.id); return s ? <ParentPortal  student={s} data={data} /> : null; }
+      case "centre":  { const c = data.centres.find(x => x.id === opt.id);  return c ? <CentrePortal  centre={c}  data={data} /> : null; }
+      default: return null;
+    }
+  }, [viewRole, roleOptions, data]);
+
+  const activeOpt = roleOptions.find(o => `${o.role}::${o.id}` === viewRole) || roleOptions[0];
+  const isAdmin   = activeOpt.role === "admin";
+
   return (
-    <div className="flex h-screen bg-gray-50 font-sans">
-      <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
-        <div className="px-4 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <LogoMark size={38} />
-            <div>
-              <p className="text-xs font-bold tracking-widest uppercase leading-none" style={{ color: B.tealDark }}>LEARN TO LINK</p>
-              <p className="text-xs text-gray-400 mt-0.5 tracking-wide">CRM + Academy</p>
-            </div>
-          </div>
-        </div>
+    <div className="flex flex-col h-screen bg-gray-50 font-sans">
 
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {NAV.map(n => (
-            <div key={n.id}>
-              {n.divider && (
-                <div className="my-2 pt-1">
-                  <div className="border-t border-gray-100" />
+      {/* ── ROLE SWITCHER BAR ── */}
+      <div className="shrink-0 border-b border-gray-200 bg-white px-4 py-2 flex items-center gap-2 overflow-x-auto">
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap mr-1">View as:</span>
+        {roleOptions.map(opt => {
+          const key     = `${opt.role}::${opt.id}`;
+          const active  = viewRole === key;
+          return (
+            <button key={key} onClick={() => { setViewRole(key); if (opt.role === "admin") setPage("dashboard"); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0"
+              style={active
+                ? { background: B.teal, color: "#fff" }
+                : { background: "#f3f4f6", color: "#4b5563" }}>
+              <span>{opt.icon}</span>
+              <span>{opt.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* ── SIDEBAR (admin only) ── */}
+        {isAdmin && (
+          <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
+            <div className="px-4 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <LogoMark size={38} />
+                <div>
+                  <p className="text-xs font-bold tracking-widest uppercase leading-none" style={{ color: B.tealDark }}>LEARN TO LINK</p>
+                  <p className="text-xs text-gray-400 mt-0.5 tracking-wide">CRM + Academy</p>
                 </div>
-              )}
-              <button onClick={() => setPage(n.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${page === n.id ? "" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}
-                style={page === n.id ? { background: n.id === "academy" ? B.coralLight : B.tealLight, color: n.id === "academy" ? B.coral : B.tealDark } : undefined}>
-                <n.icon size={17} />
-                {n.label}
-                {n.id === "links" && unassigned > 0 && (
-                  <span className="ml-auto bg-gray-300 text-gray-700 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{unassigned}</span>
-                )}
-              </button>
+              </div>
             </div>
-          ))}
 
-        </nav>
+            <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+              {NAV.map(n => (
+                <div key={n.id}>
+                  {n.divider && <div className="my-2 pt-1"><div className="border-t border-gray-100" /></div>}
+                  <button onClick={() => setPage(n.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${page === n.id ? "" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}
+                    style={page === n.id ? { background: n.id === "academy" ? B.coralLight : B.tealLight, color: n.id === "academy" ? B.coral : B.tealDark } : undefined}>
+                    <n.icon size={17} />
+                    {n.label}
+                    {n.id === "links" && unassigned > 0 && (
+                      <span className="ml-auto bg-gray-300 text-gray-700 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{unassigned}</span>
+                    )}
+                  </button>
+                </div>
+              ))}
+            </nav>
 
-        <div className="px-4 py-4 border-t border-gray-100">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style={{ background: B.teal }}>LTL</div>
-            <div>
-              <p className="text-xs font-semibold text-gray-800">Learn to Link</p>
-              <p className="text-xs text-gray-400">CRM + Academy</p>
+            <div className="px-4 py-4 border-t border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style={{ background: B.teal }}>LTL</div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-800">Learn to Link</p>
+                  <p className="text-xs text-gray-400">CRM + Academy</p>
+                </div>
+              </div>
             </div>
+          </aside>
+        )}
+
+        {/* ── MAIN CONTENT ── */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="max-w-5xl mx-auto px-6 py-6">
+            {isAdmin ? pages[page] : portalView}
           </div>
-        </div>
-      </aside>
-
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-6 py-6">
-          {pages[page]}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
