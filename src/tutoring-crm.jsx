@@ -3481,6 +3481,7 @@ function TutorPortal({ tutor, data, setData }) {
   const [rptForm, setRptForm] = useState({ subjectId:"", period:"", periodType:"monthly", lessonsAttended:"", lessonsScheduled:"", topicsCovered:"", strengths:"", areasForImprovement:"", overallComments:"", rating:"Good" });
   const [rptSaved,   setRptSaved]   = useState(false);
   const [earnMonth,  setEarnMonth]  = useState(today().slice(0, 7));
+  const [prevEarnMonth, setPrevEarnMonth] = useState(null); // set when drilling into a history month
   const [claimForm,  setClaimForm]  = useState({ type: (data.claimTypes||["Workshop"])[0], studentNames: "", amount: "", date: today() });
   const [claimSaved, setClaimSaved] = useState(false);
 
@@ -4122,12 +4123,28 @@ function TutorPortal({ tutor, data, setData }) {
           : inv.isApproved
             ? (locked && !inv.statusRec?.tutorApproved ? { background:"#fef3c7", color:"#92400e" } : { background:B.tealLight, color:B.tealDark })
             : { background:"#f3f4f6", color:"#6b7280" };
+        const [prevYr, prevMo] = prevEarnMonth ? prevEarnMonth.split("-") : [];
+        const prevLabel = prevEarnMonth
+          ? new Date(Number(prevYr), Number(prevMo) - 1, 1).toLocaleString("en-ZA", { month: "long", year: "numeric" })
+          : null;
         return (
           <div className="space-y-5">
+            {/* Back banner — shown when viewing a historical month */}
+            {prevEarnMonth && (
+              <div className="flex items-center gap-3 px-4 py-2.5 bg-indigo-50 border border-indigo-100 rounded-xl">
+                <button
+                  onClick={() => { setEarnMonth(prevEarnMonth); setPrevEarnMonth(null); }}
+                  className="flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
+                  <ChevronLeft size={15} /> Back to {prevLabel}
+                </button>
+                <span className="text-xs text-indigo-400 ml-1">· Viewing {fmtMonth(earnMonth)}</span>
+              </div>
+            )}
+
             {/* Month selector */}
             <div className="flex items-center gap-3 flex-wrap">
               <label className="text-sm font-medium text-gray-700">Month:</label>
-              <input type="month" value={earnMonth} onChange={e=>setEarnMonth(e.target.value)}
+              <input type="month" value={earnMonth} onChange={e=>{ setEarnMonth(e.target.value); setPrevEarnMonth(null); }}
                 className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" />
               <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={statusStyle}>{statusLabel}</span>
               <button onClick={()=>printInvoiceWindow(buildTutorInvoiceHTML(tutor, inv, earnMonth), `Invoice ${tutor.firstName} ${tutor.lastName} ${earnMonth}`)}
@@ -4301,7 +4318,7 @@ function TutorPortal({ tutor, data, setData }) {
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={hStyle}>{hStatus}</span>
-                            <button onClick={()=>{setEarnMonth(m);}}
+                            <button onClick={()=>{ setPrevEarnMonth(earnMonth); setEarnMonth(m); }}
                               className="text-xs text-gray-400 hover:text-teal-600 transition-colors px-2 py-1 rounded">View</button>
                             <button onClick={()=>printInvoiceWindow(buildTutorInvoiceHTML(tutor, hInv, m), `Invoice ${tutor.firstName} ${tutor.lastName} ${m}`)}
                               className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg border border-gray-200 text-gray-600 hover:border-teal-400 hover:text-teal-700 transition-colors">
