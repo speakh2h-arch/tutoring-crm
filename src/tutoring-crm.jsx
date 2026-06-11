@@ -1321,7 +1321,7 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
                       <p className="text-xs text-gray-400 mt-0.5">
                         {row.includedUsed}/{ACADEMY_INCLUDED_PER_MONTH} included used
                         {row.pool > 0 && ` · ${row.pool - row.topupUsed} top-up remaining`}
-                        {row.overflow > 0 && <span className="text-amber-600"> · {row.overflow} over limit (regular rate)</span>}
+                        {row.overflow > 0 && <span className="text-amber-600"> · {row.overflow} Top-Up (regular rate)</span>}
                       </p>
                     </div>
                     <div className="flex gap-1.5">
@@ -4293,7 +4293,7 @@ function TutorPortal({ tutor, data, setData }) {
                       const isOverflow = g.lessonType === "regular" && g.academySlot === "overflow";
                       const typeLabel = g.lessonType === "academy"
                         ? (g.academySlot === "topup" ? "Academy · Top-up" : "Academy · Included")
-                        : g.lessonType === "centre" ? "Centre" : isOverflow ? "Regular (over limit)" : "Regular";
+                        : g.lessonType === "centre" ? "Centre" : isOverflow ? "Regular (Top-Up)" : "Regular";
                       const dotStyle = isOverflow
                         ? { background: "#fef3c7" } : g.lessonType === "academy"
                         ? { background: B.coralLight } : { background: B.tealLight };
