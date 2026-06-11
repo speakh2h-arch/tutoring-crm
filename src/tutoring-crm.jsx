@@ -54,20 +54,20 @@ const INIT_CENTRES = [
 ];
 
 const INIT_STUDENTS = [
-  { id: "st1", firstName: "Siyanda", lastName: "Dlamini",       curriculum: "IEB",       grade: "Grade 11", status: "Active",   enrolledDate: "2025-01-15", centreId: ""   },
-  { id: "st2", firstName: "Mia",     lastName: "van der Merwe", curriculum: "CAPS",      grade: "Grade 10", status: "Active",   enrolledDate: "2025-02-01", centreId: "c1" },
-  { id: "st3", firstName: "Langa",   lastName: "Nkosi",         curriculum: "IEB",       grade: "Grade 12", status: "Active",   enrolledDate: "2024-11-10", centreId: "c1" },
-  { id: "st4", firstName: "Priya",   lastName: "Patel",         curriculum: "Cambridge", grade: "IGCSE",    status: "Active",   enrolledDate: "2025-03-05", centreId: "c2" },
-  { id: "st5", firstName: "Nomsa",   lastName: "Dlamini",       curriculum: "IEB",       grade: "Grade 9",  status: "Active",   enrolledDate: "2025-04-01", centreId: ""   },
-  { id: "st6", firstName: "James",   lastName: "Chen",          curriculum: "Cambridge", grade: "AS Level", status: "Active",   enrolledDate: "2025-04-20", centreId: "c2" },
-  { id: "st7", firstName: "Aisha",   lastName: "Moosa",         curriculum: "CAPS",      grade: "Grade 8",  status: "Active",   enrolledDate: "2025-05-10", centreId: ""   },
+  { id: "st1", firstName: "Siyanda", lastName: "Dlamini",       curriculum: "IEB",       grade: "Grade 11", status: "Active",   enrolledDate: "2025-01-15", centreId: "",   reportFrequency: "monthly" },
+  { id: "st2", firstName: "Mia",     lastName: "van der Merwe", curriculum: "CAPS",      grade: "Grade 10", status: "Active",   enrolledDate: "2025-02-01", centreId: "c1", reportFrequency: "termly"  },
+  { id: "st3", firstName: "Langa",   lastName: "Nkosi",         curriculum: "IEB",       grade: "Grade 12", status: "Active",   enrolledDate: "2024-11-10", centreId: "c1", reportFrequency: "monthly" },
+  { id: "st4", firstName: "Priya",   lastName: "Patel",         curriculum: "Cambridge", grade: "IGCSE",    status: "Active",   enrolledDate: "2025-03-05", centreId: "c2", reportFrequency: "termly"  },
+  { id: "st5", firstName: "Nomsa",   lastName: "Dlamini",       curriculum: "IEB",       grade: "Grade 9",  status: "Active",   enrolledDate: "2025-04-01", centreId: "",   reportFrequency: "monthly" },
+  { id: "st6", firstName: "James",   lastName: "Chen",          curriculum: "Cambridge", grade: "AS Level", status: "Active",   enrolledDate: "2025-04-20", centreId: "c2", reportFrequency: "termly"  },
+  { id: "st7", firstName: "Aisha",   lastName: "Moosa",         curriculum: "CAPS",      grade: "Grade 8",  status: "Active",   enrolledDate: "2025-05-10", centreId: "",   reportFrequency: "monthly" },
 ];
 
 const INIT_TUTORS = [
-  { id: "t1", firstName: "Ayanda", lastName: "Mokoena",  email: "ayanda@tutors.com", phone: "072 100 2000", subjectIds: ["s1","s2"], status: "Active" },
-  { id: "t2", firstName: "Ruan",   lastName: "Botha",    email: "ruan@tutors.com",   phone: "082 200 3000", subjectIds: ["s3","s6"], status: "Active" },
-  { id: "t3", firstName: "Lerato", lastName: "Sithole",  email: "lerato@tutors.com", phone: "076 300 4000", subjectIds: ["s4","s5"], status: "Active" },
-  { id: "t4", firstName: "Marco",  lastName: "Ferreira", email: "marco@tutors.com",  phone: "083 400 5000", subjectIds: ["s1","s5"], status: "Active" },
+  { id: "t1", firstName: "Ayanda", lastName: "Mokoena",  email: "ayanda@tutors.com", phone: "072 100 2000", subjectIds: ["s1","s2"], status: "Active", isAcademyTutor: true  },
+  { id: "t2", firstName: "Ruan",   lastName: "Botha",    email: "ruan@tutors.com",   phone: "082 200 3000", subjectIds: ["s3","s6"], status: "Active", isAcademyTutor: false },
+  { id: "t3", firstName: "Lerato", lastName: "Sithole",  email: "lerato@tutors.com", phone: "076 300 4000", subjectIds: ["s4","s5"], status: "Active", isAcademyTutor: false },
+  { id: "t4", firstName: "Marco",  lastName: "Ferreira", email: "marco@tutors.com",  phone: "083 400 5000", subjectIds: ["s1","s5"], status: "Active", isAcademyTutor: false },
 ];
 
 const INIT_LINKS = [
@@ -158,6 +158,45 @@ const INIT_PURCHASES = [
   { id: "lp5", studentId: "st4", quantity:  8, date: "2025-03-05", note: "Initial block" },
   { id: "lp6", studentId: "st5", quantity:  6, date: "2025-04-01", note: "Initial block" },
   { id: "lp7", studentId: "st6", quantity:  8, date: "2025-04-20", note: "Initial block" },
+];
+
+// Lesson logbook — sessions logged by tutors
+const INIT_LOGBOOK = [
+  { id: "lb1", tutorId: "t1", studentId: "st1", subjectId: "s1", date: "2025-05-10", duration: 60, topicsCovered: "Quadratic equations — factorising and completing the square", homework: "Exercise 4.3, questions 1–10", notes: "Student grasped factorising well. Needs more work on completing the square.", attended: true },
+  { id: "lb2", tutorId: "t1", studentId: "st1", subjectId: "s2", date: "2025-05-12", duration: 60, topicsCovered: "Newton's Laws of Motion — Law 1 and Law 2", homework: "Read textbook p.45–52", notes: "Good session. Student asked great questions.", attended: true },
+  { id: "lb3", tutorId: "t1", studentId: "st3", subjectId: "s2", date: "2025-05-14", duration: 60, topicsCovered: "Waves — transverse and longitudinal waves", homework: "Worksheet B", notes: "Langa is strong in this topic.", attended: true },
+  { id: "lb4", tutorId: "t2", studentId: "st3", subjectId: "s3", date: "2025-05-15", duration: 45, topicsCovered: "Essay writing — argument structure and topic sentences", homework: "Draft introduction paragraph", notes: "Needs to work on topic sentences.", attended: true },
+  { id: "lb5", tutorId: "t1", studentId: "st1", subjectId: "s1", date: "2025-06-03", duration: 60, topicsCovered: "Functions — parabolas and hyperbolas", homework: "Functions worksheet", notes: "Very good session. Student showed solid understanding.", attended: true },
+];
+
+// Scheduled lessons
+const INIT_SCHEDULED_LESSONS = [
+  { id: "sl1", tutorId: "t1", studentId: "st1", subjectId: "s1", date: "2025-06-15", time: "14:00", link: "https://meet.google.com/abc-def-ghi", notes: "Functions revision" },
+  { id: "sl2", tutorId: "t1", studentId: "st1", subjectId: "s2", date: "2025-06-17", time: "15:00", link: "", notes: "Electrostatics introduction" },
+  { id: "sl3", tutorId: "t1", studentId: "st3", subjectId: "s2", date: "2025-06-18", time: "10:00", link: "https://zoom.us/j/12345", notes: "" },
+];
+
+// Tutor ↔ student chat messages
+const INIT_MESSAGES = [
+  { id: "msg1", tutorId: "t1", studentId: "st1", fromRole: "tutor",   text: "Hi Siyanda! Please review Chapter 4 — Functions before our next session.", date: "2025-06-10", time: "09:15" },
+  { id: "msg2", tutorId: "t1", studentId: "st1", fromRole: "student", text: "Thanks, I will! Is there anything specific I should focus on with the parabolas?", date: "2025-06-10", time: "10:02" },
+  { id: "msg3", tutorId: "t1", studentId: "st1", fromRole: "tutor",   text: "Yes — focus on finding the turning point and axis of symmetry. See you Sunday!", date: "2025-06-10", time: "10:15" },
+];
+
+// Tutor notes about students — visible to parent only, NOT to students
+const INIT_TUTOR_STUDENT_NOTES = [
+  { id: "tsn1", tutorId: "t1", studentId: "st1", note: "Siyanda is progressing well but needs consistent daily practice at home. Please encourage her to complete all homework before our sessions. She is close to a major breakthrough in her understanding of functions.", date: "2025-06-01" },
+];
+
+// Student progress reports written by tutors
+const INIT_STUDENT_REPORTS = [
+  { id: "srt1", tutorId: "t1", studentId: "st1", subjectId: "s1", period: "May 2025", periodType: "monthly",
+    lessonsAttended: 4, lessonsScheduled: 4,
+    topicsCovered: "Algebra: quadratic equations (factorising, completing the square, quadratic formula). Introduction to functions and parabolas.",
+    strengths: "Strong algebraic manipulation. Quick to grasp new concepts. Asks thoughtful questions during sessions.",
+    areasForImprovement: "Needs to show more working in exam conditions. Careless errors with negative signs in complex calculations.",
+    overallComments: "Siyanda is performing at a good level. With consistent practice and attention to detail she is well on track to achieve excellent results.",
+    rating: "Good", date: "2025-06-01" },
 ];
 
 // Monthly financials — turnover & expenses (manual input)
@@ -2764,12 +2803,27 @@ function LoginPage({ onLogin }) {
 
 // ─── ROLE PORTAL VIEWS ────────────────────────────────────────────────────────
 
-function StudentPortal({ student, data }) {
+function StudentPortal({ student, data, setData }) {
+  const [selTutorId, setSelTutorId] = useState(null);
+  const [chatMsg,    setChatMsg]    = useState("");
+
   const myLinks      = data.links.filter(l => l.studentId === student.id);
   const myPurchases  = data.purchases.filter(p => p.studentId === student.id);
-  const totalLessons = myPurchases.reduce((s, p) => s + p.quantity, 0);
+  const totalBought  = myPurchases.reduce((s, p) => s + p.quantity, 0);
+  const totalUsed    = (data.logbook||[]).filter(l => l.studentId===student.id && l.attended).length;
+  const totalLessons = Math.max(0, totalBought - totalUsed);
   const myEnrolments = data.enrolments.filter(e => e.studentId === student.id);
   const myProgress   = data.progress.filter(p => p.studentId === student.id);
+  const mySchedule   = [...(data.scheduledLessons||[]).filter(sl => sl.studentId===student.id)].sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+  const myMessages   = selTutorId ? (data.messages||[]).filter(m=>m.tutorId===selTutorId&&m.studentId===student.id).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)) : [];
+
+  const subjectName = (id) => (data.subjects||[]).find(s=>s.id===id)?.name || "—";
+
+  const sendStudentMsg = () => {
+    if (!chatMsg.trim()||!selTutorId) return;
+    setData && setData(d=>({...d, messages:[...(d.messages||[]),{id:"msg"+uid(),tutorId:selTutorId,studentId:student.id,fromRole:"student",text:chatMsg.trim(),date:today(),time:new Date().toTimeString().slice(0,5)}]}));
+    setChatMsg("");
+  };
 
   return (
     <div className="space-y-6">
@@ -2804,21 +2858,86 @@ function StudentPortal({ student, data }) {
 
       <div className="bg-white rounded-xl border border-gray-100 p-5">
         <h2 className="text-base font-semibold text-gray-800 mb-3">Lesson Credits</h2>
-        <div className="flex items-start gap-8">
-          <div className="text-center shrink-0">
-            <p className="text-3xl font-bold" style={{ color: B.tealDark }}>{totalLessons}</p>
+        <div className="flex items-center gap-6 mb-3">
+          <div className="text-center">
+            <p className="text-3xl font-bold" style={{ color: totalLessons===0?"#dc2626":B.tealDark }}>{totalLessons}</p>
+            <p className="text-xs text-gray-400 mt-0.5">Lessons Remaining</p>
+          </div>
+          <div className="text-center">
+            <p className="text-xl font-bold text-gray-500">{totalBought}</p>
             <p className="text-xs text-gray-400 mt-0.5">Total Purchased</p>
           </div>
-          <div className="flex-1 space-y-1">
-            {myPurchases.map(p => (
-              <div key={p.id} className="flex justify-between text-xs text-gray-500 py-1 border-b border-gray-50 last:border-0">
-                <span>{p.date}</span><span className="text-gray-400">{p.note}</span>
-                <span className="font-semibold" style={{ color: B.tealDark }}>{p.quantity} lessons</span>
-              </div>
-            ))}
+          <div className="text-center">
+            <p className="text-xl font-bold text-gray-500">{totalUsed}</p>
+            <p className="text-xs text-gray-400 mt-0.5">Used</p>
           </div>
         </div>
+        {totalLessons===0 && <p className="text-xs text-red-500 font-medium">You have no lessons remaining. Please contact Learn to Link to purchase more.</p>}
       </div>
+
+      {/* Upcoming lessons */}
+      {mySchedule.length>0 && (
+        <div className="bg-white rounded-xl border border-gray-100 p-5">
+          <h2 className="text-base font-semibold text-gray-800 mb-3">My Upcoming Lessons</h2>
+          <div className="space-y-2">
+            {mySchedule.filter(sl=>sl.date>=today()).map(sl=>{
+              const tutor=data.tutors.find(t=>t.id===sl.tutorId);
+              return (
+                <div key={sl.id} className="flex items-center gap-4 p-3 rounded-xl border border-gray-100">
+                  <div className="text-center w-12 shrink-0">
+                    <p className="text-xs text-gray-400">{fmtDate(sl.date).split(" ")[1]}</p>
+                    <p className="text-lg font-bold text-gray-800">{fmtDate(sl.date).split(" ")[0]}</p>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-800">{subjectName(sl.subjectId)} with {tutor?.firstName} {tutor?.lastName}</p>
+                    <p className="text-xs text-gray-400">{sl.time}{sl.notes?` · ${sl.notes}`:""}</p>
+                  </div>
+                  {sl.link && <a href={sl.link} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 rounded-xl font-semibold text-white shrink-0" style={{background:B.tealDark}}>Join</a>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Chat with tutors */}
+      {myLinks.length>0 && (
+        <div className="bg-white rounded-xl border border-gray-100 p-5">
+          <h2 className="text-base font-semibold text-gray-800 mb-3">Messages from Tutors</h2>
+          <div className="flex gap-2 mb-4 flex-wrap">
+            {[...new Set(myLinks.map(l=>l.tutorId))].map(tid=>{
+              const t=data.tutors.find(x=>x.id===tid);
+              return (
+                <button key={tid} onClick={()=>setSelTutorId(tid)}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-colors"
+                  style={{borderColor:selTutorId===tid?B.teal:"#e5e7eb",background:selTutorId===tid?B.tealLight:"white",color:selTutorId===tid?B.tealDark:"#6b7280"}}>
+                  {t?.firstName} {t?.lastName}
+                </button>
+              );
+            })}
+          </div>
+          {selTutorId && (
+            <>
+              <div className="min-h-40 space-y-3 mb-3">
+                {myMessages.length===0?<p className="text-sm text-gray-400">No messages yet.</p>:myMessages.map(msg=>(
+                  <div key={msg.id} className={`flex ${msg.fromRole==="student"?"justify-end":"justify-start"}`}>
+                    <div className="max-w-xs rounded-2xl px-4 py-2.5 text-sm"
+                      style={msg.fromRole==="student"?{background:B.tealDark,color:"white"}:{background:"#f3f4f6",color:"#374151"}}>
+                      <p>{msg.text}</p>
+                      <p className="text-xs mt-1 opacity-60">{msg.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input value={chatMsg} onChange={e=>setChatMsg(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendStudentMsg()}
+                  placeholder="Reply to your tutor…" className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none"/>
+                <button onClick={sendStudentMsg} disabled={!chatMsg.trim()} className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{background:B.tealDark}}>Send</button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {myEnrolments.length > 0 && (
         <div>
@@ -2858,76 +2977,603 @@ function StudentPortal({ student, data }) {
   );
 }
 
-function TutorPortal({ tutor, data }) {
-  const myLinks    = data.links.filter(l => l.tutorId === tutor.id);
-  const myNotes    = data.tutorNotes.filter(n => n.tutorId === tutor.id && n.source !== "parent");
-  const mySubjects = data.subjects.filter(s => tutor.subjectIds.includes(s.id));
+function TutorPortal({ tutor, data, setData }) {
+  const [tutorPage,    setTutorPage]    = useState("dashboard");
+  const [selStudentId, setSelStudentId] = useState(null);
+  const [studentTab,   setStudentTab]   = useState("info");
+  const [lbForm,  setLbForm]  = useState({ subjectId:"", duration:60, topicsCovered:"", homework:"", notes:"", attended:true });
+  const [slForm,  setSlForm]  = useState({ subjectId:"", date:today(), time:"14:00", link:"", notes:"" });
+  const [msgText, setMsgText] = useState("");
+  const [pnText,  setPnText]  = useState("");
+  const [pnSent,  setPnSent]  = useState(false);
+  const [rptForm, setRptForm] = useState({ subjectId:"", period:"", periodType:"monthly", lessonsAttended:"", lessonsScheduled:"", topicsCovered:"", strengths:"", areasForImprovement:"", overallComments:"", rating:"Good" });
+  const [rptSaved, setRptSaved] = useState(false);
+
+  const myLinks      = (data.links||[]).filter(l => l.tutorId === tutor.id);
+  const myStudentIds = [...new Set(myLinks.map(l => l.studentId))];
+  const myStudents   = myStudentIds.map(id => (data.students||[]).find(s => s.id === id)).filter(Boolean);
+  const selStudent   = selStudentId ? myStudents.find(s => s.id === selStudentId) : null;
+
+  const creditsFor = (sid) => {
+    const bought = (data.purchases||[]).filter(p => p.studentId===sid).reduce((a,p) => a+p.quantity, 0);
+    const used   = (data.logbook||[]).filter(l => l.studentId===sid && l.attended).length;
+    return Math.max(0, bought - used);
+  };
+
+  const subjectName = (id) => (data.subjects||[]).find(s => s.id===id)?.name || "—";
+  const tutorName   = (id) => { const t=(data.tutors||[]).find(x=>x.id===id); return t?`${t.firstName} ${t.lastName}`:"—"; };
+
+  const selLinks    = selStudentId ? myLinks.filter(l => l.studentId===selStudentId) : [];
+  const studentLog  = selStudentId ? (data.logbook||[]).filter(l => l.studentId===selStudentId).sort((a,b)=>b.date.localeCompare(a.date)) : [];
+  const studentMsgs = selStudentId ? (data.messages||[]).filter(m => m.tutorId===tutor.id && m.studentId===selStudentId).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)) : [];
+  const studentSched= selStudentId ? (data.scheduledLessons||[]).filter(s=>s.tutorId===tutor.id&&s.studentId===selStudentId).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)) : [];
+  const studentRpts = selStudentId ? (data.studentReports||[]).filter(r=>r.tutorId===tutor.id&&r.studentId===selStudentId).sort((a,b)=>b.date.localeCompare(a.date)) : [];
+  const upcomingAll = (data.scheduledLessons||[]).filter(sl=>sl.tutorId===tutor.id&&sl.date>=today()).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)).slice(0,5);
+  const myNotes     = (data.tutorNotes||[]).filter(n=>n.tutorId===tutor.id&&n.source!=="parent");
+
+  const addLog = () => {
+    if (!lbForm.subjectId||!lbForm.topicsCovered.trim()) return;
+    setData(d=>({...d, logbook:[...(d.logbook||[]),{...lbForm,id:"lb"+uid(),tutorId:tutor.id,studentId:selStudentId,date:today(),duration:Number(lbForm.duration)}]}));
+    setLbForm({subjectId:"",duration:60,topicsCovered:"",homework:"",notes:"",attended:true});
+  };
+  const sendMsg = () => {
+    if (!msgText.trim()) return;
+    setData(d=>({...d, messages:[...(d.messages||[]),{id:"msg"+uid(),tutorId:tutor.id,studentId:selStudentId,fromRole:"tutor",text:msgText.trim(),date:today(),time:new Date().toTimeString().slice(0,5)}]}));
+    setMsgText("");
+  };
+  const schedLesson = () => {
+    if (!slForm.subjectId||!slForm.date||!slForm.time) return;
+    setData(d=>({...d, scheduledLessons:[...(d.scheduledLessons||[]),{...slForm,id:"sl"+uid(),tutorId:tutor.id,studentId:selStudentId}]}));
+    setSlForm({subjectId:"",date:today(),time:"14:00",link:"",notes:""});
+  };
+  const sendParentNote = () => {
+    if (!pnText.trim()) return;
+    setData(d=>({...d, tutorStudentNotes:[...(d.tutorStudentNotes||[]),{id:"tsn"+uid(),tutorId:tutor.id,studentId:selStudentId,note:pnText.trim(),date:today()}]}));
+    setPnText(""); setPnSent(true); setTimeout(()=>setPnSent(false),4000);
+  };
+  const saveReport = () => {
+    if (!rptForm.subjectId||!rptForm.period.trim()) return;
+    setData(d=>({...d, studentReports:[...(d.studentReports||[]),{...rptForm,id:"srt"+uid(),tutorId:tutor.id,studentId:selStudentId,date:today(),lessonsAttended:Number(rptForm.lessonsAttended),lessonsScheduled:Number(rptForm.lessonsScheduled)}]}));
+    setRptForm({subjectId:"",period:"",periodType:"monthly",lessonsAttended:"",lessonsScheduled:"",topicsCovered:"",strengths:"",areasForImprovement:"",overallComments:"",rating:"Good"});
+    setRptSaved(true); setTimeout(()=>setRptSaved(false),4000);
+  };
+
+  const TUTOR_PAGES = [
+    {id:"dashboard",label:"Dashboard",  icon:LayoutDashboard},
+    {id:"students", label:"My Students",icon:Users},
+    {id:"schedule", label:"Schedule",   icon:CalendarDays},
+    ...(tutor.isAcademyTutor ? [{id:"academy",label:"Academy",icon:BookOpen}] : []),
+  ];
+  const STUDENT_TABS = [
+    {id:"info",       label:"Info"},
+    {id:"logbook",    label:"Logbook"},
+    {id:"chat",       label:"Chat"},
+    {id:"schedule",   label:"Schedule"},
+    {id:"report",     label:"Reports"},
+    {id:"parentNote", label:"Note to Parent"},
+  ];
+
+  const inputCls = "w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none";
+  const textCls  = "w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none resize-none";
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-2xl p-6" style={{ background: `linear-gradient(135deg, ${B.tealLight} 0%, ${B.coralLight} 100%)` }}>
-        <h1 className="text-2xl font-bold" style={{ color: B.tealDark }}>Hello, {tutor.firstName}!</h1>
-        <p className="text-sm text-gray-500 mt-1">Subjects: {mySubjects.map(s => s.name).join(" · ")}</p>
+    <div className="space-y-5">
+      {/* Internal tab nav */}
+      <div className="flex gap-1 bg-white border border-gray-100 rounded-2xl p-1.5 shadow-sm">
+        {TUTOR_PAGES.map(tp => (
+          <button key={tp.id} onClick={()=>{setTutorPage(tp.id);setSelStudentId(null);}}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-semibold transition-colors"
+            style={tutorPage===tp.id?{background:B.tealLight,color:B.tealDark}:{color:"#6b7280"}}>
+            <tp.icon size={13}/>{tp.label}
+          </button>
+        ))}
       </div>
 
-      <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">My Students</h2>
-        {myLinks.length === 0 ? <p className="text-sm text-gray-400">No students assigned.</p> : (
-          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead><tr style={{ background: B.tealLight }}>
-                {["Student","Subject","Grade","Since"].map(h => (
-                  <th key={h} className="text-left px-4 py-3 font-medium text-xs" style={{ color: B.tealDark }}>{h}</th>
-                ))}
-              </tr></thead>
-              <tbody>
-                {myLinks.map(link => {
-                  const st  = data.students.find(s => s.id === link.studentId);
-                  const sub = data.subjects.find(s => s.id === link.subjectId);
-                  return (
-                    <tr key={link.id} className="border-t border-gray-50 hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-800">{st.firstName} {st.lastName}</td>
-                      <td className="px-4 py-3 text-gray-600">{sub.name}</td>
-                      <td className="px-4 py-3 text-gray-500">{st.grade}</td>
-                      <td className="px-4 py-3 text-gray-400">{link.createdDate}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      {/* ── DASHBOARD ── */}
+      {tutorPage==="dashboard" && (
+        <div className="space-y-5">
+          <div className="rounded-2xl p-6" style={{background:`linear-gradient(135deg,${B.tealLight} 0%,${B.coralLight} 100%)`}}>
+            <h1 className="text-2xl font-bold" style={{color:B.tealDark}}>Hello, {tutor.firstName}!</h1>
+            <p className="text-sm text-gray-500 mt-1">Subjects: {(data.subjects||[]).filter(s=>tutor.subjectIds?.includes(s.id)).map(s=>s.name).join(" · ")}</p>
+            {tutor.isAcademyTutor && <span className="inline-block mt-2 text-xs px-2.5 py-1 rounded-full font-semibold" style={{background:B.coralLight,color:B.coralDark}}>Academy Tutor</span>}
           </div>
-        )}
-      </div>
 
-      {myNotes.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">Feedback & Notes</h2>
-          <div className="space-y-2">
-            {myNotes.map(n => (
-              <div key={n.id} className="rounded-xl p-4 border" style={{
-                background: n.type === "compliment" ? B.tealLight : B.coralLight,
-                borderColor: n.type === "compliment" ? B.teal : B.coral,
-              }}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: n.type === "compliment" ? B.tealDark : B.coralDark }}>
-                    {n.type === "compliment" ? "✓ Compliment" : "⚠ Note"}
-                  </span>
-                  <span className="text-xs text-gray-400">{n.date}</span>
-                </div>
-                <p className="text-sm text-gray-700">{n.note}</p>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              {label:"My Students",      value:myStudents.length,       icon:Users,         color:B.teal },
+              {label:"Upcoming Lessons", value:upcomingAll.length,      icon:CalendarDays,  color:B.coral},
+              {label:"Lessons This Month",value:(data.logbook||[]).filter(l=>l.tutorId===tutor.id&&l.date.startsWith(today().slice(0,7))).length, icon:BookMarked, color:B.gold},
+            ].map(s=>(
+              <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4">
+                <div className="flex items-center gap-1.5 mb-1"><s.icon size={13} style={{color:s.color}}/><p className="text-xs text-gray-400">{s.label}</p></div>
+                <p className="text-2xl font-bold text-gray-800">{s.value}</p>
               </div>
             ))}
+          </div>
+
+          {upcomingAll.length>0 && (
+            <div className="bg-white rounded-xl border border-gray-100 p-5">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Upcoming Lessons</h2>
+              <div className="space-y-2">
+                {upcomingAll.map(sl=>{
+                  const st=data.students.find(s=>s.id===sl.studentId);
+                  return (
+                    <div key={sl.id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100">
+                      <div className="text-center w-10 shrink-0">
+                        <p className="text-xs text-gray-400">{fmtDate(sl.date).split(" ")[1]}</p>
+                        <p className="text-base font-bold text-gray-800">{fmtDate(sl.date).split(" ")[0]}</p>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-800">{st?.firstName} {st?.lastName}</p>
+                        <p className="text-xs text-gray-400">{subjectName(sl.subjectId)} · {sl.time}</p>
+                      </div>
+                      {sl.link && <a href={sl.link} target="_blank" rel="noreferrer" className="text-xs px-3 py-1.5 rounded-xl font-semibold text-white" style={{background:B.tealDark}}>Join</a>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {myNotes.length>0 && (
+            <div className="bg-white rounded-xl border border-gray-100 p-5">
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Feedback from Learn to Link</h2>
+              <div className="space-y-2">
+                {myNotes.map(n=>(
+                  <div key={n.id} className="rounded-xl p-4 border" style={{background:n.type==="compliment"?B.tealLight:B.coralLight,borderColor:n.type==="compliment"?B.teal:B.coral}}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold uppercase tracking-wide" style={{color:n.type==="compliment"?B.tealDark:B.coralDark}}>{n.type==="compliment"?"✓ Compliment":"⚠ Note"}</span>
+                      <span className="text-xs text-gray-400">{fmtDate(n.date)}</span>
+                    </div>
+                    <p className="text-sm text-gray-700">{n.note}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white rounded-xl border border-gray-100 p-5">
+            <h2 className="text-sm font-semibold text-gray-700 mb-3">My Contact Details</h2>
+            <div className="flex flex-wrap gap-6 text-sm text-gray-600">
+              <div><span className="text-gray-400 mr-2">Email</span>{tutor.email}</div>
+              <div><span className="text-gray-400 mr-2">Phone</span>{tutor.phone}</div>
+            </div>
           </div>
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-100 p-5">
-        <h2 className="text-base font-semibold text-gray-800 mb-3">My Contact Details</h2>
-        <div className="flex flex-wrap gap-6 text-sm text-gray-600">
-          <div><span className="text-gray-400 mr-2">Email</span>{tutor.email}</div>
-          <div><span className="text-gray-400 mr-2">Phone</span>{tutor.phone}</div>
+      {/* ── MY STUDENTS ── */}
+      {tutorPage==="students" && (
+        <div className="space-y-4">
+          {!selStudent ? (
+            <>
+              <h2 className="text-base font-semibold text-gray-800">My Students</h2>
+              {myStudents.length===0 ? <p className="text-sm text-gray-400">No students assigned yet.</p> : (
+                <div className="space-y-3">
+                  {myStudents.map(st=>{
+                    const credits=creditsFor(st.id);
+                    const stSubjects=[...new Set(myLinks.filter(l=>l.studentId===st.id).map(l=>l.subjectId))].map(subjectName).join(", ");
+                    const upcoming=(data.scheduledLessons||[]).filter(sl=>sl.tutorId===tutor.id&&sl.studentId===st.id&&sl.date>=today()).length;
+                    return (
+                      <div key={st.id} className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={()=>{setSelStudentId(st.id);setStudentTab("info");}}>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-semibold text-gray-800">{st.firstName} {st.lastName}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">{st.curriculum} · {st.grade}</p>
+                            <p className="text-xs text-gray-500 mt-1">{stSubjects}</p>
+                          </div>
+                          <div className="space-y-1 text-right">
+                            <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${credits===0?"bg-red-50 text-red-600":"bg-green-50 text-green-700"}`}>
+                              <DollarSign size={10}/>{credits} lesson{credits===1?"":"s"} left
+                            </div>
+                            {upcoming>0 && <p className="text-xs text-gray-400">{upcoming} upcoming</p>}
+                          </div>
+                        </div>
+                        <p className="text-xs mt-3" style={{color:B.tealDark}}>View student →</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          ) : (
+            <div>
+              <button onClick={()=>setSelStudentId(null)} className="flex items-center gap-1 text-sm mb-4" style={{color:B.tealDark}}>
+                <ChevronLeft size={14}/>Back to students
+              </button>
+
+              <div className="bg-white rounded-xl border border-gray-100 p-4 mb-4 flex items-start justify-between">
+                <div>
+                  <h2 className="font-semibold text-gray-800">{selStudent.firstName} {selStudent.lastName}</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">{selStudent.curriculum} · {selStudent.grade}</p>
+                </div>
+                <div className={`px-3 py-1.5 rounded-full text-xs font-bold ${creditsFor(selStudentId)===0?"bg-red-50 text-red-600":"bg-green-50 text-green-700"}`}>
+                  <DollarSign size={10} className="inline mr-0.5"/>{creditsFor(selStudentId)} lesson{creditsFor(selStudentId)===1?"":"s"} remaining
+                </div>
+              </div>
+
+              {/* Sub-tabs */}
+              <div className="flex gap-0.5 mb-4 bg-gray-100 rounded-xl p-1 flex-wrap">
+                {STUDENT_TABS.map(tab=>(
+                  <button key={tab.id} onClick={()=>setStudentTab(tab.id)}
+                    className="flex-1 py-1.5 px-1.5 rounded-lg text-xs font-semibold transition-colors min-w-0"
+                    style={studentTab===tab.id?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,0.08)"}:{color:"#6b7280"}}>
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* INFO */}
+              {studentTab==="info" && (
+                <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Student Details — View Only</p>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    {[
+                      ["Full Name",  `${selStudent.firstName} ${selStudent.lastName}`],
+                      ["Curriculum", selStudent.curriculum],
+                      ["Grade",      selStudent.grade],
+                      ["Status",     selStudent.status],
+                      ["Enrolled",   fmtDate(selStudent.enrolledDate)],
+                      ["Reports",    selStudent.reportFrequency==="monthly"?"Monthly":"Termly"],
+                      ["Centre",     selStudent.centreId?(data.centres||[]).find(c=>c.id===selStudent.centreId)?.name||"—":"Individual"],
+                    ].map(([l,v])=>(
+                      <div key={l}><p className="text-xs text-gray-400 mb-0.5">{l}</p><p className="font-medium text-gray-700">{v}</p></div>
+                    ))}
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-2">Subjects with me</p>
+                    <div className="flex flex-wrap gap-2">
+                      {selLinks.map(l=><span key={l.id} className="px-3 py-1 rounded-full text-xs font-medium" style={{background:B.tealLight,color:B.tealDark}}>{subjectName(l.subjectId)}</span>)}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* LOGBOOK */}
+              {studentTab==="logbook" && (
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl border border-gray-100 p-5">
+                    <p className="text-sm font-semibold text-gray-700 mb-3">Log a Session</p>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Subject *</label>
+                          <select value={lbForm.subjectId} onChange={e=>setLbForm(f=>({...f,subjectId:e.target.value}))} className={inputCls}>
+                            <option value="">— select —</option>
+                            {selLinks.map(l=><option key={l.subjectId} value={l.subjectId}>{subjectName(l.subjectId)}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Duration (min)</label>
+                          <input type="number" value={lbForm.duration} onChange={e=>setLbForm(f=>({...f,duration:e.target.value}))} className={inputCls} min="15" step="15"/>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Topics Covered *</label>
+                        <textarea rows={2} value={lbForm.topicsCovered} onChange={e=>setLbForm(f=>({...f,topicsCovered:e.target.value}))} placeholder="What was covered in this session?" className={textCls}/>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Homework Set</label>
+                        <input value={lbForm.homework} onChange={e=>setLbForm(f=>({...f,homework:e.target.value}))} placeholder="Tasks for next session…" className={inputCls}/>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Tutor Notes</label>
+                        <textarea rows={2} value={lbForm.notes} onChange={e=>setLbForm(f=>({...f,notes:e.target.value}))} placeholder="Progress observations…" className={textCls}/>
+                      </div>
+                      <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                        <input type="checkbox" checked={lbForm.attended} onChange={e=>setLbForm(f=>({...f,attended:e.target.checked}))} className="rounded"/>
+                        Student attended
+                      </label>
+                      <button onClick={addLog} disabled={!lbForm.subjectId||!lbForm.topicsCovered.trim()}
+                        className="w-full py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{background:B.tealDark}}>
+                        Log Session
+                      </button>
+                    </div>
+                  </div>
+
+                  {studentLog.length===0 ? <p className="text-sm text-gray-400">No sessions logged yet.</p> : (
+                    <div className="space-y-3">
+                      {studentLog.map(lb=>(
+                        <div key={lb.id} className="bg-white rounded-xl border border-gray-100 p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <span className="text-xs font-semibold" style={{color:B.tealDark}}>{subjectName(lb.subjectId)}</span>
+                              {lb.tutorId!==tutor.id && <span className="ml-2 text-xs text-gray-400">by {tutorName(lb.tutorId)}</span>}
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-gray-400">{fmtDate(lb.date)}</p>
+                              <p className="text-xs text-gray-400">{lb.duration} min{!lb.attended?" · absent":""}</p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-1"><strong>Topics:</strong> {lb.topicsCovered}</p>
+                          {lb.homework && <p className="text-sm text-gray-600 mb-1"><strong>Homework:</strong> {lb.homework}</p>}
+                          {lb.notes && <p className="text-sm text-gray-500 italic">{lb.notes}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* CHAT */}
+              {studentTab==="chat" && (
+                <div className="space-y-3">
+                  <div className="bg-white rounded-xl border border-gray-100 p-4 min-h-48 space-y-3">
+                    {studentMsgs.length===0 ? <p className="text-sm text-gray-400">No messages yet. Start the conversation!</p> : studentMsgs.map(msg=>(
+                      <div key={msg.id} className={`flex ${msg.fromRole==="tutor"?"justify-end":"justify-start"}`}>
+                        <div className="max-w-xs rounded-2xl px-4 py-2.5 text-sm"
+                          style={msg.fromRole==="tutor"?{background:B.tealDark,color:"white"}:{background:"#f3f4f6",color:"#374151"}}>
+                          <p>{msg.text}</p>
+                          <p className="text-xs mt-1 opacity-60">{msg.time}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input value={msgText} onChange={e=>setMsgText(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMsg()}
+                      placeholder="Type a message…" className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none"/>
+                    <button onClick={sendMsg} disabled={!msgText.trim()} className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{background:B.tealDark}}>Send</button>
+                  </div>
+                </div>
+              )}
+
+              {/* SCHEDULE */}
+              {studentTab==="schedule" && (
+                <div className="space-y-4">
+                  <div className="bg-white rounded-xl border border-gray-100 p-5">
+                    <p className="text-sm font-semibold text-gray-700 mb-3">Schedule a Lesson</p>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Subject *</label>
+                          <select value={slForm.subjectId} onChange={e=>setSlForm(f=>({...f,subjectId:e.target.value}))} className={inputCls}>
+                            <option value="">— select —</option>
+                            {selLinks.map(l=><option key={l.subjectId} value={l.subjectId}>{subjectName(l.subjectId)}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Date *</label>
+                          <input type="date" value={slForm.date} onChange={e=>setSlForm(f=>({...f,date:e.target.value}))} className={inputCls}/>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Time *</label>
+                          <input type="time" value={slForm.time} onChange={e=>setSlForm(f=>({...f,time:e.target.value}))} className={inputCls}/>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Lesson Link</label>
+                          <input value={slForm.link} onChange={e=>setSlForm(f=>({...f,link:e.target.value}))} placeholder="https://meet.google.com/…" className={inputCls}/>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Notes</label>
+                        <input value={slForm.notes} onChange={e=>setSlForm(f=>({...f,notes:e.target.value}))} placeholder="e.g. Bring textbook" className={inputCls}/>
+                      </div>
+                      <button onClick={schedLesson} disabled={!slForm.subjectId||!slForm.date||!slForm.time}
+                        className="w-full py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{background:B.tealDark}}>
+                        Add to Schedule
+                      </button>
+                    </div>
+                  </div>
+
+                  {studentSched.length===0 ? <p className="text-sm text-gray-400">No lessons scheduled yet.</p> : (
+                    <div className="space-y-2">
+                      {studentSched.map(sl=>(
+                        <div key={sl.id} className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-4">
+                          <div className="text-center w-12 shrink-0">
+                            <p className="text-xs text-gray-400">{fmtDate(sl.date).split(" ")[1]}</p>
+                            <p className="text-lg font-bold text-gray-800">{fmtDate(sl.date).split(" ")[0]}</p>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-gray-800">{subjectName(sl.subjectId)} · {sl.time}</p>
+                            {sl.notes && <p className="text-xs text-gray-500 mt-0.5">{sl.notes}</p>}
+                            {sl.link && <a href={sl.link} target="_blank" rel="noreferrer" className="text-xs mt-1 inline-block" style={{color:B.tealDark}}>🔗 Join lesson</a>}
+                          </div>
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${sl.date>=today()?"bg-green-50 text-green-700":"bg-gray-100 text-gray-400"}`}>
+                            {sl.date>=today()?"Upcoming":"Past"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* REPORTS */}
+              {studentTab==="report" && (
+                <div className="space-y-4">
+                  {rptSaved && <div className="px-4 py-3 rounded-xl text-sm font-medium" style={{background:B.tealLight,color:B.tealDark}}>✓ Report saved successfully.</div>}
+                  <div className="bg-white rounded-xl border border-gray-100 p-5">
+                    <p className="text-sm font-semibold text-gray-700 mb-1">
+                      Write a {selStudent.reportFrequency==="monthly"?"Monthly":"Term"} Report
+                    </p>
+                    <p className="text-xs text-gray-400 mb-3">Reports are due {selStudent.reportFrequency==="monthly"?"monthly":"each term"}.</p>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Subject *</label>
+                          <select value={rptForm.subjectId} onChange={e=>setRptForm(f=>({...f,subjectId:e.target.value}))} className={inputCls}>
+                            <option value="">— select —</option>
+                            {selLinks.map(l=><option key={l.subjectId} value={l.subjectId}>{subjectName(l.subjectId)}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Period *</label>
+                          <input value={rptForm.period} onChange={e=>setRptForm(f=>({...f,period:e.target.value}))}
+                            placeholder={selStudent.reportFrequency==="monthly"?"e.g. June 2025":"e.g. Term 2 2025"} className={inputCls}/>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Lessons Attended</label>
+                          <input type="number" value={rptForm.lessonsAttended} onChange={e=>setRptForm(f=>({...f,lessonsAttended:e.target.value}))} min="0" className={inputCls}/>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Lessons Scheduled</label>
+                          <input type="number" value={rptForm.lessonsScheduled} onChange={e=>setRptForm(f=>({...f,lessonsScheduled:e.target.value}))} min="0" className={inputCls}/>
+                        </div>
+                      </div>
+                      <div><label className="block text-xs text-gray-400 mb-1">Topics Covered</label><textarea rows={2} value={rptForm.topicsCovered} onChange={e=>setRptForm(f=>({...f,topicsCovered:e.target.value}))} placeholder="Units and topics covered this period…" className={textCls}/></div>
+                      <div><label className="block text-xs text-gray-400 mb-1">Strengths</label><textarea rows={2} value={rptForm.strengths} onChange={e=>setRptForm(f=>({...f,strengths:e.target.value}))} placeholder="What is the student doing well?" className={textCls}/></div>
+                      <div><label className="block text-xs text-gray-400 mb-1">Areas for Improvement</label><textarea rows={2} value={rptForm.areasForImprovement} onChange={e=>setRptForm(f=>({...f,areasForImprovement:e.target.value}))} placeholder="What needs more focus?" className={textCls}/></div>
+                      <div><label className="block text-xs text-gray-400 mb-1">Overall Comments</label><textarea rows={3} value={rptForm.overallComments} onChange={e=>setRptForm(f=>({...f,overallComments:e.target.value}))} placeholder="Summary and recommendations…" className={textCls}/></div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-2">Overall Rating</label>
+                        <div className="flex gap-2 flex-wrap">
+                          {["Excellent","Good","Satisfactory","Needs Improvement"].map(r=>(
+                            <button key={r} onClick={()=>setRptForm(f=>({...f,rating:r}))}
+                              className="px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-colors"
+                              style={{borderColor:rptForm.rating===r?B.teal:"#e5e7eb",background:rptForm.rating===r?B.tealLight:"white",color:rptForm.rating===r?B.tealDark:"#6b7280"}}>
+                              {r}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <button onClick={saveReport} disabled={!rptForm.subjectId||!rptForm.period.trim()}
+                        className="w-full py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{background:B.tealDark}}>
+                        Save Report
+                      </button>
+                    </div>
+                  </div>
+
+                  {studentRpts.length>0 && (
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600 mb-2">Previous Reports</p>
+                      <div className="space-y-3">
+                        {studentRpts.map(r=>(
+                          <div key={r.id} className="bg-white rounded-xl border border-gray-100 p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <div>
+                                <p className="font-semibold text-sm text-gray-800">{r.period} · {subjectName(r.subjectId)}</p>
+                                <p className="text-xs text-gray-400 mt-0.5">{r.lessonsAttended}/{r.lessonsScheduled} lessons · {fmtDate(r.date)}</p>
+                              </div>
+                              <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
+                                style={{background:r.rating==="Excellent"?"#dcfce7":r.rating==="Good"?B.tealLight:r.rating==="Satisfactory"?B.goldLight:B.coralLight,color:r.rating==="Excellent"?"#15803d":r.rating==="Good"?B.tealDark:r.rating==="Satisfactory"?"#92400e":B.coralDark}}>
+                                {r.rating}
+                              </span>
+                            </div>
+                            {r.topicsCovered && <p className="text-xs text-gray-600 mb-1"><strong>Topics:</strong> {r.topicsCovered}</p>}
+                            {r.strengths && <p className="text-xs text-gray-600 mb-1"><strong>Strengths:</strong> {r.strengths}</p>}
+                            {r.areasForImprovement && <p className="text-xs text-gray-600 mb-1"><strong>Improve:</strong> {r.areasForImprovement}</p>}
+                            {r.overallComments && <p className="text-xs text-gray-500 italic mt-1">{r.overallComments}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* NOTE TO PARENT */}
+              {studentTab==="parentNote" && (
+                <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
+                  <div>
+                    <p className="text-sm font-semibold text-gray-700">Note to Parent / Guardian</p>
+                    <p className="text-xs text-gray-400 mt-1">This note will appear on the parent's profile only. The student cannot see it.</p>
+                  </div>
+                  {pnSent && <div className="px-4 py-3 rounded-xl text-sm font-medium" style={{background:B.tealLight,color:B.tealDark}}>✓ Note sent to parent.</div>}
+                  <textarea rows={4} value={pnText} onChange={e=>setPnText(e.target.value)}
+                    placeholder="Write a note for the parent / guardian about this student's progress, behaviour, or anything they should be aware of…"
+                    className={textCls}/>
+                  <button onClick={sendParentNote} disabled={!pnText.trim()}
+                    className="w-full py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40"
+                    style={{background:`linear-gradient(135deg,${B.tealDark} 0%,${B.coral} 100%)`}}>
+                    Send Note to Parent
+                  </button>
+                  {(()=>{
+                    const prev=(data.tutorStudentNotes||[]).filter(n=>n.tutorId===tutor.id&&n.studentId===selStudentId).sort((a,b)=>b.date.localeCompare(a.date));
+                    return prev.length>0?(
+                      <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Previously Sent</p>
+                        <div className="space-y-2">
+                          {prev.map(n=>(
+                            <div key={n.id} className="p-3 rounded-xl border border-gray-100 bg-gray-50">
+                              <p className="text-xs text-gray-400 mb-1">{fmtDate(n.date)}</p>
+                              <p className="text-sm text-gray-700">{n.note}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ):null;
+                  })()}
+                </div>
+              )}
+            </div>
+          )}
         </div>
-      </div>
+      )}
+
+      {/* ── SCHEDULE (all students) ── */}
+      {tutorPage==="schedule" && (
+        <div className="space-y-4">
+          <h2 className="text-base font-semibold text-gray-800">My Full Schedule</h2>
+          {(()=>{
+            const all=(data.scheduledLessons||[]).filter(sl=>sl.tutorId===tutor.id).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
+            const upcoming=all.filter(sl=>sl.date>=today());
+            const past=[...all.filter(sl=>sl.date<today())].reverse();
+            const LessonRow=({sl,dim})=>{
+              const st=data.students.find(s=>s.id===sl.studentId);
+              return(
+                <div className={`rounded-xl border border-gray-100 p-4 flex items-center gap-4 ${dim?"bg-gray-50 opacity-60":"bg-white"}`}>
+                  <div className="text-center w-12 shrink-0">
+                    <p className="text-xs text-gray-400">{fmtDate(sl.date).split(" ")[1]}</p>
+                    <p className="text-lg font-bold text-gray-800">{fmtDate(sl.date).split(" ")[0]}</p>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-800">{st?.firstName} {st?.lastName}</p>
+                    <p className="text-xs text-gray-500">{subjectName(sl.subjectId)} · {sl.time}</p>
+                    {sl.notes && <p className="text-xs text-gray-400 mt-0.5">{sl.notes}</p>}
+                    {sl.link && <a href={sl.link} target="_blank" rel="noreferrer" className="text-xs mt-1 inline-block" style={{color:B.tealDark}}>🔗 Join lesson</a>}
+                  </div>
+                </div>
+              );
+            };
+            return(
+              <>
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Upcoming ({upcoming.length})</p>
+                  {upcoming.length===0?<p className="text-sm text-gray-400">No upcoming lessons.</p>:<div className="space-y-2">{upcoming.map(sl=><LessonRow key={sl.id} sl={sl} dim={false}/>)}</div>}
+                </div>
+                {past.length>0&&(
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Past ({past.length})</p>
+                    <div className="space-y-2">{past.map(sl=><LessonRow key={sl.id} sl={sl} dim={true}/>)}</div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* ── ACADEMY (only for academy tutors) ── */}
+      {tutorPage==="academy" && tutor.isAcademyTutor && (
+        <div className="space-y-4">
+          <div className="rounded-xl p-4 mb-2" style={{background:B.coralLight}}>
+            <p className="text-sm font-semibold" style={{color:B.coralDark}}>Academy Tutor Access</p>
+            <p className="text-xs text-gray-500 mt-1">You are assigned as an academy tutor and have access to published courses below.</p>
+          </div>
+          {(data.courses||[]).filter(c=>c.status==="Published").map(course=>{
+            const lessons=(data.lessons||[]).filter(l=>l.courseId===course.id);
+            const mods=(data.modules||[]).filter(m=>m.courseId===course.id);
+            return(
+              <div key={course.id} className="bg-white rounded-xl border border-gray-100 p-5">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-3 h-3 rounded-full" style={{background:course.color}}/>
+                  <p className="font-semibold text-sm text-gray-800">{course.title}</p>
+                </div>
+                <p className="text-xs text-gray-500 mb-3">{course.description}</p>
+                <div className="flex gap-4 text-xs text-gray-400">
+                  <span>{mods.length} module{mods.length===1?"":"s"}</span>
+                  <span>{lessons.length} lesson{lessons.length===1?"":"s"}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -3045,6 +3691,30 @@ function ParentPortal({ student, data, setData }) {
           </div>
         </div>
       )}
+
+      {/* Notes from tutors — visible to parent only, NOT to student */}
+      {(()=>{
+        const tutorNotes=(data.tutorStudentNotes||[]).filter(n=>n.studentId===student.id).sort((a,b)=>b.date.localeCompare(a.date));
+        if (!tutorNotes.length) return null;
+        const tName=(id)=>{const t=data.tutors.find(x=>x.id===id);return t?`${t.firstName} ${t.lastName}`:"Tutor";};
+        return (
+          <div className="bg-white rounded-xl border border-gray-100 p-5">
+            <h2 className="text-base font-semibold text-gray-800 mb-1">Notes from Tutors</h2>
+            <p className="text-xs text-gray-400 mb-3">Private messages from your child's tutors — only you can see these.</p>
+            <div className="space-y-3">
+              {tutorNotes.map(n=>(
+                <div key={n.id} className="p-4 rounded-xl border-l-4" style={{borderColor:B.teal,background:B.tealLight}}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold" style={{color:B.tealDark}}>{tName(n.tutorId)}</span>
+                    <span className="text-xs text-gray-400">{fmtDate(n.date)}</span>
+                  </div>
+                  <p className="text-sm text-gray-700">{n.note}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Tutor feedback — sent privately to admin only, never shown to tutor */}
       {myTutors.length > 0 && setData && (
@@ -3210,10 +3880,7 @@ function buildRoleOptions(data) {
 // Nav items per role  (id "home" = portal, others = existing page keys)
 const ROLE_NAV_ITEMS = {
   tutor:   [
-    { id: "home",     label: "My Dashboard",  icon: LayoutDashboard },
-    { id: "students", label: "My Students",   icon: Users           },
-    { id: "links",    label: "My Links",      icon: LinkIcon        },
-    { id: "academy",  label: "Academy",       icon: BookOpen        },
+    { id: "home", label: "Tutor Portal", icon: LayoutDashboard },
   ],
   student: [
     { id: "home",     label: "My Dashboard",  icon: LayoutDashboard },
@@ -3249,13 +3916,18 @@ export default function App() {
     centreNotes:   INIT_CENTRE_NOTES,
     purchases:     INIT_PURCHASES,
     financials:    INIT_FINANCIALS,
-    courses:       INIT_COURSES,
-    modules:       INIT_MODULES,
-    lessons:       INIT_LESSONS,
-    quizzes:       INIT_QUIZZES,
-    enrolments:    INIT_ENROLMENTS,
-    progress:      INIT_PROGRESS,
-    announcements: INIT_ANNOUNCEMENTS,
+    courses:             INIT_COURSES,
+    modules:             INIT_MODULES,
+    lessons:             INIT_LESSONS,
+    quizzes:             INIT_QUIZZES,
+    enrolments:          INIT_ENROLMENTS,
+    progress:            INIT_PROGRESS,
+    announcements:       INIT_ANNOUNCEMENTS,
+    logbook:             INIT_LOGBOOK,
+    scheduledLessons:    INIT_SCHEDULED_LESSONS,
+    messages:            INIT_MESSAGES,
+    tutorStudentNotes:   INIT_TUTOR_STUDENT_NOTES,
+    studentReports:      INIT_STUDENT_REPORTS,
   });
 
   const roleOptions = useMemo(() => buildRoleOptions(data), [data]);
@@ -3272,13 +3944,19 @@ export default function App() {
       const myStudentIds = [...new Set(myLinks.map(l => l.studentId))];
       return {
         ...data,
-        students:   data.students.filter(s => myStudentIds.includes(s.id)),
-        links:      myLinks,
-        tutors:     data.tutors.filter(t => t.id === id),
-        tutorNotes: data.tutorNotes.filter(n => n.tutorId === id && n.source !== "parent"),
-        purchases:  data.purchases.filter(p => myStudentIds.includes(p.studentId)),
-        enrolments: data.enrolments.filter(e => myStudentIds.includes(e.studentId)),
-        progress:   data.progress.filter(p => myStudentIds.includes(p.studentId)),
+        students:           data.students.filter(s => myStudentIds.includes(s.id)),
+        links:              myLinks,
+        tutors:             data.tutors.filter(t => t.id === id),
+        tutorNotes:         data.tutorNotes.filter(n => n.tutorId === id && n.source !== "parent"),
+        purchases:          data.purchases.filter(p => myStudentIds.includes(p.studentId)),
+        enrolments:         data.enrolments.filter(e => myStudentIds.includes(e.studentId)),
+        progress:           data.progress.filter(p => myStudentIds.includes(p.studentId)),
+        // New tutor-specific data — all logs visible, own schedule/messages/reports
+        logbook:            data.logbook.filter(l => myStudentIds.includes(l.studentId)),
+        scheduledLessons:   data.scheduledLessons.filter(s => s.tutorId === id),
+        messages:           data.messages.filter(m => m.tutorId === id),
+        tutorStudentNotes:  data.tutorStudentNotes.filter(n => n.tutorId === id),
+        studentReports:     data.studentReports.filter(r => r.tutorId === id),
       };
     }
 
@@ -3287,12 +3965,17 @@ export default function App() {
       const myTutorIds = [...new Set(myLinks.map(l => l.tutorId))];
       return {
         ...data,
-        students:   data.students.filter(s => s.id === id),
-        links:      myLinks,
-        tutors:     data.tutors.filter(t => myTutorIds.includes(t.id)),
-        purchases:  data.purchases.filter(p => p.studentId === id),
-        enrolments: data.enrolments.filter(e => e.studentId === id),
-        progress:   data.progress.filter(p => p.studentId === id),
+        students:          data.students.filter(s => s.id === id),
+        links:             myLinks,
+        tutors:            data.tutors.filter(t => myTutorIds.includes(t.id)),
+        purchases:         data.purchases.filter(p => p.studentId === id),
+        enrolments:        data.enrolments.filter(e => e.studentId === id),
+        progress:          data.progress.filter(p => p.studentId === id),
+        scheduledLessons:  data.scheduledLessons.filter(sl => sl.studentId === id),
+        messages:          data.messages.filter(m => m.studentId === id),
+        // tutorStudentNotes intentionally excluded — students cannot see these
+        tutorStudentNotes: [],
+        studentReports:    data.studentReports.filter(r => r.studentId === id),
       };
     }
 
@@ -3301,12 +3984,16 @@ export default function App() {
       const myTutorIds = [...new Set(myLinks.map(l => l.tutorId))];
       return {
         ...data,
-        students:   data.students.filter(s => s.id === id),
-        links:      myLinks,
-        tutors:     data.tutors.filter(t => myTutorIds.includes(t.id)),
-        purchases:  data.purchases.filter(p => p.studentId === id),
-        enrolments: data.enrolments.filter(e => e.studentId === id),
-        progress:   data.progress.filter(p => p.studentId === id),
+        students:          data.students.filter(s => s.id === id),
+        links:             myLinks,
+        tutors:            data.tutors.filter(t => myTutorIds.includes(t.id)),
+        purchases:         data.purchases.filter(p => p.studentId === id),
+        enrolments:        data.enrolments.filter(e => e.studentId === id),
+        progress:          data.progress.filter(p => p.studentId === id),
+        scheduledLessons:  data.scheduledLessons.filter(sl => sl.studentId === id),
+        // Tutor-to-parent notes: parents CAN see these, students cannot
+        tutorStudentNotes: data.tutorStudentNotes.filter(n => n.studentId === id),
+        studentReports:    data.studentReports.filter(r => r.studentId === id),
       };
     }
 
@@ -3339,8 +4026,8 @@ export default function App() {
   // Portal home page for non-admin roles
   const portalHome = useMemo(() => {
     const { role, id } = activeOpt;
-    if (role === "tutor")   { const t = data.tutors.find(x => x.id === id);   return t ? <TutorPortal   tutor={t}    data={filteredData} /> : null; }
-    if (role === "student") { const s = data.students.find(x => x.id === id); return s ? <StudentPortal student={s} data={filteredData} /> : null; }
+    if (role === "tutor")   { const t = data.tutors.find(x => x.id === id);   return t ? <TutorPortal   tutor={t}    data={filteredData} setData={setData} /> : null; }
+    if (role === "student") { const s = data.students.find(x => x.id === id); return s ? <StudentPortal student={s} data={filteredData} setData={setData} /> : null; }
     if (role === "parent")  { const s = data.students.find(x => x.id === id); return s ? <ParentPortal  student={s} data={filteredData} setData={setData} /> : null; }
     if (role === "centre")  { const c = data.centres.find(x => x.id === id);  return c ? <CentrePortal  centre={c}  data={filteredData} /> : null; }
     return null;
