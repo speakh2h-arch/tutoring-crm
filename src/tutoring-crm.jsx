@@ -3233,64 +3233,69 @@ function TutorPortal({ tutor, data, setData }) {
               {/* LOGBOOK */}
               {studentTab==="logbook" && (
                 <div className="space-y-4">
-                  <div className="bg-white rounded-xl border border-gray-100 p-5">
-                    <p className="text-sm font-semibold text-gray-700 mb-3">Log a Session</p>
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">Subject *</label>
-                          <select value={lbForm.subjectId} onChange={e=>setLbForm(f=>({...f,subjectId:e.target.value}))} className={inputCls}>
-                            <option value="">— select —</option>
-                            {selLinks.map(l=><option key={l.subjectId} value={l.subjectId}>{subjectName(l.subjectId)}</option>)}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">Duration (min)</label>
-                          <input type="number" value={lbForm.duration} onChange={e=>setLbForm(f=>({...f,duration:e.target.value}))} className={inputCls} min="15" step="15"/>
-                        </div>
+                  {/* Log form — compact inline style */}
+                  <div className="border border-gray-100 rounded-xl overflow-hidden">
+                    <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Log a Session</p>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      <div className="flex gap-2 flex-wrap">
+                        <select value={lbForm.subjectId} onChange={e=>setLbForm(f=>({...f,subjectId:e.target.value}))}
+                          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none bg-white">
+                          <option value="">Subject *</option>
+                          {selLinks.map(l=><option key={l.subjectId} value={l.subjectId}>{subjectName(l.subjectId)}</option>)}
+                        </select>
+                        <input type="number" value={lbForm.duration} onChange={e=>setLbForm(f=>({...f,duration:e.target.value}))}
+                          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none w-24" min="15" step="15" placeholder="Mins"/>
+                        <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer ml-auto">
+                          <input type="checkbox" checked={lbForm.attended} onChange={e=>setLbForm(f=>({...f,attended:e.target.checked}))} className="rounded"/>
+                          Attended
+                        </label>
                       </div>
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">Topics Covered *</label>
-                        <textarea rows={2} value={lbForm.topicsCovered} onChange={e=>setLbForm(f=>({...f,topicsCovered:e.target.value}))} placeholder="What was covered in this session?" className={textCls}/>
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">Homework Set</label>
-                        <input value={lbForm.homework} onChange={e=>setLbForm(f=>({...f,homework:e.target.value}))} placeholder="Tasks for next session…" className={inputCls}/>
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">Tutor Notes</label>
-                        <textarea rows={2} value={lbForm.notes} onChange={e=>setLbForm(f=>({...f,notes:e.target.value}))} placeholder="Progress observations…" className={textCls}/>
-                      </div>
-                      <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                        <input type="checkbox" checked={lbForm.attended} onChange={e=>setLbForm(f=>({...f,attended:e.target.checked}))} className="rounded"/>
-                        Student attended
-                      </label>
+                      <textarea rows={2} value={lbForm.topicsCovered} onChange={e=>setLbForm(f=>({...f,topicsCovered:e.target.value}))}
+                        placeholder="Topics covered in this session *" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"/>
+                      <input value={lbForm.homework} onChange={e=>setLbForm(f=>({...f,homework:e.target.value}))}
+                        placeholder="Homework / tasks set for next session" className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none"/>
+                      <textarea rows={2} value={lbForm.notes} onChange={e=>setLbForm(f=>({...f,notes:e.target.value}))}
+                        placeholder="Private tutor notes / observations…" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"/>
                       <button onClick={addLog} disabled={!lbForm.subjectId||!lbForm.topicsCovered.trim()}
-                        className="w-full py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{background:B.tealDark}}>
-                        Log Session
+                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold text-white disabled:opacity-40"
+                        style={{background:B.tealDark}}>
+                        <Plus size={14}/> Add to Logbook
                       </button>
                     </div>
                   </div>
 
-                  {studentLog.length===0 ? <p className="text-sm text-gray-400">No sessions logged yet.</p> : (
-                    <div className="space-y-3">
-                      {studentLog.map(lb=>(
-                        <div key={lb.id} className="bg-white rounded-xl border border-gray-100 p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <span className="text-xs font-semibold" style={{color:B.tealDark}}>{subjectName(lb.subjectId)}</span>
-                              {lb.tutorId!==tutor.id && <span className="ml-2 text-xs text-gray-400">by {tutorName(lb.tutorId)}</span>}
+                  {/* Log entries — note-row style matching admin */}
+                  {studentLog.length===0 ? (
+                    <p className="text-sm text-gray-400 text-center py-4">No sessions logged yet.</p>
+                  ) : (
+                    <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+                      <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Session Log ({studentLog.length})</p>
+                      </div>
+                      <div className="divide-y divide-gray-50">
+                        {studentLog.map(lb=>(
+                          <div key={lb.id} className="flex items-start gap-3 px-4 py-3">
+                            <div className="mt-0.5 w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                              style={{background:lb.attended?B.tealLight:"#fee2e2"}}>
+                              <BookMarked size={13} style={{color:lb.attended?B.tealDark:"#dc2626"}}/>
                             </div>
-                            <div className="text-right">
-                              <p className="text-xs text-gray-400">{fmtDate(lb.date)}</p>
-                              <p className="text-xs text-gray-400">{lb.duration} min{!lb.attended?" · absent":""}</p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                                  style={{background:B.tealLight,color:B.tealDark}}>{subjectName(lb.subjectId)}</span>
+                                {!lb.attended && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600">Absent</span>}
+                                {lb.tutorId!==tutor.id && <span className="text-xs text-gray-400">· {tutorName(lb.tutorId)}</span>}
+                                <span className="text-xs text-gray-400 ml-auto">{fmtDate(lb.date)} · {lb.duration} min</span>
+                              </div>
+                              <p className="text-sm text-gray-700">{lb.topicsCovered}</p>
+                              {lb.homework && <p className="text-xs text-gray-500 mt-1">📚 Homework: {lb.homework}</p>}
+                              {lb.notes && <p className="text-xs text-gray-400 italic mt-0.5">{lb.notes}</p>}
                             </div>
                           </div>
-                          <p className="text-sm text-gray-700 mb-1"><strong>Topics:</strong> {lb.topicsCovered}</p>
-                          {lb.homework && <p className="text-sm text-gray-600 mb-1"><strong>Homework:</strong> {lb.homework}</p>}
-                          {lb.notes && <p className="text-sm text-gray-500 italic">{lb.notes}</p>}
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -3385,46 +3390,37 @@ function TutorPortal({ tutor, data, setData }) {
               {studentTab==="report" && (
                 <div className="space-y-4">
                   {rptSaved && <div className="px-4 py-3 rounded-xl text-sm font-medium" style={{background:B.tealLight,color:B.tealDark}}>✓ Report saved successfully.</div>}
-                  <div className="bg-white rounded-xl border border-gray-100 p-5">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">
-                      Write a {selStudent.reportFrequency==="monthly"?"Monthly":"Term"} Report
-                    </p>
-                    <p className="text-xs text-gray-400 mb-3">Reports are due {selStudent.reportFrequency==="monthly"?"monthly":"each term"}.</p>
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">Subject *</label>
-                          <select value={rptForm.subjectId} onChange={e=>setRptForm(f=>({...f,subjectId:e.target.value}))} className={inputCls}>
-                            <option value="">— select —</option>
-                            {selLinks.map(l=><option key={l.subjectId} value={l.subjectId}>{subjectName(l.subjectId)}</option>)}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">Period *</label>
-                          <input value={rptForm.period} onChange={e=>setRptForm(f=>({...f,period:e.target.value}))}
-                            placeholder={selStudent.reportFrequency==="monthly"?"e.g. June 2025":"e.g. Term 2 2025"} className={inputCls}/>
-                        </div>
+
+                  {/* Report form */}
+                  <div className="border border-gray-100 rounded-xl overflow-hidden">
+                    <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Write a {selStudent.reportFrequency==="monthly"?"Monthly":"Term"} Report
+                      </p>
+                      <span className="text-xs text-gray-400">Due {selStudent.reportFrequency==="monthly"?"monthly":"each term"}</span>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      <div className="flex gap-2 flex-wrap">
+                        <select value={rptForm.subjectId} onChange={e=>setRptForm(f=>({...f,subjectId:e.target.value}))} className={inputCls} style={{flex:"1 1 140px"}}>
+                          <option value="">Subject *</option>
+                          {selLinks.map(l=><option key={l.subjectId} value={l.subjectId}>{subjectName(l.subjectId)}</option>)}
+                        </select>
+                        <input value={rptForm.period} onChange={e=>setRptForm(f=>({...f,period:e.target.value}))}
+                          placeholder={selStudent.reportFrequency==="monthly"?"Period * (e.g. June 2025)":"Period * (e.g. Term 2 2025)"}
+                          className={inputCls} style={{flex:"1 1 160px"}}/>
+                        <input type="number" value={rptForm.lessonsAttended} onChange={e=>setRptForm(f=>({...f,lessonsAttended:e.target.value}))} min="0" placeholder="Attended" className={inputCls} style={{width:"88px"}}/>
+                        <input type="number" value={rptForm.lessonsScheduled} onChange={e=>setRptForm(f=>({...f,lessonsScheduled:e.target.value}))} min="0" placeholder="Scheduled" className={inputCls} style={{width:"96px"}}/>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">Lessons Attended</label>
-                          <input type="number" value={rptForm.lessonsAttended} onChange={e=>setRptForm(f=>({...f,lessonsAttended:e.target.value}))} min="0" className={inputCls}/>
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">Lessons Scheduled</label>
-                          <input type="number" value={rptForm.lessonsScheduled} onChange={e=>setRptForm(f=>({...f,lessonsScheduled:e.target.value}))} min="0" className={inputCls}/>
-                        </div>
-                      </div>
-                      <div><label className="block text-xs text-gray-400 mb-1">Topics Covered</label><textarea rows={2} value={rptForm.topicsCovered} onChange={e=>setRptForm(f=>({...f,topicsCovered:e.target.value}))} placeholder="Units and topics covered this period…" className={textCls}/></div>
-                      <div><label className="block text-xs text-gray-400 mb-1">Strengths</label><textarea rows={2} value={rptForm.strengths} onChange={e=>setRptForm(f=>({...f,strengths:e.target.value}))} placeholder="What is the student doing well?" className={textCls}/></div>
-                      <div><label className="block text-xs text-gray-400 mb-1">Areas for Improvement</label><textarea rows={2} value={rptForm.areasForImprovement} onChange={e=>setRptForm(f=>({...f,areasForImprovement:e.target.value}))} placeholder="What needs more focus?" className={textCls}/></div>
-                      <div><label className="block text-xs text-gray-400 mb-1">Overall Comments</label><textarea rows={3} value={rptForm.overallComments} onChange={e=>setRptForm(f=>({...f,overallComments:e.target.value}))} placeholder="Summary and recommendations…" className={textCls}/></div>
+                      <textarea rows={2} value={rptForm.topicsCovered} onChange={e=>setRptForm(f=>({...f,topicsCovered:e.target.value}))} placeholder="Topics covered this period…" className={textCls}/>
+                      <textarea rows={2} value={rptForm.strengths} onChange={e=>setRptForm(f=>({...f,strengths:e.target.value}))} placeholder="Strengths — what is the student doing well?" className={textCls}/>
+                      <textarea rows={2} value={rptForm.areasForImprovement} onChange={e=>setRptForm(f=>({...f,areasForImprovement:e.target.value}))} placeholder="Areas for improvement — what needs more focus?" className={textCls}/>
+                      <textarea rows={2} value={rptForm.overallComments} onChange={e=>setRptForm(f=>({...f,overallComments:e.target.value}))} placeholder="Overall comments and recommendations…" className={textCls}/>
                       <div>
-                        <label className="block text-xs text-gray-400 mb-2">Overall Rating</label>
+                        <p className="text-xs text-gray-400 mb-1.5">Overall Rating</p>
                         <div className="flex gap-2 flex-wrap">
                           {["Excellent","Good","Satisfactory","Needs Improvement"].map(r=>(
                             <button key={r} onClick={()=>setRptForm(f=>({...f,rating:r}))}
-                              className="px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-colors"
+                              className="px-3 py-1 rounded-full text-xs font-semibold border transition-colors"
                               style={{borderColor:rptForm.rating===r?B.teal:"#e5e7eb",background:rptForm.rating===r?B.tealLight:"white",color:rptForm.rating===r?B.tealDark:"#6b7280"}}>
                               {r}
                             </button>
@@ -3432,34 +3428,42 @@ function TutorPortal({ tutor, data, setData }) {
                         </div>
                       </div>
                       <button onClick={saveReport} disabled={!rptForm.subjectId||!rptForm.period.trim()}
-                        className="w-full py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40" style={{background:B.tealDark}}>
-                        Save Report
+                        className="px-4 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40 flex items-center gap-1.5" style={{background:B.tealDark}}>
+                        <FileText size={13}/> Save Report
                       </button>
                     </div>
                   </div>
 
+                  {/* Previous reports */}
                   {studentRpts.length>0 && (
-                    <div>
-                      <p className="text-sm font-semibold text-gray-600 mb-2">Previous Reports</p>
-                      <div className="space-y-3">
-                        {studentRpts.map(r=>(
-                          <div key={r.id} className="bg-white rounded-xl border border-gray-100 p-4">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <p className="font-semibold text-sm text-gray-800">{r.period} · {subjectName(r.subjectId)}</p>
-                                <p className="text-xs text-gray-400 mt-0.5">{r.lessonsAttended}/{r.lessonsScheduled} lessons · {fmtDate(r.date)}</p>
+                    <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+                      <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Previous Reports ({studentRpts.length})</p>
+                      </div>
+                      <div className="divide-y divide-gray-50">
+                        {[...studentRpts].sort((a,b)=>b.date.localeCompare(a.date)).map(r=>{
+                          const ratingColor = r.rating==="Excellent"?"#dcfce7":r.rating==="Good"?B.tealLight:r.rating==="Satisfactory"?B.goldLight:B.coralLight;
+                          const ratingText  = r.rating==="Excellent"?"#15803d":r.rating==="Good"?B.tealDark:r.rating==="Satisfactory"?"#92400e":B.coralDark;
+                          return (
+                            <div key={r.id} className="flex items-start gap-3 px-4 py-3">
+                              <div className="mt-0.5 w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{background:B.goldLight}}>
+                                <FileText size={13} style={{color:"#92400e"}}/>
                               </div>
-                              <span className="text-xs px-2.5 py-1 rounded-full font-semibold"
-                                style={{background:r.rating==="Excellent"?"#dcfce7":r.rating==="Good"?B.tealLight:r.rating==="Satisfactory"?B.goldLight:B.coralLight,color:r.rating==="Excellent"?"#15803d":r.rating==="Good"?B.tealDark:r.rating==="Satisfactory"?"#92400e":B.coralDark}}>
-                                {r.rating}
-                              </span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{background:B.tealLight,color:B.tealDark}}>{subjectName(r.subjectId)}</span>
+                                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{background:ratingColor,color:ratingText}}>{r.rating}</span>
+                                  <span className="text-xs text-gray-400 ml-auto">{r.period} · {fmtDate(r.date)}</span>
+                                </div>
+                                <p className="text-xs text-gray-500">{r.lessonsAttended}/{r.lessonsScheduled} lessons attended</p>
+                                {r.topicsCovered && <p className="text-xs text-gray-600 mt-1"><span className="font-medium text-gray-500">Topics:</span> {r.topicsCovered}</p>}
+                                {r.strengths && <p className="text-xs text-gray-600 mt-0.5"><span className="font-medium text-gray-500">Strengths:</span> {r.strengths}</p>}
+                                {r.areasForImprovement && <p className="text-xs text-gray-600 mt-0.5"><span className="font-medium text-gray-500">Improve:</span> {r.areasForImprovement}</p>}
+                                {r.overallComments && <p className="text-xs text-gray-400 italic mt-0.5">{r.overallComments}</p>}
+                              </div>
                             </div>
-                            {r.topicsCovered && <p className="text-xs text-gray-600 mb-1"><strong>Topics:</strong> {r.topicsCovered}</p>}
-                            {r.strengths && <p className="text-xs text-gray-600 mb-1"><strong>Strengths:</strong> {r.strengths}</p>}
-                            {r.areasForImprovement && <p className="text-xs text-gray-600 mb-1"><strong>Improve:</strong> {r.areasForImprovement}</p>}
-                            {r.overallComments && <p className="text-xs text-gray-500 italic mt-1">{r.overallComments}</p>}
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
