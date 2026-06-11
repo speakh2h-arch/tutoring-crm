@@ -2983,6 +2983,8 @@ function TutorPortal({ tutor, data, setData }) {
   const [studentTab,   setStudentTab]   = useState("info");
   const [lbForm,  setLbForm]  = useState({ subjectId:"", duration:60, topicsCovered:"", homework:"", notes:"", attended:true });
   const [slForm,  setSlForm]  = useState({ subjectId:"", date:today(), time:"14:00", link:"", notes:"" });
+  const [qsForm,  setQsForm]  = useState({ studentId:"", subjectId:"", date:today(), time:"14:00", link:"", notes:"" });
+  const [qsSaved, setQsSaved] = useState(false);
   const [msgText, setMsgText] = useState("");
   const [pnText,  setPnText]  = useState("");
   const [pnSent,  setPnSent]  = useState(false);
@@ -3025,6 +3027,12 @@ function TutorPortal({ tutor, data, setData }) {
     if (!slForm.subjectId||!slForm.date||!slForm.time) return;
     setData(d=>({...d, scheduledLessons:[...(d.scheduledLessons||[]),{...slForm,id:"sl"+uid(),tutorId:tutor.id,studentId:selStudentId}]}));
     setSlForm({subjectId:"",date:today(),time:"14:00",link:"",notes:""});
+  };
+  const qsScheduleLesson = () => {
+    if (!qsForm.studentId||!qsForm.subjectId||!qsForm.date||!qsForm.time) return;
+    setData(d=>({...d, scheduledLessons:[...(d.scheduledLessons||[]),{...qsForm,id:"sl"+uid(),tutorId:tutor.id}]}));
+    setQsForm({studentId:"",subjectId:"",date:today(),time:"14:00",link:"",notes:""});
+    setQsSaved(true); setTimeout(()=>setQsSaved(false),4000);
   };
   const sendParentNote = () => {
     if (!pnText.trim()) return;
@@ -3512,7 +3520,48 @@ function TutorPortal({ tutor, data, setData }) {
       {/* ── SCHEDULE (all students) ── */}
       {tutorPage==="schedule" && (
         <div className="space-y-4">
-          <h2 className="text-base font-semibold text-gray-800">My Full Schedule</h2>
+          <h2 className="text-base font-semibold text-gray-800">My Schedule</h2>
+
+          {/* Quick-schedule form */}
+          <div className="border border-gray-100 rounded-xl overflow-hidden">
+            <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Schedule a Lesson</p>
+            </div>
+            <div className="p-4 space-y-3">
+              {qsSaved && <div className="px-3 py-2 rounded-lg text-xs font-medium" style={{background:B.tealLight,color:B.tealDark}}>✓ Lesson added to schedule.</div>}
+              <div className="flex gap-2 flex-wrap">
+                <select value={qsForm.studentId}
+                  onChange={e=>{
+                    const sid=e.target.value;
+                    setQsForm(f=>({...f,studentId:sid,subjectId:""}));
+                  }}
+                  className={inputCls} style={{flex:"1 1 150px"}}>
+                  <option value="">Student *</option>
+                  {myStudents.map(s=><option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
+                </select>
+                <select value={qsForm.subjectId} onChange={e=>setQsForm(f=>({...f,subjectId:e.target.value}))}
+                  className={inputCls} style={{flex:"1 1 140px"}} disabled={!qsForm.studentId}>
+                  <option value="">Subject *</option>
+                  {(data.links||[]).filter(l=>l.tutorId===tutor.id&&l.studentId===qsForm.studentId).map(l=>(
+                    <option key={l.subjectId} value={l.subjectId}>{(data.subjects||[]).find(s=>s.id===l.subjectId)?.name||l.subjectId}</option>
+                  ))}
+                </select>
+                <input type="date" value={qsForm.date} onChange={e=>setQsForm(f=>({...f,date:e.target.value}))} className={inputCls} style={{width:"140px"}}/>
+                <input type="time" value={qsForm.time} onChange={e=>setQsForm(f=>({...f,time:e.target.value}))} className={inputCls} style={{width:"110px"}}/>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <input value={qsForm.link} onChange={e=>setQsForm(f=>({...f,link:e.target.value}))}
+                  placeholder="Meeting link (optional)" className={inputCls} style={{flex:"1 1 200px"}}/>
+                <input value={qsForm.notes} onChange={e=>setQsForm(f=>({...f,notes:e.target.value}))}
+                  placeholder="Notes (optional)" className={inputCls} style={{flex:"1 1 160px"}}/>
+              </div>
+              <button onClick={qsScheduleLesson} disabled={!qsForm.studentId||!qsForm.subjectId||!qsForm.date||!qsForm.time}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white disabled:opacity-40 flex items-center gap-1.5" style={{background:B.tealDark}}>
+                <CalendarDays size={13}/> Add to Schedule
+              </button>
+            </div>
+          </div>
+
           {(()=>{
             const all=(data.scheduledLessons||[]).filter(sl=>sl.tutorId===tutor.id).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time));
             const upcoming=all.filter(sl=>sl.date>=today());
