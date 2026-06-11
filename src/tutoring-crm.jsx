@@ -272,6 +272,30 @@ const calcLessonItem = (lb, data) => {
 
 const isInvoiceLocked = (month) => today() >= month + "-26";
 
+// Invoice periods run 26th of previous month → 25th of invoice month
+// e.g. "2026-06" covers 2026-05-26 to 2026-06-25
+const invoicePeriod = (month) => {
+  const [yr, mo] = month.split("-").map(Number);
+  let pYr = yr, pMo = mo - 1;
+  if (pMo === 0) { pMo = 12; pYr--; }
+  const start = `${pYr}-${String(pMo).padStart(2, "0")}-26`;
+  const end   = `${month}-25`;
+  return { start, end };
+};
+
+// Map a lesson date to its invoice month:
+// Lessons on the 26th or later belong to the NEXT calendar month's invoice
+const dateToInvoiceMonth = (date) => {
+  const day = parseInt(date.slice(8, 10), 10);
+  if (day >= 26) {
+    const [yr, mo] = date.slice(0, 7).split("-").map(Number);
+    let nMo = mo + 1, nYr = yr;
+    if (nMo > 12) { nMo = 1; nYr++; }
+    return `${nYr}-${String(nMo).padStart(2, "0")}`;
+  }
+  return date.slice(0, 7);
+};
+
 // Compute how many non-expiring top-up lessons remain for a student+subject at the START of `month`
 const getTopupPoolAtMonth = (studentId, subjectId, month, data) => {
   const totalBought = (data.academyTopups || [])
@@ -289,8 +313,10 @@ const getTopupPoolAtMonth = (studentId, subjectId, month, data) => {
 };
 
 const buildTutorInvoice = (tutorId, month, data) => {
+  // Invoice period: 26th of previous calendar month → 25th of invoice month
+  const { start, end } = invoicePeriod(month);
   const lessonLogs = (data.logbook || [])
-    .filter(l => l.tutorId === tutorId && l.date.startsWith(month) && l.attended)
+    .filter(l => l.tutorId === tutorId && l.date >= start && l.date <= end && l.attended)
     .sort((a, b) => a.date.localeCompare(b.date));
 
   // Cache top-up pools (computed once per student+subject)
@@ -305,26 +331,28 @@ const buildTutorInvoice = (tutorId, month, data) => {
   // We process all lessons in chronological order so the "2 included" counter increments correctly
   // regardless of which tutor logged each lesson.
   const effectiveTypeMap = {}; // lessonId → { type, slot }
-  const allMonthLogs = (data.logbook || [])
-    .filter(l => l.date.startsWith(month) && l.attended)
+  // Load ALL attended lessons in the invoice period (across all tutors) for accurate position counts
+  const allPeriodLogs = (data.logbook || [])
+    .filter(l => l.date >= start && l.date <= end && l.attended)
     .sort((a, b) => a.date.localeCompare(b.date) || String(a.id).localeCompare(String(b.id)));
 
-  // Group by student+subject and walk in date order
+  // Group by student + subject + CALENDAR MONTH — the 2-lesson limit resets each calendar month
+  // This means a 26th-25th invoice can legitimately contain academy lessons from two calendar months
   const acGroupMap = {};
-  allMonthLogs.forEach(l => {
+  allPeriodLogs.forEach(l => {
     const baseType = getStudentLessonType(l.studentId, data);
-    if (baseType !== "academy") return; // centre/regular don't need position tracking
-    const key = `${l.studentId}|${l.subjectId || ""}`;
+    if (baseType !== "academy") return;
+    const calMonth = l.date.slice(0, 7); // e.g. "2026-05" or "2026-06"
+    const key = `${l.studentId}|${l.subjectId || ""}|${calMonth}`;
     if (!acGroupMap[key]) acGroupMap[key] = [];
     acGroupMap[key].push(l);
   });
   Object.entries(acGroupMap).forEach(([key, lessons]) => {
-    const parts = key.split("|");
-    const studentId = parts[0];
-    const subjectId = parts.slice(1).join("|"); // re-join in case subjectId contained "|"
-    const pool = getPool(studentId, subjectId);
+    const [studentId, subjectId, calMonth] = key.split("|");
+    // Top-up pool is computed at the start of this specific calendar month
+    const pool = getTopupPoolAtMonth(studentId, subjectId, calMonth, data);
     lessons.forEach((l, idx) => {
-      const pos = idx + 1; // 1-indexed, already in chronological order
+      const pos = idx + 1;
       if (pos <= ACADEMY_INCLUDED_PER_MONTH) {
         effectiveTypeMap[l.id] = { type: "academy", slot: "included" };
       } else if (pos - ACADEMY_INCLUDED_PER_MONTH <= pool) {
@@ -3478,6 +3506,7 @@ function TutorPortal({ tutor, data, setData }) {
   const [selStudentId, setSelStudentId] = useState(null);
   const [studentTab,   setStudentTab]   = useState("info");
   const [lbForm,  setLbForm]  = useState({ subjectId:"", duration:60, topicsCovered:"", homework:"", notes:"", attended:true });
+  const [academyLimitError, setAcademyLimitError] = useState(null);
   const [slForm,  setSlForm]  = useState({ subjectId:"", date:today(), time:"14:00", link:"", notes:"" });
   const [qsForm,  setQsForm]  = useState({ studentId:"", subjectId:"", date:today(), time:"14:00", link:"", notes:"" });
   const [qsSaved, setQsSaved] = useState(false);
@@ -3486,7 +3515,7 @@ function TutorPortal({ tutor, data, setData }) {
   const [pnSent,  setPnSent]  = useState(false);
   const [rptForm, setRptForm] = useState({ subjectId:"", period:"", periodType:"monthly", lessonsAttended:"", lessonsScheduled:"", topicsCovered:"", strengths:"", areasForImprovement:"", overallComments:"", rating:"Good" });
   const [rptSaved,   setRptSaved]   = useState(false);
-  const [earnMonth,  setEarnMonth]  = useState(today().slice(0, 7));
+  const [earnMonth,  setEarnMonth]  = useState(dateToInvoiceMonth(today()));
   const [prevEarnMonth, setPrevEarnMonth] = useState(null); // set when drilling into a history month
   const [claimForm,  setClaimForm]  = useState({ type: (data.claimTypes||["Workshop"])[0], studentNames: "", amount: "", date: today() });
   const [claimSaved, setClaimSaved] = useState(false);
@@ -3515,6 +3544,26 @@ function TutorPortal({ tutor, data, setData }) {
 
   const addLog = () => {
     if (!lbForm.subjectId||!lbForm.topicsCovered.trim()) return;
+    // Academy restriction: if this student is an academy student and has attended this lesson,
+    // check if the calendar-month quota (2 included + top-ups) is already full
+    if (lbForm.attended && getStudentLessonType(selStudentId, data) === "academy") {
+      const calMonth = today().slice(0, 7);
+      const alreadyThisMonth = (data.logbook || []).filter(
+        l => l.studentId === selStudentId && l.subjectId === lbForm.subjectId &&
+             l.attended && l.date.slice(0, 7) === calMonth
+      ).length;
+      const pool = getTopupPoolAtMonth(selStudentId, lbForm.subjectId, calMonth, data);
+      const quota = ACADEMY_INCLUDED_PER_MONTH + pool;
+      if (alreadyThisMonth >= quota) {
+        setAcademyLimitError(
+          pool > 0
+            ? `This student has used all ${quota} academy lessons for ${calMonth} (${ACADEMY_INCLUDED_PER_MONTH} included + ${pool} top-up). A top-up is needed to add more.`
+            : `This student has used both included academy lessons for ${calMonth}. A top-up must be purchased before logging additional lessons.`
+        );
+        return;
+      }
+    }
+    setAcademyLimitError(null);
     setData(d=>({...d, logbook:[...(d.logbook||[]),{...lbForm,id:"lb"+uid(),tutorId:tutor.id,studentId:selStudentId,date:today(),duration:Number(lbForm.duration)}]}));
     setLbForm({subjectId:"",duration:60,topicsCovered:"",homework:"",notes:"",attended:true});
   };
@@ -3766,7 +3815,7 @@ function TutorPortal({ tutor, data, setData }) {
                     </div>
                     <div className="p-4 space-y-3">
                       <div className="flex gap-2 flex-wrap">
-                        <select value={lbForm.subjectId} onChange={e=>setLbForm(f=>({...f,subjectId:e.target.value}))}
+                        <select value={lbForm.subjectId} onChange={e=>{setLbForm(f=>({...f,subjectId:e.target.value}));setAcademyLimitError(null);}}
                           className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none bg-white">
                           <option value="">Subject *</option>
                           {selLinks.map(l=><option key={l.subjectId} value={l.subjectId}>{subjectName(l.subjectId)}</option>)}
@@ -3784,6 +3833,41 @@ function TutorPortal({ tutor, data, setData }) {
                         placeholder="Homework / tasks set for next session" className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none"/>
                       <textarea rows={2} value={lbForm.notes} onChange={e=>setLbForm(f=>({...f,notes:e.target.value}))}
                         placeholder="Private tutor notes / observations…" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"/>
+                      {/* Academy quota status indicator */}
+                      {(() => {
+                        if (!lbForm.subjectId || !selStudentId) return null;
+                        if (getStudentLessonType(selStudentId, data) !== "academy") return null;
+                        const calMonth = today().slice(0, 7);
+                        const used = (data.logbook||[]).filter(
+                          l => l.studentId===selStudentId && l.subjectId===lbForm.subjectId &&
+                               l.attended && l.date.slice(0,7)===calMonth
+                        ).length;
+                        const pool = getTopupPoolAtMonth(selStudentId, lbForm.subjectId, calMonth, data);
+                        const quota = ACADEMY_INCLUDED_PER_MONTH + pool;
+                        const remaining = quota - used;
+                        const atLimit = remaining <= 0;
+                        return (
+                          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium border ${atLimit ? "bg-red-50 border-red-200 text-red-700" : remaining === 1 ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-teal-50 border-teal-200 text-teal-700"}`}>
+                            <span>{atLimit ? "⛔" : remaining === 1 ? "⚠️" : "✅"}</span>
+                            <span>
+                              Academy lessons this month ({calMonth}): <strong>{used}/{quota}</strong> used
+                              {pool > 0 && ` (${ACADEMY_INCLUDED_PER_MONTH} included + ${pool} top-up)`}
+                              {atLimit ? " — limit reached, top-up required" : ` — ${remaining} remaining`}
+                            </span>
+                          </div>
+                        );
+                      })()}
+                      {/* Academy limit error banner */}
+                      {academyLimitError && (
+                        <div className="flex items-start gap-2 px-3 py-2.5 bg-red-50 border border-red-200 rounded-lg">
+                          <span className="text-red-500 mt-0.5">⛔</span>
+                          <div className="flex-1">
+                            <p className="text-xs font-semibold text-red-700">Lesson not logged</p>
+                            <p className="text-xs text-red-600 mt-0.5">{academyLimitError}</p>
+                          </div>
+                          <button onClick={()=>setAcademyLimitError(null)} className="text-red-400 hover:text-red-600 text-xs font-bold">✕</button>
+                        </div>
+                      )}
                       <button onClick={addLog} disabled={!lbForm.subjectId||!lbForm.topicsCovered.trim()}
                         className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold text-white disabled:opacity-40"
                         style={{background:B.tealDark}}>
@@ -4300,7 +4384,7 @@ function TutorPortal({ tutor, data, setData }) {
             {/* Invoice History */}
             {(()=>{
               const histMonths = [...new Set([
-                ...(data.logbook||[]).filter(l=>l.tutorId===tutor.id&&l.attended).map(l=>l.date.slice(0,7)),
+                ...(data.logbook||[]).filter(l=>l.tutorId===tutor.id&&l.attended).map(l=>dateToInvoiceMonth(l.date)),
                 ...(data.tutorClaims||[]).filter(c=>c.tutorId===tutor.id).map(c=>c.month),
               ])].sort().reverse().filter(m=>m!==earnMonth);
               if (histMonths.length===0) return null;
