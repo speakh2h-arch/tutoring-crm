@@ -3113,19 +3113,49 @@ function CentrePortal({ centre, data }) {
 // ─── APP ──────────────────────────────────────────────────────────────────────
 
 // Role switcher — all options the tester can cycle through
-const ROLE_OPTIONS = (data) => {
-  const opts = [{ role: "admin", label: "Admin / Owner", icon: "🔑", id: "admin" }];
-  data.tutors.forEach(t   => opts.push({ role: "tutor",   label: `Tutor: ${t.firstName} ${t.lastName}`,           icon: "👩‍🏫", id: t.id }));
-  data.students.forEach(s => opts.push({ role: "student", label: `Student: ${s.firstName} ${s.lastName}`,         icon: "🎓", id: s.id }));
-  data.students.forEach(s => opts.push({ role: "parent",  label: `Parent of ${s.firstName} ${s.lastName}`,        icon: "👨‍👩‍👦", id: s.id }));
-  data.centres.forEach(c  => opts.push({ role: "centre",  label: `Centre: ${c.name}`,                             icon: "🏫", id: c.id }));
+// ─── ROLE SWITCHER + APP ──────────────────────────────────────────────────────
+
+// Build the list of selectable roles from current data
+function buildRoleOptions(data) {
+  const opts = [{ key: "admin::admin", label: "🔑  Admin / Owner", role: "admin", id: "admin" }];
+  data.tutors.forEach(t   => opts.push({ key: `tutor::${t.id}`,   label: `👩‍🏫  Tutor — ${t.firstName} ${t.lastName}`,          role: "tutor",   id: t.id  }));
+  data.students.forEach(s => opts.push({ key: `student::${s.id}`, label: `🎓  Student — ${s.firstName} ${s.lastName}`,         role: "student", id: s.id  }));
+  data.students.forEach(s => opts.push({ key: `parent::${s.id}`,  label: `👨‍👩‍👦  Parent of ${s.firstName} ${s.lastName}`,         role: "parent",  id: s.id  }));
+  data.centres.forEach(c  => opts.push({ key: `centre::${c.id}`,  label: `🏫  Centre — ${c.name}`,                             role: "centre",  id: c.id  }));
   return opts;
+}
+
+// Nav items per role  (id "home" = portal, others = existing page keys)
+const ROLE_NAV_ITEMS = {
+  tutor:   [
+    { id: "home",     label: "My Dashboard",  icon: LayoutDashboard },
+    { id: "students", label: "My Students",   icon: Users           },
+    { id: "links",    label: "My Links",      icon: LinkIcon        },
+    { id: "academy",  label: "Academy",       icon: BookOpen        },
+  ],
+  student: [
+    { id: "home",     label: "My Dashboard",  icon: LayoutDashboard },
+    { id: "academy",  label: "My Courses",    icon: BookOpen        },
+    { id: "links",    label: "My Tutors",     icon: GraduationCap   },
+  ],
+  parent: [
+    { id: "home",     label: "Overview",      icon: LayoutDashboard },
+    { id: "students", label: "My Child",      icon: Users           },
+    { id: "academy",  label: "Academy",       icon: BookOpen        },
+    { id: "links",    label: "Tutors",        icon: GraduationCap   },
+  ],
+  centre: [
+    { id: "home",     label: "My Dashboard",  icon: LayoutDashboard },
+    { id: "students", label: "Our Students",  icon: Users           },
+    { id: "tutors",   label: "Our Tutors",    icon: GraduationCap   },
+    { id: "reports",  label: "Reports",       icon: FileText        },
+  ],
 };
 
 export default function App() {
-  const [user, setUser]       = useState(null);
-  const [page, setPage]       = useState("dashboard");
-  const [viewRole, setViewRole] = useState("admin");   // active role option key
+  const [user, setUser]         = useState(null);
+  const [page, setPage]         = useState("dashboard");
+  const [roleKey, setRoleKey]   = useState("admin::admin");
   const [data, setData] = useState({
     students:      INIT_STUDENTS,
     tutors:        INIT_TUTORS,
@@ -3146,114 +3176,187 @@ export default function App() {
     announcements: INIT_ANNOUNCEMENTS,
   });
 
-  const roleOptions = useMemo(() => ROLE_OPTIONS(data), [data]);
+  const roleOptions = useMemo(() => buildRoleOptions(data), [data]);
+  const activeOpt   = roleOptions.find(o => o.key === roleKey) || roleOptions[0];
+  const isAdmin     = activeOpt.role === "admin";
+
+  // Filter data to what the active role can see
+  const filteredData = useMemo(() => {
+    const { role, id } = activeOpt;
+    if (role === "admin") return data;
+
+    if (role === "tutor") {
+      const myLinks      = data.links.filter(l => l.tutorId === id);
+      const myStudentIds = [...new Set(myLinks.map(l => l.studentId))];
+      return {
+        ...data,
+        students:   data.students.filter(s => myStudentIds.includes(s.id)),
+        links:      myLinks,
+        tutors:     data.tutors.filter(t => t.id === id),
+        tutorNotes: data.tutorNotes.filter(n => n.tutorId === id),
+        purchases:  data.purchases.filter(p => myStudentIds.includes(p.studentId)),
+        enrolments: data.enrolments.filter(e => myStudentIds.includes(e.studentId)),
+        progress:   data.progress.filter(p => myStudentIds.includes(p.studentId)),
+      };
+    }
+
+    if (role === "student") {
+      const myLinks    = data.links.filter(l => l.studentId === id);
+      const myTutorIds = [...new Set(myLinks.map(l => l.tutorId))];
+      return {
+        ...data,
+        students:   data.students.filter(s => s.id === id),
+        links:      myLinks,
+        tutors:     data.tutors.filter(t => myTutorIds.includes(t.id)),
+        purchases:  data.purchases.filter(p => p.studentId === id),
+        enrolments: data.enrolments.filter(e => e.studentId === id),
+        progress:   data.progress.filter(p => p.studentId === id),
+      };
+    }
+
+    if (role === "parent") {
+      const myLinks    = data.links.filter(l => l.studentId === id);
+      const myTutorIds = [...new Set(myLinks.map(l => l.tutorId))];
+      return {
+        ...data,
+        students:   data.students.filter(s => s.id === id),
+        links:      myLinks,
+        tutors:     data.tutors.filter(t => myTutorIds.includes(t.id)),
+        purchases:  data.purchases.filter(p => p.studentId === id),
+        enrolments: data.enrolments.filter(e => e.studentId === id),
+        progress:   data.progress.filter(p => p.studentId === id),
+      };
+    }
+
+    if (role === "centre") {
+      const myStudents   = data.students.filter(s => s.centreId === id);
+      const myStudentIds = myStudents.map(s => s.id);
+      const myLinks      = data.links.filter(l => myStudentIds.includes(l.studentId));
+      const myTutorIds   = [...new Set(myLinks.map(l => l.tutorId))];
+      return {
+        ...data,
+        students:     myStudents,
+        links:        myLinks,
+        tutors:       data.tutors.filter(t => myTutorIds.includes(t.id)),
+        centres:      data.centres.filter(c => c.id === id),
+        centreNotes:  data.centreNotes.filter(n => n.centreId === id),
+        purchases:    data.purchases.filter(p => myStudentIds.includes(p.studentId)),
+        enrolments:   data.enrolments.filter(e => myStudentIds.includes(e.studentId)),
+        progress:     data.progress.filter(p => myStudentIds.includes(p.studentId)),
+      };
+    }
+
+    return data;
+  }, [activeOpt, data]);
 
   const unassigned = useMemo(
-    () => data.students.filter(s => !data.links.some(l => l.studentId === s.id)).length,
-    [data.students, data.links]
+    () => filteredData.students.filter(s => !filteredData.links.some(l => l.studentId === s.id)).length,
+    [filteredData]
   );
 
+  // Portal home page for non-admin roles
+  const portalHome = useMemo(() => {
+    const { role, id } = activeOpt;
+    if (role === "tutor")   { const t = data.tutors.find(x => x.id === id);   return t ? <TutorPortal   tutor={t}    data={filteredData} /> : null; }
+    if (role === "student") { const s = data.students.find(x => x.id === id); return s ? <StudentPortal student={s} data={filteredData} /> : null; }
+    if (role === "parent")  { const s = data.students.find(x => x.id === id); return s ? <ParentPortal  student={s} data={filteredData} /> : null; }
+    if (role === "centre")  { const c = data.centres.find(x => x.id === id);  return c ? <CentrePortal  centre={c}  data={filteredData} /> : null; }
+    return null;
+  }, [activeOpt, filteredData, data]);
+
+  // All pages use filteredData so each role only sees their own data
   const pages = {
-    dashboard:  <Dashboard    data={data} onNav={setPage} />,
-    students:   <StudentsPage data={data} setData={setData} />,
-    tutors:     <TutorsPage   data={data} setData={setData} />,
-    links:      <LinksPage    data={data} setData={setData} />,
-    centres:    <CentresPage  data={data} setData={setData} />,
-    accounting: <AccountingPage data={data} setData={setData} />,
-    stats:      <StatsPage    data={data} />,
-    reports:    <ReportsPage  data={data} />,
-    settings:   <SettingsPage data={data} setData={setData} />,
-    academy:    <AcademyPage  data={data} setData={setData} />,
+    home:       portalHome,
+    dashboard:  <Dashboard     data={filteredData} onNav={setPage} />,
+    students:   <StudentsPage  data={filteredData} setData={setData} />,
+    tutors:     <TutorsPage    data={filteredData} setData={setData} />,
+    links:      <LinksPage     data={filteredData} setData={setData} />,
+    centres:    <CentresPage   data={filteredData} setData={setData} />,
+    accounting: <AccountingPage data={filteredData} setData={setData} />,
+    stats:      <StatsPage     data={filteredData} />,
+    reports:    <ReportsPage   data={filteredData} />,
+    settings:   <SettingsPage  data={filteredData} setData={setData} />,
+    academy:    <AcademyPage   data={filteredData} setData={setData} />,
   };
 
-  // Resolve the portal to show based on active role
-  const portalView = useMemo(() => {
-    const opt = roleOptions.find(o => `${o.role}::${o.id}` === viewRole);
-    if (!opt || opt.role === "admin") return null;
-    switch (opt.role) {
-      case "tutor":   { const t = data.tutors.find(x => x.id === opt.id);   return t ? <TutorPortal   tutor={t}    data={data} /> : null; }
-      case "student": { const s = data.students.find(x => x.id === opt.id); return s ? <StudentPortal student={s} data={data} /> : null; }
-      case "parent":  { const s = data.students.find(x => x.id === opt.id); return s ? <ParentPortal  student={s} data={data} /> : null; }
-      case "centre":  { const c = data.centres.find(x => x.id === opt.id);  return c ? <CentrePortal  centre={c}  data={data} /> : null; }
-      default: return null;
-    }
-  }, [viewRole, roleOptions, data]);
+  // Nav items for the current role
+  const currentNav = isAdmin ? NAV : (ROLE_NAV_ITEMS[activeOpt.role] || []);
 
-  const activeOpt = roleOptions.find(o => `${o.role}::${o.id}` === viewRole) || roleOptions[0];
-  const isAdmin   = activeOpt.role === "admin";
+  const handleRoleChange = (key) => {
+    setRoleKey(key);
+    // Set a sensible default page for the role
+    const opt = roleOptions.find(o => o.key === key);
+    if (!opt || opt.role === "admin") setPage("dashboard");
+    else setPage("home");
+  };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 font-sans">
+    <div className="flex h-screen bg-gray-50 font-sans">
+      <aside className="w-60 bg-white border-r border-gray-200 flex flex-col shrink-0">
 
-      {/* ── ROLE SWITCHER BAR ── */}
-      <div className="shrink-0 border-b border-gray-200 bg-white px-4 py-2 flex items-center gap-2 overflow-x-auto">
-        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap mr-1">View as:</span>
-        {roleOptions.map(opt => {
-          const key     = `${opt.role}::${opt.id}`;
-          const active  = viewRole === key;
-          return (
-            <button key={key} onClick={() => { setViewRole(key); if (opt.role === "admin") setPage("dashboard"); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors shrink-0"
-              style={active
-                ? { background: B.teal, color: "#fff" }
-                : { background: "#f3f4f6", color: "#4b5563" }}>
-              <span>{opt.icon}</span>
-              <span>{opt.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* ── SIDEBAR (admin only) ── */}
-        {isAdmin && (
-          <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
-            <div className="px-4 py-4 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <LogoMark size={38} />
-                <div>
-                  <p className="text-xs font-bold tracking-widest uppercase leading-none" style={{ color: B.tealDark }}>LEARN TO LINK</p>
-                  <p className="text-xs text-gray-400 mt-0.5 tracking-wide">CRM + Academy</p>
-                </div>
-              </div>
+        {/* Logo */}
+        <div className="px-4 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <LogoMark size={38} />
+            <div>
+              <p className="text-xs font-bold tracking-widest uppercase leading-none" style={{ color: B.tealDark }}>LEARN TO LINK</p>
+              <p className="text-xs text-gray-400 mt-0.5 tracking-wide">CRM + Academy</p>
             </div>
-
-            <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-              {NAV.map(n => (
-                <div key={n.id}>
-                  {n.divider && <div className="my-2 pt-1"><div className="border-t border-gray-100" /></div>}
-                  <button onClick={() => setPage(n.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${page === n.id ? "" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}
-                    style={page === n.id ? { background: n.id === "academy" ? B.coralLight : B.tealLight, color: n.id === "academy" ? B.coral : B.tealDark } : undefined}>
-                    <n.icon size={17} />
-                    {n.label}
-                    {n.id === "links" && unassigned > 0 && (
-                      <span className="ml-auto bg-gray-300 text-gray-700 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{unassigned}</span>
-                    )}
-                  </button>
-                </div>
-              ))}
-            </nav>
-
-            <div className="px-4 py-4 border-t border-gray-100">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style={{ background: B.teal }}>LTL</div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-800">Learn to Link</p>
-                  <p className="text-xs text-gray-400">CRM + Academy</p>
-                </div>
-              </div>
-            </div>
-          </aside>
-        )}
-
-        {/* ── MAIN CONTENT ── */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-5xl mx-auto px-6 py-6">
-            {isAdmin ? pages[page] : portalView}
           </div>
-        </main>
-      </div>
+        </div>
+
+        {/* Role dropdown */}
+        <div className="px-3 py-3 border-b border-gray-100">
+          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Viewing as</label>
+          <select
+            value={roleKey}
+            onChange={e => handleRoleChange(e.target.value)}
+            className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 text-gray-700 bg-white focus:outline-none focus:ring-2"
+            style={{ "--tw-ring-color": B.teal }}
+          >
+            {roleOptions.map(opt => (
+              <option key={opt.key} value={opt.key}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+          {currentNav.map(n => (
+            <div key={n.id}>
+              {n.divider && <div className="my-2 pt-1"><div className="border-t border-gray-100" /></div>}
+              <button
+                onClick={() => setPage(n.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${page === n.id ? "" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}
+                style={page === n.id ? { background: n.id === "academy" ? B.coralLight : B.tealLight, color: n.id === "academy" ? B.coral : B.tealDark } : undefined}
+              >
+                <n.icon size={17} />
+                {n.label}
+                {n.id === "links" && unassigned > 0 && (
+                  <span className="ml-auto bg-gray-300 text-gray-700 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{unassigned}</span>
+                )}
+              </button>
+            </div>
+          ))}
+        </nav>
+
+        {/* Sidebar footer */}
+        <div className="px-4 py-4 border-t border-gray-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style={{ background: B.teal }}>LTL</div>
+            <div>
+              <p className="text-xs font-semibold text-gray-800">Learn to Link</p>
+              <p className="text-xs text-gray-400">CRM + Academy</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-5xl mx-auto px-6 py-6">
+          {pages[page]}
+        </div>
+      </main>
     </div>
   );
 }
