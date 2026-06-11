@@ -5,7 +5,8 @@ import {
   Link as LinkIcon, DollarSign, BookMarked, TrendingUp,
   CheckCircle, ThumbsUp, ThumbsDown, StickyNote,
   Building2, FileText, MapPin, Printer,
-  CalendarDays, ChevronLeft, ChevronRight, Award, Play
+  CalendarDays, ChevronLeft, ChevronRight, Award, Play,
+  Banknote, AlertCircle, Clock
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -210,6 +211,17 @@ const INIT_FINANCIALS = [
   { id: "fin7", month: "2025-05", turnover: 28000, expenses: 12000 },
 ];
 
+// Tutor pay rates — one record per year, admin-configurable
+const INIT_TUTOR_RATES = [
+  { id: "rate2026", year: 2026, regularRate: 235, academyRate: 225, centreRate: 235, wifiAllowance: 40 }
+];
+
+// Tutor claims — workshop, marking, other extras
+const INIT_TUTOR_CLAIMS = [];
+
+// Invoice approval/payment status — one record per tutor per month
+const INIT_INVOICE_STATUS = [];
+
 // ─── UTILITIES ────────────────────────────────────────────────────────────────
 
 const uid     = () => Math.random().toString(36).slice(2, 9);
@@ -222,6 +234,53 @@ const fmtMonth = (m) => {
   return new Date(+y, +mo - 1).toLocaleString("en-ZA", { month: "short", year: "numeric" });
 };
 const fmtZAR = (n) => `R${Number(n).toLocaleString("en-ZA")}`;
+
+// ─── PAYROLL HELPERS ─────────────────────────────────────────────────────────
+
+const getRateForYear = (year, tutorRates) =>
+  (tutorRates || []).find(r => r.year === year) ||
+  { regularRate: 235, academyRate: 225, centreRate: 235, wifiAllowance: 40 };
+
+const getStudentLessonType = (studentId, data) => {
+  const st = (data.students || []).find(s => s.id === studentId);
+  if (!st) return "regular";
+  if (st.centreId) return "centre";
+  return (data.enrolments || []).some(e => e.studentId === studentId && e.status === "Active")
+    ? "academy" : "regular";
+};
+
+const calcLessonItem = (lb, data) => {
+  const year     = parseInt(lb.date.slice(0, 4));
+  const rate     = getRateForYear(year, data.tutorRates);
+  const type     = getStudentLessonType(lb.studentId, data);
+  const hours    = lb.duration / 60;
+  const baseRate = type === "academy" ? rate.academyRate : (type === "centre" ? rate.centreRate : rate.regularRate);
+  const lessonAmt = baseRate * hours;
+  const wifiAmt   = type === "centre" ? rate.wifiAllowance : 0;
+  return { lessonType: type, baseRate, hours, lessonAmt, wifiAmt, lineTotal: lessonAmt + wifiAmt };
+};
+
+const isInvoiceLocked = (month) => today() >= month + "-26";
+
+const buildTutorInvoice = (tutorId, month, data) => {
+  const lessonLogs = (data.logbook || []).filter(l => l.tutorId === tutorId && l.date.startsWith(month) && l.attended);
+  const lessonLines = lessonLogs.map(lb => {
+    const st  = (data.students || []).find(s => s.id === lb.studentId);
+    const sub = (data.subjects || []).find(s => s.id === lb.subjectId);
+    const calc = calcLessonItem(lb, data);
+    return { ...lb, studentName: st ? `${st.firstName} ${st.lastName}` : "—", subjectLabel: sub?.name || "—", ...calc };
+  });
+  const allClaims      = (data.tutorClaims || []).filter(c => c.tutorId === tutorId && c.month === month);
+  const approvedClaims = allClaims.filter(c => c.status === "approved");
+  const lessonTotal    = lessonLines.reduce((s, l) => s + l.lineTotal, 0);
+  const claimsTotal    = approvedClaims.reduce((s, c) => s + Number(c.amount), 0);
+  const grandTotal     = lessonTotal + claimsTotal;
+  const statusRec      = (data.invoiceStatus || []).find(s => s.tutorId === tutorId && s.month === month) || null;
+  const locked         = isInvoiceLocked(month);
+  const isApproved     = !!(statusRec?.tutorApproved) || (locked && lessonLines.length > 0);
+  const isPaid         = !!(statusRec?.paid);
+  return { lessonLines, allClaims, approvedClaims, lessonTotal, claimsTotal, grandTotal, statusRec, locked, isApproved, isPaid };
+};
 
 // Returns last N month keys as "YYYY-MM"
 const lastNMonths = (n) => {
@@ -1301,7 +1360,21 @@ function AccountingPage({ data, setData }) {
   const ytd    = data.financials.filter(f => f.month.startsWith(today().slice(0, 4)));
   const ytdTurnover = ytd.reduce((s, f) => s + f.turnover, 0);
   const ytdExpenses = ytd.reduce((s, f) => s + f.expenses, 0);
-  const ytdProfit   = ytdTurnover - ytdExpenses;
+
+  // Payroll: compute per-month and YTD totals from invoiceStatus
+  const payrollByMonth = {};
+  ((data.invoiceStatus || []).filter(s => s.paid)).forEach(s => {
+    payrollByMonth[s.month] = (payrollByMonth[s.month] || 0) + Number(s.paidAmount || 0);
+  });
+  const ytdPayroll = Object.entries(payrollByMonth)
+    .filter(([m]) => m.startsWith(today().slice(0, 4)))
+    .reduce((sum, [, v]) => sum + v, 0);
+  const ytdExpensesTotal = ytdExpenses + ytdPayroll;
+  const ytdProfit = ytdTurnover - ytdExpensesTotal;
+
+  // Payroll detail: per tutor, for paid invoices
+  const paidInvoices = (data.invoiceStatus || []).filter(s => s.paid);
+  const payrollMonths = [...new Set(paidInvoices.map(s => s.month))].sort((a, b) => b.localeCompare(a));
 
   const openAdd = () => {
     const m = today().slice(0, 7);
@@ -1341,10 +1414,11 @@ function AccountingPage({ data, setData }) {
       </div>
 
       {/* YTD summary */}
-      <div className="grid grid-cols-3 gap-4">
-        <KPI title="YTD Turnover"  value={fmtZAR(ytdTurnover)} sub={today().slice(0, 4)} icon={TrendingUp}  color="indigo" />
-        <KPI title="YTD Expenses"  value={fmtZAR(ytdExpenses)} sub={today().slice(0, 4)} icon={DollarSign}  color="rose"   />
-        <KPI title="YTD Profit"    value={fmtZAR(ytdProfit)}   sub={today().slice(0, 4)} icon={CheckCircle} color={ytdProfit >= 0 ? "green" : "rose"} />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <KPI title="YTD Turnover"  value={fmtZAR(ytdTurnover)}      sub={today().slice(0, 4)} icon={TrendingUp}  color="indigo" />
+        <KPI title="YTD Expenses"  value={fmtZAR(ytdExpenses)}      sub="manual entries"      icon={DollarSign}  color="rose"   />
+        <KPI title="YTD Payroll"   value={fmtZAR(ytdPayroll)}       sub="paid tutor invoices" icon={Banknote}    color="amber"  />
+        <KPI title="YTD Profit"    value={fmtZAR(ytdProfit)}        sub="after payroll"       icon={CheckCircle} color={ytdProfit >= 0 ? "green" : "rose"} />
       </div>
 
       {/* Chart */}
@@ -1401,6 +1475,43 @@ function AccountingPage({ data, setData }) {
           {sorted.length === 0 && <tr><td colSpan={6} className="text-center text-sm text-gray-400 py-8">No entries yet.</td></tr>}
         </tbody>
       </TableWrap>
+
+      {/* Tutor Payroll section */}
+      {payrollMonths.length > 0 && (
+        <Section title="Tutor Payroll Paid">
+          {payrollMonths.map(m => {
+            const monthPaid = paidInvoices.filter(s => s.month === m);
+            return (
+              <div key={m} className="mb-4">
+                <p className="text-sm font-semibold text-gray-700 mb-2">{fmtMonth(m)}</p>
+                <TableWrap>
+                  <thead><tr>
+                    <TH>Tutor</TH><TH>Email</TH><TH className="text-right">Amount Paid</TH><TH>Date Paid</TH>
+                  </tr></thead>
+                  <tbody>
+                    {monthPaid.map(s => {
+                      const t = (data.tutors || []).find(x => x.id === s.tutorId);
+                      return (
+                        <TR key={s.id}>
+                          <TD className="font-medium">{t ? `${t.firstName} ${t.lastName}` : s.tutorId}</TD>
+                          <TD className="text-gray-500">{t?.email || "—"}</TD>
+                          <TD className="text-right font-semibold text-red-600">{fmtZAR(Number(s.paidAmount || 0))}</TD>
+                          <TD>{s.paidDate ? fmtDate(s.paidDate) : "—"}</TD>
+                        </TR>
+                      );
+                    })}
+                    <tr className="bg-gray-50">
+                      <td colSpan={2} className="px-4 py-2 text-xs font-semibold text-gray-500 text-right">Month Total</td>
+                      <td className="px-4 py-2 text-right font-bold text-red-700">{fmtZAR(payrollByMonth[m] || 0)}</td>
+                      <td></td>
+                    </tr>
+                  </tbody>
+                </TableWrap>
+              </div>
+            );
+          })}
+        </Section>
+      )}
 
       {(modal === "add" || modal === "edit") && (
         <Modal title={modal === "add" ? "Add Month" : "Edit Month"} onClose={() => setModal(null)}>
@@ -2717,6 +2828,7 @@ const NAV = [
   { id: "links",      label: "Links",       icon: LinkIcon        },
   { id: "centres",    label: "Centres",     icon: Building2       },
   { id: "accounting", label: "Accounting",  icon: DollarSign      },
+  { id: "payroll",    label: "Payroll",     icon: Banknote        },
   { id: "stats",      label: "Stats",       icon: BarChart2       },
   { id: "reports",    label: "Reports",     icon: FileText        },
   { id: "settings",   label: "Settings",    icon: SettingsIcon    },
@@ -2989,7 +3101,10 @@ function TutorPortal({ tutor, data, setData }) {
   const [pnText,  setPnText]  = useState("");
   const [pnSent,  setPnSent]  = useState(false);
   const [rptForm, setRptForm] = useState({ subjectId:"", period:"", periodType:"monthly", lessonsAttended:"", lessonsScheduled:"", topicsCovered:"", strengths:"", areasForImprovement:"", overallComments:"", rating:"Good" });
-  const [rptSaved, setRptSaved] = useState(false);
+  const [rptSaved,   setRptSaved]   = useState(false);
+  const [earnMonth,  setEarnMonth]  = useState(today().slice(0, 7));
+  const [claimForm,  setClaimForm]  = useState({ type: "Workshop", studentNames: "", amount: "", date: today() });
+  const [claimSaved, setClaimSaved] = useState(false);
 
   const myLinks      = (data.links||[]).filter(l => l.tutorId === tutor.id);
   const myStudentIds = [...new Set(myLinks.map(l => l.studentId))];
@@ -3046,10 +3161,28 @@ function TutorPortal({ tutor, data, setData }) {
     setRptSaved(true); setTimeout(()=>setRptSaved(false),4000);
   };
 
+  const submitClaim = () => {
+    if (!claimForm.amount || isNaN(Number(claimForm.amount))) return;
+    setData(d => ({ ...d, tutorClaims: [...(d.tutorClaims||[]), { id:"cl"+uid(), tutorId:tutor.id, month:earnMonth, type:claimForm.type, studentNames:claimForm.studentNames, amount:Number(claimForm.amount), date:claimForm.date, status:"pending" }] }));
+    setClaimForm({ type:"Workshop", studentNames:"", amount:"", date:today() });
+    setClaimSaved(true); setTimeout(()=>setClaimSaved(false),4000);
+  };
+
+  const approveSelfInvoice = () => {
+    setData(d => {
+      const existing = (d.invoiceStatus||[]).find(s => s.tutorId===tutor.id && s.month===earnMonth);
+      const updated  = existing
+        ? d.invoiceStatus.map(s => s.tutorId===tutor.id && s.month===earnMonth ? {...s, tutorApproved:true} : s)
+        : [...(d.invoiceStatus||[]), {id:"inv"+uid(), tutorId:tutor.id, month:earnMonth, tutorApproved:true, adminApproved:false, paid:false, paidDate:null, paidAmount:0}];
+      return {...d, invoiceStatus:updated};
+    });
+  };
+
   const TUTOR_PAGES = [
     {id:"dashboard",label:"Dashboard",  icon:LayoutDashboard},
     {id:"students", label:"My Students",icon:Users},
     {id:"schedule", label:"Schedule",   icon:CalendarDays},
+    {id:"earnings", label:"Earnings",   icon:Banknote},
     ...(tutor.isAcademyTutor ? [{id:"academy",label:"Academy",icon:BookOpen}] : []),
   ];
   const STUDENT_TABS = [
@@ -3601,6 +3734,134 @@ function TutorPortal({ tutor, data, setData }) {
         </div>
       )}
 
+      {/* ── EARNINGS ── */}
+      {tutorPage==="earnings" && (() => {
+        const inv = buildTutorInvoice(tutor.id, earnMonth, data);
+        const locked = isInvoiceLocked(earnMonth);
+        const statusLabel = inv.isPaid ? "Paid" : inv.isApproved ? (locked && !inv.statusRec?.tutorApproved ? "Auto-locked" : "Approved") : "Pending";
+        const statusStyle = inv.isPaid
+          ? { background:"#dcfce7", color:"#166534" }
+          : inv.isApproved
+            ? (locked && !inv.statusRec?.tutorApproved ? { background:"#fef3c7", color:"#92400e" } : { background:B.tealLight, color:B.tealDark })
+            : { background:"#f3f4f6", color:"#6b7280" };
+        return (
+          <div className="space-y-5">
+            {/* Month selector */}
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-gray-700">Month:</label>
+              <input type="month" value={earnMonth} onChange={e=>setEarnMonth(e.target.value)}
+                className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" />
+              <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={statusStyle}>{statusLabel}</span>
+            </div>
+
+            {locked && (
+              <div className="flex items-center gap-2 p-3 rounded-lg text-sm" style={{ background:"#fef3c7", color:"#92400e" }}>
+                <Clock size={15} />
+                <span>This invoice was auto-approved on the 26th and is now locked.</span>
+              </div>
+            )}
+
+            {/* Summary card */}
+            <div className="bg-white rounded-xl border border-gray-100 p-5">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Lessons</p>
+                  <p className="text-lg font-bold text-gray-800">{fmtZAR(inv.lessonTotal)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Claims</p>
+                  <p className="text-lg font-bold text-gray-800">{fmtZAR(inv.claimsTotal)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400 mb-1">Total</p>
+                  <p className="text-xl font-bold" style={{color:B.tealDark}}>{fmtZAR(inv.grandTotal)}</p>
+                </div>
+              </div>
+              {!inv.isApproved && !locked && (
+                <div className="mt-4 flex justify-center">
+                  <Btn onClick={approveSelfInvoice} variant="success"><ThumbsUp size={14}/> Approve My Invoice</Btn>
+                </div>
+              )}
+              {inv.statusRec?.tutorApproved && !locked && (
+                <p className="text-center text-xs text-green-600 mt-3">You approved this invoice.</p>
+              )}
+            </div>
+
+            {/* Lesson lines */}
+            <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-3">
+              <h4 className="text-sm font-semibold text-gray-700">Lesson Lines</h4>
+              {inv.lessonLines.length === 0 ? (
+                <p className="text-sm text-gray-400">No attended lessons for this month.</p>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {inv.lessonLines.map(l => (
+                    <div key={l.id} className="flex items-center justify-between py-2.5 text-sm">
+                      <div>
+                        <p className="font-medium text-gray-700">{l.studentName} — {l.subjectLabel}</p>
+                        <p className="text-xs text-gray-400">{fmtDate(l.date)} · {l.hours.toFixed(2)}h · <span className="capitalize">{l.lessonType}</span>{l.wifiAmt>0?` · Wifi +${fmtZAR(l.wifiAmt)}`:""}</p>
+                      </div>
+                      <span className="font-semibold text-gray-800">{fmtZAR(l.lineTotal)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Claims */}
+            <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-3">
+              <h4 className="text-sm font-semibold text-gray-700">Claims</h4>
+              {inv.allClaims.length > 0 && (
+                <div className="divide-y divide-gray-100 mb-3">
+                  {inv.allClaims.map(c => (
+                    <div key={c.id} className="flex items-center justify-between py-2.5 text-sm">
+                      <div>
+                        <p className="font-medium text-gray-700">{c.type} — {fmtDate(c.date)}</p>
+                        {c.studentNames && <p className="text-xs text-gray-400">{c.studentNames}</p>}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-gray-800">{fmtZAR(Number(c.amount))}</span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${c.status==="approved"?"bg-green-50 text-green-700":c.status==="rejected"?"bg-red-50 text-red-600":"bg-amber-50 text-amber-700"}`}>{c.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Submit new claim */}
+              {!locked && (
+                <div className="border-t border-gray-100 pt-4 space-y-3">
+                  <p className="text-xs font-medium text-gray-600">Submit New Claim</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">Type</label>
+                      <select className={inputCls} value={claimForm.type} onChange={e=>setClaimForm(f=>({...f,type:e.target.value}))}>
+                        <option>Workshop</option>
+                        <option>Marking</option>
+                        <option>Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">Amount (R)</label>
+                      <input type="number" min="0" className={inputCls} placeholder="0.00" value={claimForm.amount} onChange={e=>setClaimForm(f=>({...f,amount:e.target.value}))} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Student Names (optional)</label>
+                    <input type="text" className={inputCls} placeholder="e.g. Siyanda, Mia" value={claimForm.studentNames} onChange={e=>setClaimForm(f=>({...f,studentNames:e.target.value}))} />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-500 mb-1">Date</label>
+                    <input type="date" className={inputCls} value={claimForm.date} onChange={e=>setClaimForm(f=>({...f,date:e.target.value}))} />
+                  </div>
+                  <Btn onClick={submitClaim} disabled={!claimForm.amount}><Plus size={14}/> Submit Claim</Btn>
+                  {claimSaved && <p className="text-xs text-green-600">Claim submitted for admin review.</p>}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── ACADEMY (only for academy tutors) ── */}
       {tutorPage==="academy" && tutor.isAcademyTutor && (
         <div className="space-y-4">
@@ -3915,6 +4176,397 @@ function CentrePortal({ centre, data }) {
 }
 
 
+// ─── PAGE: PAYROLL ────────────────────────────────────────────────────────────
+
+function PayrollPage({ data, setData }) {
+  const [tab,         setTab]         = useState("invoices");
+  const [month,       setMonth]       = useState(today().slice(0, 7));
+  const [expandedId,  setExpandedId]  = useState(null);
+  const [rateForm,    setRateForm]    = useState({ year: new Date().getFullYear() + 1, regularRate: 235, academyRate: 225, centreRate: 235, wifiAllowance: 40 });
+  const [editRateId,  setEditRateId]  = useState(null);
+
+  // All tutors that have attended logbook entries in selected month
+  const activeTutors = useMemo(() => {
+    const ids = [...new Set((data.logbook || []).filter(l => l.date.startsWith(month) && l.attended).map(l => l.tutorId))];
+    return ids.map(id => (data.tutors || []).find(t => t.id === id)).filter(Boolean);
+  }, [data, month]);
+
+  const approveForTutor = (tutorId) => {
+    setData(d => {
+      const existing = (d.invoiceStatus || []).find(s => s.tutorId === tutorId && s.month === month);
+      const updated  = existing
+        ? d.invoiceStatus.map(s => s.tutorId === tutorId && s.month === month ? { ...s, tutorApproved: true, adminApproved: true } : s)
+        : [...(d.invoiceStatus || []), { id: "inv" + uid(), tutorId, month, tutorApproved: true, adminApproved: true, paid: false, paidDate: null, paidAmount: 0 }];
+      return { ...d, invoiceStatus: updated };
+    });
+  };
+
+  const markPaid = (tutorId, amount) => {
+    setData(d => {
+      const existing = (d.invoiceStatus || []).find(s => s.tutorId === tutorId && s.month === month);
+      const updated  = existing
+        ? d.invoiceStatus.map(s => s.tutorId === tutorId && s.month === month ? { ...s, tutorApproved: true, adminApproved: true, paid: true, paidDate: today(), paidAmount: amount } : s)
+        : [...(d.invoiceStatus || []), { id: "inv" + uid(), tutorId, month, tutorApproved: true, adminApproved: true, paid: true, paidDate: today(), paidAmount: amount }];
+      return { ...d, invoiceStatus: updated };
+    });
+  };
+
+  const approveClaimAdmin = (claimId, approve) => {
+    setData(d => ({
+      ...d,
+      tutorClaims: (d.tutorClaims || []).map(c => c.id === claimId ? { ...c, status: approve ? "approved" : "rejected" } : c),
+    }));
+  };
+
+  const addRate = () => {
+    if (!rateForm.year) return;
+    setData(d => ({ ...d, tutorRates: [...(d.tutorRates || []), { ...rateForm, id: "rate" + uid(), year: Number(rateForm.year), regularRate: Number(rateForm.regularRate), academyRate: Number(rateForm.academyRate), centreRate: Number(rateForm.centreRate), wifiAllowance: Number(rateForm.wifiAllowance) }] }));
+    setRateForm({ year: new Date().getFullYear() + 1, regularRate: 235, academyRate: 225, centreRate: 235, wifiAllowance: 40 });
+  };
+
+  const updateRate = (id, field, value) => {
+    setData(d => ({ ...d, tutorRates: (d.tutorRates || []).map(r => r.id === id ? { ...r, [field]: Number(value) } : r) }));
+  };
+
+  const locked = isInvoiceLocked(month);
+
+  const unapprovedTutors = activeTutors.filter(t => {
+    const inv = buildTutorInvoice(t.id, month, data);
+    return !inv.isApproved && !locked;
+  });
+
+  const generatePDF = () => {
+    const tutorSections = activeTutors.map(t => {
+      const inv = buildTutorInvoice(t.id, month, data);
+      const lessonRows = inv.lessonLines.map(l =>
+        `<tr><td>${fmtDate(l.date)}</td><td>${l.studentName}</td><td>${l.subjectLabel}</td><td>${l.hours.toFixed(2)}h</td><td>${l.lessonType}</td><td style="text-align:right">R${l.baseRate}</td><td style="text-align:right">R${l.wifiAmt > 0 ? `+${l.wifiAmt} wifi` : ""}</td><td style="text-align:right"><b>R${l.lineTotal.toFixed(2)}</b></td></tr>`
+      ).join("");
+      const claimRows = inv.approvedClaims.map(c =>
+        `<tr><td>${fmtDate(c.date)}</td><td>${c.type}</td><td colspan="5">${c.studentNames}</td><td style="text-align:right"><b>R${Number(c.amount).toFixed(2)}</b></td></tr>`
+      ).join("");
+      const status = inv.isPaid ? "PAID" : inv.isApproved ? "APPROVED" : locked ? "AUTO-LOCKED" : "PENDING";
+      return `
+        <div style="page-break-after:always;padding:32px;font-family:Arial,sans-serif;font-size:12px">
+          <h2 style="color:#5a9fa6;margin-bottom:4px">${t.firstName} ${t.lastName}</h2>
+          <p style="color:#888;margin:0">${t.email} &bull; Invoice: ${month}</p>
+          <p style="color:#888;margin:4px 0 16px">Status: <b>${status}</b>${inv.isPaid && inv.statusRec?.paidDate ? ` &bull; Paid: ${fmtDate(inv.statusRec.paidDate)}` : ""}</p>
+          <h3 style="border-bottom:1px solid #eee;padding-bottom:4px">Lessons</h3>
+          <table width="100%" border="0" cellpadding="4" cellspacing="0" style="border-collapse:collapse">
+            <thead style="background:#f5f5f5"><tr><th>Date</th><th>Student</th><th>Subject</th><th>Duration</th><th>Type</th><th>Rate</th><th>Wifi</th><th>Total</th></tr></thead>
+            <tbody>${lessonRows || '<tr><td colspan="8" style="color:#aaa">No lessons</td></tr>'}</tbody>
+          </table>
+          <p style="text-align:right;margin-top:4px"><b>Lesson Total: R${inv.lessonTotal.toFixed(2)}</b></p>
+          ${inv.approvedClaims.length > 0 ? `
+          <h3 style="border-bottom:1px solid #eee;padding-bottom:4px;margin-top:16px">Approved Claims</h3>
+          <table width="100%" border="0" cellpadding="4" cellspacing="0" style="border-collapse:collapse">
+            <thead style="background:#f5f5f5"><tr><th>Date</th><th>Type</th><th colspan="5">Details</th><th>Amount</th></tr></thead>
+            <tbody>${claimRows}</tbody>
+          </table>
+          <p style="text-align:right;margin-top:4px"><b>Claims Total: R${inv.claimsTotal.toFixed(2)}</b></p>` : ""}
+          <div style="border-top:2px solid #5a9fa6;margin-top:16px;padding-top:12px;text-align:right">
+            <span style="font-size:16px;font-weight:bold;color:#5a9fa6">Grand Total: R${inv.grandTotal.toFixed(2)}</span>
+          </div>
+        </div>`;
+    }).join("");
+
+    const html = `<!DOCTYPE html><html><head><title>Payroll ${month}</title><style>body{margin:0}table th,table td{border:1px solid #e0e0e0;padding:4px 8px}table{font-size:11px}</style></head><body>${tutorSections}</body></html>`;
+    const win = window.open("", "_blank");
+    if (win) { win.document.write(html); win.document.close(); win.print(); }
+  };
+
+  const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none";
+
+  const sortedRates = [...(data.tutorRates || [])].sort((a, b) => b.year - a.year);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Payroll</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Tutor invoices, claims and rate management</p>
+        </div>
+        <div className="flex gap-2">
+          {tab === "invoices" && (
+            <Btn onClick={generatePDF} variant="secondary"><Printer size={15} /> Download PDF</Btn>
+          )}
+        </div>
+      </div>
+
+      {/* Tab bar */}
+      <div className="flex gap-1 border-b border-gray-200">
+        {[{id:"invoices",label:"Invoices"},{id:"rates",label:"Rates"}].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? "border-teal-500 text-teal-700" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "invoices" && (
+        <div className="space-y-4">
+          {/* Month selector */}
+          <div className="flex items-center gap-3">
+            <label className="text-sm font-medium text-gray-700">Month:</label>
+            <input type="month" value={month} onChange={e => setMonth(e.target.value)}
+              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" />
+            {locked && (
+              <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background: "#fef3c7", color: "#92400e" }}>
+                <Clock size={11} className="inline mr-1" />Auto-locked (26th passed)
+              </span>
+            )}
+          </div>
+
+          {/* Unapproved warning */}
+          {unapprovedTutors.length > 0 && (
+            <div className="flex items-center gap-2 p-3 rounded-lg text-sm" style={{ background: "#fef3c7", color: "#92400e" }}>
+              <AlertCircle size={16} />
+              <span>{unapprovedTutors.length} tutor{unapprovedTutors.length > 1 ? "s have" : " has"} not yet approved their invoice for {fmtMonth(month)}.</span>
+            </div>
+          )}
+
+          {activeTutors.length === 0 && (
+            <div className="text-center py-12 text-gray-400 text-sm">No attended lessons logged for {fmtMonth(month)}.</div>
+          )}
+
+          {activeTutors.map(tutor => {
+            const inv      = buildTutorInvoice(tutor.id, month, data);
+            const expanded = expandedId === tutor.id;
+            const statusLabel = inv.isPaid ? "Paid" : inv.isApproved ? (locked && !inv.statusRec?.tutorApproved ? "Auto-locked" : "Approved") : "Pending";
+            const statusStyle = inv.isPaid
+              ? { background: "#dcfce7", color: "#166534" }
+              : inv.isApproved
+                ? (locked && !inv.statusRec?.tutorApproved ? { background: "#fef3c7", color: "#92400e" } : { background: B.tealLight, color: B.tealDark })
+                : { background: "#f3f4f6", color: "#6b7280" };
+
+            return (
+              <div key={tutor.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                {/* Header row */}
+                <div className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-gray-50" onClick={() => setExpandedId(expanded ? null : tutor.id)}>
+                  <div className="flex items-center gap-4">
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style={{ background: B.teal }}>
+                      {tutor.firstName[0]}{tutor.lastName[0]}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800 text-sm">{tutor.firstName} {tutor.lastName}</p>
+                      <p className="text-xs text-gray-400">{inv.lessonLines.length} lesson{inv.lessonLines.length !== 1 ? "s" : ""} · {inv.allClaims.length} claim{inv.allClaims.length !== 1 ? "s" : ""}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right hidden sm:block">
+                      <p className="text-xs text-gray-400">Lessons</p>
+                      <p className="text-sm font-semibold text-gray-700">{fmtZAR(inv.lessonTotal)}</p>
+                    </div>
+                    <div className="text-right hidden sm:block">
+                      <p className="text-xs text-gray-400">Claims</p>
+                      <p className="text-sm font-semibold text-gray-700">{fmtZAR(inv.claimsTotal)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-400">Total</p>
+                      <p className="text-base font-bold" style={{ color: B.tealDark }}>{fmtZAR(inv.grandTotal)}</p>
+                    </div>
+                    <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={statusStyle}>{statusLabel}</span>
+                    <ChevronRight size={16} className={`text-gray-400 transition-transform ${expanded ? "rotate-90" : ""}`} />
+                  </div>
+                </div>
+
+                {/* Expanded detail */}
+                {expanded && (
+                  <div className="border-t border-gray-100 px-5 pb-5 space-y-5">
+                    {/* Action buttons */}
+                    <div className="flex gap-2 pt-4 flex-wrap">
+                      {!inv.isApproved && (
+                        <Btn size="sm" variant="success" onClick={() => approveForTutor(tutor.id)}>
+                          <ThumbsUp size={13} /> Approve for Tutor
+                        </Btn>
+                      )}
+                      {inv.isApproved && !inv.isPaid && (
+                        <Btn size="sm" onClick={() => markPaid(tutor.id, inv.grandTotal)}>
+                          <Banknote size={13} /> Mark Paid ({fmtZAR(inv.grandTotal)})
+                        </Btn>
+                      )}
+                      {inv.isPaid && (
+                        <span className="text-xs text-green-700 bg-green-50 px-3 py-1.5 rounded-lg font-medium">
+                          Paid {inv.statusRec?.paidDate ? fmtDate(inv.statusRec.paidDate) : ""}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Lesson table */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Lesson Lines</h4>
+                      {inv.lessonLines.length === 0 ? (
+                        <p className="text-sm text-gray-400">No attended lessons.</p>
+                      ) : (
+                        <div className="overflow-x-auto rounded-lg border border-gray-100">
+                          <table className="min-w-full text-xs divide-y divide-gray-100">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-3 py-2 text-left text-gray-500 font-medium">Date</th>
+                                <th className="px-3 py-2 text-left text-gray-500 font-medium">Student</th>
+                                <th className="px-3 py-2 text-left text-gray-500 font-medium">Subject</th>
+                                <th className="px-3 py-2 text-left text-gray-500 font-medium">Duration</th>
+                                <th className="px-3 py-2 text-left text-gray-500 font-medium">Type</th>
+                                <th className="px-3 py-2 text-right text-gray-500 font-medium">Rate/hr</th>
+                                <th className="px-3 py-2 text-right text-gray-500 font-medium">Wifi</th>
+                                <th className="px-3 py-2 text-right text-gray-500 font-medium">Total</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                              {inv.lessonLines.map(l => (
+                                <tr key={l.id}>
+                                  <td className="px-3 py-2 text-gray-700">{fmtDate(l.date)}</td>
+                                  <td className="px-3 py-2 text-gray-700">{l.studentName}</td>
+                                  <td className="px-3 py-2 text-gray-700">{l.subjectLabel}</td>
+                                  <td className="px-3 py-2 text-gray-700">{l.hours.toFixed(2)}h</td>
+                                  <td className="px-3 py-2">
+                                    <span className="capitalize text-xs px-2 py-0.5 rounded-full" style={l.lessonType === "centre" ? { background: B.tealLight, color: B.tealDark } : l.lessonType === "academy" ? { background: B.coralLight, color: B.coralDark } : { background: "#f3f4f6", color: "#6b7280" }}>
+                                      {l.lessonType}
+                                    </span>
+                                  </td>
+                                  <td className="px-3 py-2 text-right text-gray-700">{fmtZAR(l.baseRate)}</td>
+                                  <td className="px-3 py-2 text-right text-gray-500">{l.wifiAmt > 0 ? fmtZAR(l.wifiAmt) : "—"}</td>
+                                  <td className="px-3 py-2 text-right font-semibold text-gray-800">{fmtZAR(l.lineTotal)}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            <tfoot>
+                              <tr className="bg-gray-50">
+                                <td colSpan={7} className="px-3 py-2 text-right text-xs font-semibold text-gray-600">Lesson Total</td>
+                                <td className="px-3 py-2 text-right font-bold text-gray-800">{fmtZAR(inv.lessonTotal)}</td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Claims section */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Claims</h4>
+                      {inv.allClaims.length === 0 ? (
+                        <p className="text-sm text-gray-400">No claims submitted.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {inv.allClaims.map(c => (
+                            <div key={c.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 bg-gray-50">
+                              <div className="flex-1">
+                                <p className="text-sm font-medium text-gray-700">{c.type} — {fmtDate(c.date)}</p>
+                                {c.studentNames && <p className="text-xs text-gray-500">{c.studentNames}</p>}
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-sm font-semibold">{fmtZAR(Number(c.amount))}</span>
+                                {c.status === "pending" && (
+                                  <div className="flex gap-1">
+                                    <button onClick={() => approveClaimAdmin(c.id, true)}
+                                      className="p-1.5 rounded-lg hover:bg-green-100 text-green-600 transition-colors" title="Approve">
+                                      <ThumbsUp size={14} />
+                                    </button>
+                                    <button onClick={() => approveClaimAdmin(c.id, false)}
+                                      className="p-1.5 rounded-lg hover:bg-red-100 text-red-500 transition-colors" title="Reject">
+                                      <ThumbsDown size={14} />
+                                    </button>
+                                  </div>
+                                )}
+                                {c.status !== "pending" && (
+                                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${c.status === "approved" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}>{c.status}</span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                          {inv.claimsTotal > 0 && (
+                            <div className="flex justify-end text-sm font-semibold text-gray-700 px-3">
+                              Approved Claims Total: {fmtZAR(inv.claimsTotal)}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Grand total */}
+                    <div className="flex justify-end pt-2 border-t border-gray-100">
+                      <div className="text-right">
+                        <p className="text-xs text-gray-400">Grand Total</p>
+                        <p className="text-xl font-bold" style={{ color: B.tealDark }}>{fmtZAR(inv.grandTotal)}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === "rates" && (
+        <div className="space-y-6">
+          {/* Existing rates table */}
+          <Section title="Pay Rates by Year">
+            <TableWrap>
+              <thead><tr>
+                <TH>Year</TH><TH className="text-right">Regular (R/hr)</TH><TH className="text-right">Academy (R/hr)</TH><TH className="text-right">Centre (R/hr)</TH><TH className="text-right">Wifi (R/session)</TH><TH></TH>
+              </tr></thead>
+              <tbody>
+                {sortedRates.map(r => (
+                  <TR key={r.id}>
+                    <TD className="font-semibold">{r.year}</TD>
+                    {editRateId === r.id ? (
+                      <>
+                        <TD><input type="number" className={inputCls} value={r.regularRate} onChange={e => updateRate(r.id, "regularRate", e.target.value)} /></TD>
+                        <TD><input type="number" className={inputCls} value={r.academyRate} onChange={e => updateRate(r.id, "academyRate", e.target.value)} /></TD>
+                        <TD><input type="number" className={inputCls} value={r.centreRate}  onChange={e => updateRate(r.id, "centreRate",  e.target.value)} /></TD>
+                        <TD><input type="number" className={inputCls} value={r.wifiAllowance} onChange={e => updateRate(r.id, "wifiAllowance", e.target.value)} /></TD>
+                        <TD><Btn size="sm" variant="success" onClick={() => setEditRateId(null)}><CheckCircle size={13} /> Done</Btn></TD>
+                      </>
+                    ) : (
+                      <>
+                        <TD className="text-right">{fmtZAR(r.regularRate)}</TD>
+                        <TD className="text-right">{fmtZAR(r.academyRate)}</TD>
+                        <TD className="text-right">{fmtZAR(r.centreRate)}</TD>
+                        <TD className="text-right">{fmtZAR(r.wifiAllowance)}</TD>
+                        <TD><Btn size="sm" variant="ghost" onClick={() => setEditRateId(r.id)}><Edit2 size={13} /></Btn></TD>
+                      </>
+                    )}
+                  </TR>
+                ))}
+                {sortedRates.length === 0 && <tr><td colSpan={6} className="text-center text-sm text-gray-400 py-6">No rates configured.</td></tr>}
+              </tbody>
+            </TableWrap>
+          </Section>
+
+          {/* Add new rate */}
+          <Section title="Add New Year Rate">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Year</label>
+                <input type="number" className={inputCls} value={rateForm.year} onChange={e => setRateForm(f => ({ ...f, year: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Regular (R/hr)</label>
+                <input type="number" className={inputCls} value={rateForm.regularRate} onChange={e => setRateForm(f => ({ ...f, regularRate: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Academy (R/hr)</label>
+                <input type="number" className={inputCls} value={rateForm.academyRate} onChange={e => setRateForm(f => ({ ...f, academyRate: e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Centre (R/hr)</label>
+                <input type="number" className={inputCls} value={rateForm.centreRate}  onChange={e => setRateForm(f => ({ ...f, centreRate:  e.target.value }))} />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Wifi (R/session)</label>
+                <input type="number" className={inputCls} value={rateForm.wifiAllowance} onChange={e => setRateForm(f => ({ ...f, wifiAllowance: e.target.value }))} />
+              </div>
+            </div>
+            <div className="mt-3 flex justify-end">
+              <Btn onClick={addRate}><Plus size={15} /> Add Rate</Btn>
+            </div>
+          </Section>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── APP ──────────────────────────────────────────────────────────────────────
 
 // Role switcher — all options the tester can cycle through
@@ -3981,6 +4633,9 @@ export default function App() {
     messages:            INIT_MESSAGES,
     tutorStudentNotes:   INIT_TUTOR_STUDENT_NOTES,
     studentReports:      INIT_STUDENT_REPORTS,
+    tutorRates:          INIT_TUTOR_RATES,
+    tutorClaims:         INIT_TUTOR_CLAIMS,
+    invoiceStatus:       INIT_INVOICE_STATUS,
   });
 
   const roleOptions = useMemo(() => buildRoleOptions(data), [data]);
@@ -4010,6 +4665,9 @@ export default function App() {
         messages:           data.messages.filter(m => m.tutorId === id),
         tutorStudentNotes:  data.tutorStudentNotes.filter(n => n.tutorId === id),
         studentReports:     data.studentReports.filter(r => r.tutorId === id),
+        tutorRates:         data.tutorRates,
+        tutorClaims:        (data.tutorClaims || []).filter(c => c.tutorId === id),
+        invoiceStatus:      (data.invoiceStatus || []).filter(s => s.tutorId === id),
       };
     }
 
@@ -4095,6 +4753,7 @@ export default function App() {
     links:      <LinksPage     data={filteredData} setData={setData} />,
     centres:    <CentresPage   data={filteredData} setData={setData} />,
     accounting: <AccountingPage data={filteredData} setData={setData} />,
+    payroll:    <PayrollPage    data={filteredData} setData={setData} />,
     stats:      <StatsPage     data={filteredData} />,
     reports:    <ReportsPage   data={filteredData} />,
     settings:   <SettingsPage  data={filteredData} setData={setData} />,
