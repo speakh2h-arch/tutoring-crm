@@ -225,6 +225,13 @@ const INIT_INVOICE_STATUS = [];
 // Claim types — admin-configurable list of services/products tutors can claim
 const INIT_CLAIM_TYPES = ["Workshop", "Marking", "Travel Allowance", "Materials", "Other"];
 
+// Academy top-up purchases — non-expiring extra lesson slots per student per subject
+// Each record: { id, studentId, subjectId, quantity, purchasedDate, note }
+const INIT_ACADEMY_TOPUPS = [];
+
+// Number of included academy lessons per subject per month (admin-configurable in future)
+const ACADEMY_INCLUDED_PER_MONTH = 2;
+
 // ─── UTILITIES ────────────────────────────────────────────────────────────────
 
 const uid     = () => Math.random().toString(36).slice(2, 9);
@@ -265,13 +272,91 @@ const calcLessonItem = (lb, data) => {
 
 const isInvoiceLocked = (month) => today() >= month + "-26";
 
+// Compute how many non-expiring top-up lessons remain for a student+subject at the START of `month`
+const getTopupPoolAtMonth = (studentId, subjectId, month, data) => {
+  const totalBought = (data.academyTopups || [])
+    .filter(t => t.studentId === studentId && t.subjectId === subjectId)
+    .reduce((s, t) => s + (t.quantity || 0), 0);
+  // Count overflow lessons (beyond ACADEMY_INCLUDED_PER_MONTH) in all months strictly before `month`
+  const priorLogs = (data.logbook || []).filter(
+    l => l.studentId === studentId && l.subjectId === subjectId &&
+         l.attended && l.date < month + "-01"
+  );
+  const byPriorMonth = {};
+  priorLogs.forEach(l => { const m = l.date.slice(0, 7); byPriorMonth[m] = (byPriorMonth[m] || 0) + 1; });
+  const priorOverflow = Object.values(byPriorMonth).reduce((s, c) => s + Math.max(0, c - ACADEMY_INCLUDED_PER_MONTH), 0);
+  return Math.max(0, totalBought - priorOverflow);
+};
+
 const buildTutorInvoice = (tutorId, month, data) => {
-  const lessonLogs = (data.logbook || []).filter(l => l.tutorId === tutorId && l.date.startsWith(month) && l.attended);
+  const lessonLogs = (data.logbook || [])
+    .filter(l => l.tutorId === tutorId && l.date.startsWith(month) && l.attended)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  // Build ordinal position map: for each student+subject, list ALL attended lesson IDs this month
+  // (across all tutors) sorted by date — so the 2-lesson limit is per-student, not per-tutor
+  const allMonthLogs = (data.logbook || [])
+    .filter(l => l.date.startsWith(month) && l.attended)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const positionMap = {};
+  allMonthLogs.forEach(l => {
+    const key = `${l.studentId}|${l.subjectId || ""}`;
+    if (!positionMap[key]) positionMap[key] = [];
+    positionMap[key].push(l.id);
+  });
+
+  // Cache top-up pools (computed once per student+subject)
+  const topupCache = {};
+  const getPool = (studentId, subjectId) => {
+    const key = `${studentId}|${subjectId || ""}`;
+    if (topupCache[key] === undefined) topupCache[key] = getTopupPoolAtMonth(studentId, subjectId || "", month, data);
+    return topupCache[key];
+  };
+
   const lessonLines = lessonLogs.map(lb => {
-    const st  = (data.students || []).find(s => s.id === lb.studentId);
-    const sub = (data.subjects || []).find(s => s.id === lb.subjectId);
-    const calc = calcLessonItem(lb, data);
-    return { ...lb, studentName: st ? `${st.firstName} ${st.lastName}` : "—", subjectLabel: sub?.name || "—", ...calc };
+    const st   = (data.students || []).find(s => s.id === lb.studentId);
+    const sub  = (data.subjects || []).find(s => s.id === lb.subjectId);
+    const baseType = getStudentLessonType(lb.studentId, data);
+
+    let effectiveType = baseType;
+    let academySlot = null; // "included" | "topup" | null
+
+    if (baseType === "academy") {
+      const key     = `${lb.studentId}|${lb.subjectId || ""}`;
+      const posArr  = positionMap[key] || [];
+      const pos     = posArr.indexOf(lb.id) + 1; // 1-indexed ordinal across all tutors this month
+      const pool    = getPool(lb.studentId, lb.subjectId || "");
+
+      if (pos <= ACADEMY_INCLUDED_PER_MONTH) {
+        effectiveType = "academy";
+        academySlot   = "included";
+      } else if (pos - ACADEMY_INCLUDED_PER_MONTH <= pool) {
+        effectiveType = "academy";
+        academySlot   = "topup";
+      } else {
+        effectiveType = "regular"; // Overflow — charged at regular rate
+        academySlot   = "overflow";
+      }
+    }
+
+    const year     = parseInt(lb.date.slice(0, 4));
+    const rate     = getRateForYear(year, data.tutorRates);
+    const hours    = lb.duration / 60;
+    const baseRate = effectiveType === "academy" ? rate.academyRate
+                   : effectiveType === "centre"  ? rate.centreRate
+                   : rate.regularRate;
+    const lessonAmt = baseRate * hours;
+    const wifiAmt   = effectiveType === "centre" ? rate.wifiAllowance : 0;
+
+    return {
+      ...lb,
+      studentName:  st ? `${st.firstName} ${st.lastName}` : "—",
+      subjectLabel: sub?.name || "—",
+      lessonType: effectiveType,
+      academySlot,
+      baseRate, hours, lessonAmt, wifiAmt,
+      lineTotal: lessonAmt + wifiAmt,
+    };
   });
   const allClaims      = (data.tutorClaims || []).filter(c => c.tutorId === tutorId && c.month === month);
   const approvedClaims = allClaims.filter(c => c.status === "approved");
@@ -298,7 +383,7 @@ const buildTutorInvoiceHTML = (tutor, inv, month) => {
       <td style="padding:7px 8px;font-weight:600">${g.studentName}</td>
       <td style="padding:7px 8px;text-align:center">${g.lessonCount}</td>
       <td style="padding:7px 8px;color:#555;font-size:10px">${g.dates.join(" · ")}</td>
-      <td style="padding:7px 8px;text-transform:capitalize;color:#555">${g.lessonType}${g.hasWifi?" + WiFi":""}</td>
+      <td style="padding:7px 8px;text-transform:capitalize;color:#555">${g.lessonType === "academy" ? (g.hasTopup ? "Academy (top-up)" : "Academy (incl.)") : g.lessonType}${g.hasWifi?" + WiFi":""}</td>
       <td style="padding:7px 8px;text-align:right;font-weight:700">R${g.total.toFixed(2)}</td>
     </tr>`
   ).join("") || `<tr><td colspan="5" style="color:#aaa;text-align:center;padding:14px">No attended lessons this month</td></tr>`;
@@ -393,6 +478,8 @@ const groupLessonsByStudent = (lessonLines) => {
       total:       g.lines.reduce((s,l)=>s+l.lineTotal, 0),
       lessonType:  g.lines[0]?.lessonType || "regular",
       hasWifi:     g.lines.some(l=>l.wifiAmt>0),
+      hasTopup:    g.lines.some(l=>l.academySlot === "topup"),
+      hasOverflow: g.lines.some(l=>l.academySlot === "overflow"),
     };
   });
 };
@@ -952,6 +1039,7 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
   const [tab, setTab] = useState("links");
   const [purchaseForm, setPurchaseForm] = useState({ quantity: "", date: today(), note: "" });
   const [siblingId, setSiblingId] = useState("");
+  const [topupForm, setTopupForm] = useState({ subjectId: "", quantity: "2", note: "", date: today() });
 
   const lks      = data.links.filter(l => l.studentId === student.id);
   const siblings = data.siblings.filter(s => s.studentId1 === student.id || s.studentId2 === student.id)
@@ -987,6 +1075,43 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
   };
 
   const removeLink = (id) => setData(d => ({ ...d, links: d.links.filter(l => l.id !== id) }));
+
+  // Academy top-up helpers
+  const isAcademy = (data.enrolments || []).some(e => e.studentId === student.id && e.status === "Active");
+  const addTopup = () => {
+    if (!topupForm.subjectId || !topupForm.quantity) return;
+    setData(d => ({
+      ...d,
+      academyTopups: [...(d.academyTopups || []), {
+        id: "tu" + uid(),
+        studentId:    student.id,
+        subjectId:    topupForm.subjectId,
+        quantity:     Number(topupForm.quantity),
+        purchasedDate: topupForm.date,
+        note:         topupForm.note.trim(),
+      }],
+    }));
+    setTopupForm({ subjectId: "", quantity: "2", note: "", date: today() });
+  };
+  const removeTopup = (id) => setData(d => ({ ...d, academyTopups: (d.academyTopups||[]).filter(t => t.id !== id) }));
+
+  // Per-subject academy balance for current month
+  const curMonth = today().slice(0, 7);
+  const studentSubjects = [...new Set(
+    (data.links || []).filter(l => l.studentId === student.id).map(l => l.subjectId)
+  )];
+  const academyBalanceRows = studentSubjects.map(subjectId => {
+    const sub   = data.subjects?.find(s => s.id === subjectId);
+    const pool  = getTopupPoolAtMonth(student.id, subjectId, curMonth, data);
+    const usedThisMonth = (data.logbook || []).filter(
+      l => l.studentId === student.id && l.subjectId === subjectId &&
+           l.attended && l.date.startsWith(curMonth)
+    ).length;
+    const includedUsed = Math.min(usedThisMonth, ACADEMY_INCLUDED_PER_MONTH);
+    const topupUsed    = Math.max(0, Math.min(usedThisMonth - ACADEMY_INCLUDED_PER_MONTH, pool));
+    const overflow     = Math.max(0, usedThisMonth - ACADEMY_INCLUDED_PER_MONTH - pool);
+    return { subjectId, subjectName: sub?.name || "—", pool, usedThisMonth, includedUsed, topupUsed, overflow };
+  });
 
   const siblingOpts = data.students
     .filter(s => s.id !== student.id && !siblings.some(x => x.id === s.id))
@@ -1025,13 +1150,16 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-lg">
-        {["links","lessons","siblings"].map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${tab === t ? "bg-white shadow text-teal-700" : "text-gray-500 hover:text-gray-700"}`}>
-            {t} {t === "links" && `(${lks.length})`}
-            {t === "lessons" && `(${purchases.length})`}
-            {t === "siblings" && `(${siblings.length})`}
+      <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-lg flex-wrap">
+        {[
+          { id: "links",    label: `Links (${lks.length})` },
+          { id: "lessons",  label: `Lessons (${purchases.length})` },
+          { id: "siblings", label: `Siblings (${siblings.length})` },
+          ...(isAcademy ? [{ id: "academy", label: "Academy 🎓" }] : []),
+        ].map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)}
+            className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-colors ${tab === t.id ? "bg-white shadow text-teal-700" : "text-gray-500 hover:text-gray-700"}`}>
+            {t.label}
           </button>
         ))}
       </div>
@@ -1110,6 +1238,114 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
             </div>
           ))}
           {siblings.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No siblings linked.</p>}
+        </div>
+      )}
+
+      {tab === "academy" && isAcademy && (
+        <div className="space-y-5">
+          {/* Per-subject balance for current month */}
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Lesson Balance — {fmtMonth(curMonth)}</p>
+              <span className="text-xs text-gray-400">{ACADEMY_INCLUDED_PER_MONTH} included/subject/month</span>
+            </div>
+            {academyBalanceRows.length === 0 ? (
+              <p className="text-sm text-gray-400 px-4 py-4">No subjects linked yet.</p>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {academyBalanceRows.map(row => (
+                  <div key={row.subjectId} className="px-4 py-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{row.subjectName}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {row.includedUsed}/{ACADEMY_INCLUDED_PER_MONTH} included used
+                        {row.pool > 0 && ` · ${row.pool - row.topupUsed} top-up remaining`}
+                        {row.overflow > 0 && <span className="text-amber-600"> · {row.overflow} over limit (regular rate)</span>}
+                      </p>
+                    </div>
+                    <div className="flex gap-1.5">
+                      {/* Included slots */}
+                      {Array.from({ length: ACADEMY_INCLUDED_PER_MONTH }).map((_, i) => (
+                        <div key={i} className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${i < row.includedUsed ? "bg-teal-500 border-teal-500" : "border-gray-200"}`}>
+                          {i < row.includedUsed && <span className="text-white" style={{ fontSize: 9 }}>✓</span>}
+                        </div>
+                      ))}
+                      {/* Top-up slots */}
+                      {Array.from({ length: row.pool }).map((_, i) => (
+                        <div key={"tu" + i} className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${i < row.topupUsed ? "bg-indigo-400 border-indigo-400" : "border-indigo-200 bg-indigo-50"}`}>
+                          {i < row.topupUsed && <span className="text-white" style={{ fontSize: 9 }}>✓</span>}
+                        </div>
+                      ))}
+                      {/* Overflow */}
+                      {row.overflow > 0 && (
+                        <div className="w-5 h-5 rounded-full border-2 border-amber-400 bg-amber-50 flex items-center justify-center">
+                          <span className="text-amber-600 font-bold" style={{ fontSize: 9 }}>!</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Add top-up */}
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Add Top-Up Lessons</p>
+            </div>
+            <div className="p-4 space-y-3">
+              <p className="text-xs text-gray-500">Top-up lessons don't expire and roll over month-to-month until used.</p>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="col-span-1">
+                  <label className="block text-xs text-gray-500 mb-1">Subject</label>
+                  <select className={`${inputCls} w-full`} value={topupForm.subjectId} onChange={e => setTopupForm(f => ({ ...f, subjectId: e.target.value }))}>
+                    <option value="">—</option>
+                    {studentSubjects.map(sid => {
+                      const sub = data.subjects?.find(s => s.id === sid);
+                      return <option key={sid} value={sid}>{sub?.name || sid}</option>;
+                    })}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Qty</label>
+                  <input type="number" min="1" className={`${inputCls} w-full`} value={topupForm.quantity} onChange={e => setTopupForm(f => ({ ...f, quantity: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Date</label>
+                  <input type="date" className={`${inputCls} w-full`} value={topupForm.date} onChange={e => setTopupForm(f => ({ ...f, date: e.target.value }))} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Note (optional)</label>
+                <input type="text" className={`${inputCls} w-full`} placeholder="e.g. Exam revision pack" value={topupForm.note} onChange={e => setTopupForm(f => ({ ...f, note: e.target.value }))} />
+              </div>
+              <Btn onClick={addTopup} disabled={!topupForm.subjectId || !topupForm.quantity}><Plus size={13}/> Add Top-Up</Btn>
+            </div>
+          </div>
+
+          {/* Top-up history */}
+          {((data.academyTopups || []).filter(t => t.studentId === student.id)).length > 0 && (
+            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Top-Up History</p>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {(data.academyTopups || []).filter(t => t.studentId === student.id).map(t => {
+                  const sub = data.subjects?.find(s => s.id === t.subjectId);
+                  return (
+                    <div key={t.id} className="px-4 py-2.5 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-gray-800">{sub?.name || "—"} <span className="font-semibold text-indigo-600">+{t.quantity}</span></p>
+                        <p className="text-xs text-gray-400">{fmtDate(t.purchasedDate)}{t.note ? ` · ${t.note}` : ""}</p>
+                      </div>
+                      <Btn size="sm" variant="ghost" onClick={() => removeTopup(t.id)}><X size={13}/></Btn>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </Modal>
@@ -4094,6 +4330,24 @@ function ParentPortal({ student, data, setData }) {
   const myTutorIds = [...new Set(myLinks.map(l => l.tutorId))];
   const myTutors   = myTutorIds.map(tid => data.tutors.find(t => t.id === tid)).filter(Boolean);
 
+  // Academy balance for parent view
+  const isAcademyStudent = myEnrolments.some(e => e.status === "Active");
+  const parentCurMonth   = today().slice(0, 7);
+  const parentSubjects   = [...new Set(myLinks.map(l => l.subjectId))];
+  const parentAcademyRows = isAcademyStudent ? parentSubjects.map(subjectId => {
+    const sub  = (data.subjects || []).find(s => s.id === subjectId);
+    const pool = getTopupPoolAtMonth(student.id, subjectId, parentCurMonth, data);
+    const usedThisMonth = (data.logbook || []).filter(
+      l => l.studentId === student.id && l.subjectId === subjectId &&
+           l.attended && l.date.startsWith(parentCurMonth)
+    ).length;
+    const includedRemaining = Math.max(0, ACADEMY_INCLUDED_PER_MONTH - usedThisMonth);
+    const topupUsed = Math.max(0, Math.min(usedThisMonth - ACADEMY_INCLUDED_PER_MONTH, pool));
+    const topupRemaining = Math.max(0, pool - topupUsed);
+    const overflow = Math.max(0, usedThisMonth - ACADEMY_INCLUDED_PER_MONTH - pool);
+    return { subjectId, subjectName: sub?.name || "—", includedRemaining, topupRemaining, overflow, usedThisMonth };
+  }) : [];
+
   const submitFeedback = () => {
     if (!fbTutorId || !fbNote.trim()) return;
     setData(d => ({
@@ -4156,6 +4410,45 @@ function ParentPortal({ student, data, setData }) {
           </div>
         )}
       </div>
+
+      {isAcademyStudent && parentAcademyRows.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100" style={{ background: B.tealLight }}>
+            <h2 className="text-base font-semibold" style={{ color: B.tealDark }}>Academy Lesson Allocation — {fmtMonth(parentCurMonth)}</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Each subject includes {ACADEMY_INCLUDED_PER_MONTH} lessons per month. Unused included lessons expire at month end.</p>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {parentAcademyRows.map(row => (
+              <div key={row.subjectId} className="px-5 py-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-gray-800">{row.subjectName}</p>
+                  {row.overflow > 0 && (
+                    <span className="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                      {row.overflow} over limit — billed as regular
+                    </span>
+                  )}
+                </div>
+                <div className="mt-2 flex gap-4 text-xs">
+                  <span className={row.includedRemaining > 0 ? "text-teal-600 font-medium" : "text-gray-400"}>
+                    {row.includedRemaining} included lesson{row.includedRemaining !== 1 ? "s" : ""} remaining
+                  </span>
+                  {row.topupRemaining > 0 && (
+                    <span className="text-indigo-600 font-medium">
+                      {row.topupRemaining} top-up lesson{row.topupRemaining !== 1 ? "s" : ""} available
+                    </span>
+                  )}
+                </div>
+                {row.includedRemaining === 0 && row.topupRemaining === 0 && row.overflow === 0 && (
+                  <p className="text-xs text-gray-400 mt-1">All {ACADEMY_INCLUDED_PER_MONTH} included lessons used. Contact admin to purchase extra sessions.</p>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="px-5 py-3 bg-gray-50 border-t border-gray-100">
+            <p className="text-xs text-gray-400">Need more lessons? Contact your academy administrator to purchase a top-up pack — these don't expire.</p>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-gray-100 p-5">
         <h2 className="text-base font-semibold text-gray-800 mb-3">Lesson Credits</h2>
@@ -4839,6 +5132,7 @@ export default function App() {
     tutorClaims:         INIT_TUTOR_CLAIMS,
     invoiceStatus:       INIT_INVOICE_STATUS,
     claimTypes:          INIT_CLAIM_TYPES,
+    academyTopups:       INIT_ACADEMY_TOPUPS,
   });
 
   const roleOptions = useMemo(() => buildRoleOptions(data), [data]);
@@ -4872,6 +5166,7 @@ export default function App() {
         tutorClaims:        (data.tutorClaims || []).filter(c => c.tutorId === id),
         invoiceStatus:      (data.invoiceStatus || []).filter(s => s.tutorId === id),
         claimTypes:         data.claimTypes || INIT_CLAIM_TYPES,
+        academyTopups:      data.academyTopups || [],
       };
     }
 
@@ -4909,6 +5204,7 @@ export default function App() {
         // Tutor-to-parent notes: parents CAN see these, students cannot
         tutorStudentNotes: data.tutorStudentNotes.filter(n => n.studentId === id),
         studentReports:    data.studentReports.filter(r => r.studentId === id),
+        academyTopups:     (data.academyTopups || []).filter(t => t.studentId === id),
       };
     }
 
