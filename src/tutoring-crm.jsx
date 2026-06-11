@@ -2802,8 +2802,6 @@ export default function App() {
     academy:    <AcademyPage  data={data} setData={setData} />,
   };
 
-  if (!user) return <LoginPage onLogin={setUser} />;
-
   return (
     <div className="flex h-screen bg-gray-50 font-sans">
       <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
@@ -2840,18 +2838,11 @@ export default function App() {
 
         <div className="px-4 py-4 border-t border-gray-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0"
-              style={{ background: B.teal }}>
-              {user.displayName.split(" ").map(n => n[0]).join("").slice(0,2).toUpperCase()}
+            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white" style={{ background: B.teal }}>LTL</div>
+            <div>
+              <p className="text-xs font-semibold text-gray-800">Learn to Link</p>
+              <p className="text-xs text-gray-400">CRM + Academy</p>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-gray-800 truncate">{user.displayName}</p>
-              <p className="text-xs text-gray-400">{user.role}</p>
-            </div>
-            <button onClick={() => setUser(null)} title="Sign out"
-              className="text-gray-400 hover:text-gray-600 shrink-0 transition-colors">
-              <X size={15} />
-            </button>
           </div>
         </div>
       </aside>
