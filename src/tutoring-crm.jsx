@@ -88,7 +88,7 @@ const INIT_SIBLINGS = [
 ];
 
 const INIT_TUTOR_NOTES = [
-  { id: "tn1", tutorId: "t1", type: "compliment", note: "Parent of Siyanda said Ayanda is excellent — very patient and clear.", date: "2025-04-15", source: "admin" },
+  { id: "tn1", tutorId: "t1", type: "compliment", note: "Parent of Siyanda said Ayanda is excellent — very patient and clear.", date: "2025-04-15", source: "parent" },
   { id: "tn2", tutorId: "t2", type: "complaint",  note: "Ruan was 15 minutes late to session on 3 May without notice.",        date: "2025-05-03", source: "admin" },
 ];
 
