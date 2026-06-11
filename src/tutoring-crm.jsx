@@ -377,16 +377,23 @@ const buildTutorInvoiceHTML = (tutor, inv, month) => {
   const monthLabel = new Date(Number(yr), Number(mo) - 1, 1).toLocaleString("en-ZA", { month: "long", year: "numeric" });
   const studentGroups = groupLessonsByStudent(inv.lessonLines);
 
-  // One row per student
-  const studentRows = studentGroups.map((g, i) =>
-    `<tr style="background:${i%2===0?"#fff":"#f9fafb"}">
-      <td style="padding:7px 8px;font-weight:600">${g.studentName}</td>
+  // One row per student+subject+rate-type combination
+  const studentRows = studentGroups.map((g, i) => {
+    const typeLabel = g.lessonType === "academy"
+      ? (g.academySlot === "topup" ? "Academy · Top-up" : "Academy · Included")
+      : g.lessonType === "centre" ? "Centre" : "Regular";
+    const rateLabel = `R${(g.baseRate||0).toFixed(0)}/hr`;
+    return `<tr style="background:${i%2===0?"#fff":"#f9fafb"}">
+      <td style="padding:7px 8px">
+        <span style="font-weight:600">${g.studentName}</span>
+        <span style="color:#888;font-size:10px;margin-left:6px">${g.subjectLabel}</span>
+      </td>
       <td style="padding:7px 8px;text-align:center">${g.lessonCount}</td>
       <td style="padding:7px 8px;color:#555;font-size:10px">${g.dates.join(" · ")}</td>
-      <td style="padding:7px 8px;text-transform:capitalize;color:#555">${g.lessonType === "academy" ? (g.hasTopup ? "Academy (top-up)" : "Academy (incl.)") : g.lessonType}${g.hasWifi?" + WiFi":""}</td>
+      <td style="padding:7px 8px;font-size:10px;color:${g.lessonType==="academy"?"#2a7f85":g.lessonType==="regular"&&g.academySlot==="overflow"?"#b45309":"#555"}">${typeLabel}${g.hasWifi?" + WiFi":""} <span style="color:#aaa">(${rateLabel})</span></td>
       <td style="padding:7px 8px;text-align:right;font-weight:700">R${g.total.toFixed(2)}</td>
-    </tr>`
-  ).join("") || `<tr><td colspan="5" style="color:#aaa;text-align:center;padding:14px">No attended lessons this month</td></tr>`;
+    </tr>`;
+  }).join("") || `<tr><td colspan="5" style="color:#aaa;text-align:center;padding:14px">No attended lessons this month</td></tr>`;
 
   // Claims as line items (same table, visually distinct)
   const claimItemRows = inv.approvedClaims.map((c, i) =>
@@ -461,27 +468,47 @@ const printInvoiceWindow = (bodyContent, title) => {
   if (win) { win.document.write(html); win.document.close(); win.print(); }
 };
 
-// Group invoice lesson lines by student (one row per student)
+// Group invoice lesson lines — one row per student + subject + rate type
+// Different rates (e.g. academy vs regular overflow) always produce separate rows
 const groupLessonsByStudent = (lessonLines) => {
   const map = {};
   lessonLines.forEach(l => {
-    if (!map[l.studentId]) map[l.studentId] = { studentId:l.studentId, studentName:l.studentName, lines:[] };
-    map[l.studentId].lines.push(l);
-  });
-  return Object.values(map).map(g => {
-    const sorted = [...g.lines].sort((a,b)=>a.date.localeCompare(b.date));
-    return {
-      studentId:   g.studentId,
-      studentName: g.studentName,
-      lessonCount: g.lines.length,
-      dates:       sorted.map(l=>fmtDate(l.date)),
-      total:       g.lines.reduce((s,l)=>s+l.lineTotal, 0),
-      lessonType:  g.lines[0]?.lessonType || "regular",
-      hasWifi:     g.lines.some(l=>l.wifiAmt>0),
-      hasTopup:    g.lines.some(l=>l.academySlot === "topup"),
-      hasOverflow: g.lines.some(l=>l.academySlot === "overflow"),
+    // Key on studentId + subjectId + lessonType so different rates split into separate rows
+    const key = `${l.studentId}|${l.subjectId||""}|${l.lessonType}`;
+    if (!map[key]) map[key] = {
+      studentId:    l.studentId,
+      studentName:  l.studentName,
+      subjectId:    l.subjectId || "",
+      subjectLabel: l.subjectLabel || "—",
+      lessonType:   l.lessonType,
+      academySlot:  l.academySlot,
+      lines: [],
     };
+    map[key].lines.push(l);
   });
+  return Object.values(map)
+    // Sort: by studentName, then subjectLabel, then lessonType (academy before regular)
+    .sort((a, b) =>
+      a.studentName.localeCompare(b.studentName) ||
+      a.subjectLabel.localeCompare(b.subjectLabel) ||
+      (a.lessonType === "academy" ? -1 : 1)
+    )
+    .map(g => {
+      const sorted = [...g.lines].sort((a, b) => a.date.localeCompare(b.date));
+      return {
+        studentId:    g.studentId,
+        studentName:  g.studentName,
+        subjectLabel: g.subjectLabel,
+        lessonType:   g.lessonType,
+        academySlot:  g.academySlot,  // "included" | "topup" | "overflow" | null
+        lessonCount:  g.lines.length,
+        dates:        sorted.map(l => fmtDate(l.date)),
+        baseRate:     g.lines[0]?.baseRate || 0,
+        total:        g.lines.reduce((s, l) => s + l.lineTotal, 0),
+        wifiTotal:    g.lines.reduce((s, l) => s + (l.wifiAmt || 0), 0),
+        hasWifi:      g.lines.some(l => l.wifiAmt > 0),
+      };
+    });
 };
 
 // Returns last N month keys as "YYYY-MM"
@@ -4155,23 +4182,34 @@ function TutorPortal({ tutor, data, setData }) {
                     {groups.length === 0 && inv.allClaims.length === 0 && (
                       <p className="text-sm text-gray-400 px-4 py-4">No items for this month.</p>
                     )}
-                    {groups.map(g => (
-                      <div key={g.studentId} className="flex items-start gap-3 px-4 py-3">
-                        <div className="mt-0.5 w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{background:B.tealLight}}>
-                          <Users size={13} style={{color:B.tealDark}}/>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                            <span className="text-sm font-semibold text-gray-800">{g.studentName}</span>
-                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background:B.tealLight,color:B.tealDark}}>{g.lessonCount} lesson{g.lessonCount!==1?"s":""}</span>
-                            {g.hasWifi && <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">+ WiFi</span>}
+                    {groups.map((g, gi) => {
+                      const isOverflow = g.lessonType === "regular" && g.academySlot === "overflow";
+                      const typeLabel = g.lessonType === "academy"
+                        ? (g.academySlot === "topup" ? "Academy · Top-up" : "Academy · Included")
+                        : g.lessonType === "centre" ? "Centre" : isOverflow ? "Regular (over limit)" : "Regular";
+                      const dotStyle = isOverflow
+                        ? { background: "#fef3c7" } : g.lessonType === "academy"
+                        ? { background: B.coralLight } : { background: B.tealLight };
+                      const dotIconColor = isOverflow ? "#92400e" : g.lessonType === "academy" ? B.coralDark : B.tealDark;
+                      return (
+                        <div key={gi} className={`flex items-start gap-3 px-4 py-3 ${isOverflow ? "bg-amber-50/30" : ""}`}>
+                          <div className="mt-0.5 w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={dotStyle}>
+                            <Users size={13} style={{color: dotIconColor}}/>
                           </div>
-                          <p className="text-xs text-gray-400">{g.dates.join(" · ")}</p>
-                          <p className="text-xs text-gray-400 mt-0.5 capitalize">{g.lessonType} rate</p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                              <span className="text-sm font-semibold text-gray-800">{g.studentName}</span>
+                              <span className="text-xs text-gray-500">· {g.subjectLabel}</span>
+                              <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{background:B.tealLight,color:B.tealDark}}>{g.lessonCount} lesson{g.lessonCount!==1?"s":""}</span>
+                              {g.hasWifi && <span className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 font-medium">+ WiFi</span>}
+                            </div>
+                            <p className="text-xs text-gray-400">{g.dates.join(" · ")}</p>
+                            <p className={`text-xs mt-0.5 ${isOverflow ? "text-amber-600 font-medium" : "text-gray-400"}`}>{typeLabel} · {fmtZAR(g.baseRate)}/hr</p>
+                          </div>
+                          <span className="font-semibold text-gray-800 shrink-0">{fmtZAR(g.total)}</span>
                         </div>
-                        <span className="font-semibold text-gray-800 shrink-0">{fmtZAR(g.total)}</span>
-                      </div>
-                    ))}
+                      );
+                    })}
                     {/* Claims as line items */}
                     {inv.allClaims.length > 0 && (
                       <>
@@ -4841,54 +4879,71 @@ function PayrollPage({ data, setData }) {
                       )}
                     </div>
 
-                    {/* Lesson table */}
-                    <div>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Lesson Lines</h4>
-                      {inv.lessonLines.length === 0 ? (
-                        <p className="text-sm text-gray-400">No attended lessons.</p>
-                      ) : (
-                        <div className="overflow-x-auto rounded-lg border border-gray-100">
-                          <table className="min-w-full text-xs divide-y divide-gray-100">
-                            <thead className="bg-gray-50">
-                              <tr>
-                                <th className="px-3 py-2 text-left text-gray-500 font-medium">Date</th>
-                                <th className="px-3 py-2 text-left text-gray-500 font-medium">Student</th>
-                                <th className="px-3 py-2 text-left text-gray-500 font-medium">Subject</th>
-                                <th className="px-3 py-2 text-left text-gray-500 font-medium">Duration</th>
-                                <th className="px-3 py-2 text-left text-gray-500 font-medium">Type</th>
-                                <th className="px-3 py-2 text-right text-gray-500 font-medium">Rate/hr</th>
-                                <th className="px-3 py-2 text-right text-gray-500 font-medium">Wifi</th>
-                                <th className="px-3 py-2 text-right text-gray-500 font-medium">Total</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                              {inv.lessonLines.map(l => (
-                                <tr key={l.id}>
-                                  <td className="px-3 py-2 text-gray-700">{fmtDate(l.date)}</td>
-                                  <td className="px-3 py-2 text-gray-700">{l.studentName}</td>
-                                  <td className="px-3 py-2 text-gray-700">{l.subjectLabel}</td>
-                                  <td className="px-3 py-2 text-gray-700">{l.hours.toFixed(2)}h</td>
-                                  <td className="px-3 py-2">
-                                    <span className="capitalize text-xs px-2 py-0.5 rounded-full" style={l.lessonType === "centre" ? { background: B.tealLight, color: B.tealDark } : l.lessonType === "academy" ? { background: B.coralLight, color: B.coralDark } : { background: "#f3f4f6", color: "#6b7280" }}>
-                                      {l.lessonType}
-                                    </span>
-                                  </td>
-                                  <td className="px-3 py-2 text-right text-gray-700">{fmtZAR(l.baseRate)}</td>
-                                  <td className="px-3 py-2 text-right text-gray-500">{l.wifiAmt > 0 ? fmtZAR(l.wifiAmt) : "—"}</td>
-                                  <td className="px-3 py-2 text-right font-semibold text-gray-800">{fmtZAR(l.lineTotal)}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                            <tfoot>
-                              <tr className="bg-gray-50">
-                                <td colSpan={7} className="px-3 py-2 text-right text-xs font-semibold text-gray-600">Lesson Total</td>
-                                <td className="px-3 py-2 text-right font-bold text-gray-800">{fmtZAR(inv.lessonTotal)}</td>
-                              </tr>
-                            </tfoot>
-                          </table>
+                    {/* Lesson table — grouped by student + subject + rate type */}
+                    {(()=>{
+                      const groups = groupLessonsByStudent(inv.lessonLines);
+                      return (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-700 mb-2">Lesson Lines</h4>
+                          {groups.length === 0 ? (
+                            <p className="text-sm text-gray-400">No attended lessons.</p>
+                          ) : (
+                            <div className="overflow-x-auto rounded-lg border border-gray-100">
+                              <table className="min-w-full text-xs divide-y divide-gray-100">
+                                <thead className="bg-gray-50">
+                                  <tr>
+                                    <th className="px-3 py-2 text-left text-gray-500 font-medium">Student · Subject</th>
+                                    <th className="px-3 py-2 text-center text-gray-500 font-medium">Lessons</th>
+                                    <th className="px-3 py-2 text-left text-gray-500 font-medium">Dates</th>
+                                    <th className="px-3 py-2 text-left text-gray-500 font-medium">Type</th>
+                                    <th className="px-3 py-2 text-right text-gray-500 font-medium">Rate/hr</th>
+                                    <th className="px-3 py-2 text-right text-gray-500 font-medium">WiFi</th>
+                                    <th className="px-3 py-2 text-right text-gray-500 font-medium">Total</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                  {groups.map((g, i) => {
+                                    const typeLabel = g.lessonType === "academy"
+                                      ? (g.academySlot === "topup" ? "Academy · Top-up" : "Academy · Included")
+                                      : g.lessonType === "centre" ? "Centre" : "Regular";
+                                    const isOverflow = g.lessonType === "regular" && g.academySlot === "overflow";
+                                    const typeBg = g.lessonType === "academy"
+                                      ? { background: B.coralLight, color: B.coralDark }
+                                      : g.lessonType === "centre"
+                                      ? { background: B.tealLight, color: B.tealDark }
+                                      : isOverflow
+                                      ? { background: "#fef3c7", color: "#92400e" }
+                                      : { background: "#f3f4f6", color: "#6b7280" };
+                                    return (
+                                      <tr key={i} className={isOverflow ? "bg-amber-50/30" : ""}>
+                                        <td className="px-3 py-2">
+                                          <span className="font-medium text-gray-800">{g.studentName}</span>
+                                          <span className="text-gray-400 ml-1">· {g.subjectLabel}</span>
+                                        </td>
+                                        <td className="px-3 py-2 text-center text-gray-700">{g.lessonCount}</td>
+                                        <td className="px-3 py-2 text-gray-500 text-xs">{g.dates.join(", ")}</td>
+                                        <td className="px-3 py-2">
+                                          <span className="text-xs px-2 py-0.5 rounded-full" style={typeBg}>{typeLabel}</span>
+                                        </td>
+                                        <td className="px-3 py-2 text-right text-gray-700">{fmtZAR(g.baseRate)}</td>
+                                        <td className="px-3 py-2 text-right text-gray-500">{g.hasWifi ? fmtZAR(g.wifiTotal || 0) : "—"}</td>
+                                        <td className="px-3 py-2 text-right font-semibold text-gray-800">{fmtZAR(g.total)}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                                <tfoot>
+                                  <tr className="bg-gray-50">
+                                    <td colSpan={6} className="px-3 py-2 text-right text-xs font-semibold text-gray-600">Lesson Total</td>
+                                    <td className="px-3 py-2 text-right font-bold text-gray-800">{fmtZAR(inv.lessonTotal)}</td>
+                                  </tr>
+                                </tfoot>
+                              </table>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
+                      );
+                    })()}
 
                     {/* Claims section */}
                     <div>
