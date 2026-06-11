@@ -1,11 +1,11 @@
-import { useState, useMemo, useCallback, memo } from "react";
+import { useState, useMemo } from "react";
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen, BarChart2,
   Settings as SettingsIcon, Search, Plus, X, Edit2, Trash2,
   Link as LinkIcon, DollarSign, BookMarked, TrendingUp,
   CheckCircle, ThumbsUp, ThumbsDown, StickyNote,
-  Building2, FileText, MapPin, Printer, AlertTriangle, Eye,
-  CalendarDays, ChevronLeft, ChevronRight, Award, Play, Menu
+  Building2, FileText, MapPin, Printer,
+  CalendarDays, ChevronLeft, ChevronRight, Award, Play
 } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
@@ -97,206 +97,6 @@ const INIT_CENTRE_NOTES = [
   { id: "cn2", centreId: "c2", type: "complaint",  note: "Owner flagged timetable clashes in Week 3 of February.",    date: "2025-02-18" },
 ];
 
-// ─── ROLE & ACCOUNT SEED DATA ─────────────────────────────────────────────────
-
-const INIT_TUTOR_PROFILES = [
-  { tutorId:"t1", emergencyName:"Thandi Mokoena", emergencyPhone:"071 999 1111", ratePerLesson:250, syllabi:["IEB","CAPS"],        levels:["Grade 10","Grade 11","Grade 12"], bio:"" },
-  { tutorId:"t2", emergencyName:"Sara Botha",     emergencyPhone:"082 888 2222", ratePerLesson:220, syllabi:["CAPS","Cambridge"],  levels:["Grade 8","Grade 9","Grade 10"],  bio:"" },
-  { tutorId:"t3", emergencyName:"Nomvula Sithole",emergencyPhone:"076 777 3333", ratePerLesson:230, syllabi:["IEB","Cambridge"],   levels:["Grade 11","Grade 12","IGCSE"],   bio:"" },
-  { tutorId:"t4", emergencyName:"Ana Ferreira",   emergencyPhone:"083 666 4444", ratePerLesson:240, syllabi:["IEB","CAPS"],        levels:["Grade 9","Grade 10","Grade 11"], bio:"" },
-];
-
-const INIT_PARENTS = [
-  { id:"p1", firstName:"Bongi",  lastName:"Dlamini",       email:"bongi@example.com",  phone:"071 100 0001", studentIds:["st1","st5"] },
-  { id:"p2", firstName:"Anita",  lastName:"van der Merwe", email:"anita@example.com",  phone:"071 100 0002", studentIds:["st2"] },
-  { id:"p3", firstName:"Sipho",  lastName:"Nkosi",         email:"sipho@example.com",  phone:"071 100 0003", studentIds:["st3"] },
-  { id:"p4", firstName:"Rajan",  lastName:"Patel",         email:"rajan@example.com",  phone:"071 100 0004", studentIds:["st4"] },
-  { id:"p5", firstName:"Lin",    lastName:"Chen",          email:"lin@example.com",    phone:"071 100 0005", studentIds:["st6"] },
-  { id:"p6", firstName:"Fatima", lastName:"Moosa",         email:"fatima@example.com", phone:"071 100 0006", studentIds:["st7"] },
-];
-
-const INIT_PARENT_TUTOR_NOTES = [
-  { id:"ptn1", parentId:"p1", tutorId:"t1", note:"Very happy with Ayanda's approach. Siyanda's marks improved 15% this term.", date:"2025-05-10", visibleTo:["admin","tutor"] },
-];
-
-const INIT_TUTOR_PAYMENTS = [
-  { id:"tp1", tutorId:"t1", month:"2025-04", lessonsDelivered:20, ratePerLesson:250, total:5000, paid:true, paidDate:"2025-05-03", expenseId:"exp1" },
-  { id:"tp2", tutorId:"t2", month:"2025-04", lessonsDelivered:18, ratePerLesson:220, total:3960, paid:true, paidDate:"2025-05-03", expenseId:"exp2" },
-  { id:"tp3", tutorId:"t3", month:"2025-04", lessonsDelivered:16, ratePerLesson:230, total:3680, paid:true, paidDate:"2025-05-03", expenseId:"exp3" },
-  { id:"tp4", tutorId:"t4", month:"2025-04", lessonsDelivered:14, ratePerLesson:240, total:3360, paid:true, paidDate:"2025-05-03", expenseId:"exp4" },
-];
-
-const INIT_EXPENSES = [
-  { id:"exp1", description:"Tutor pay — Ayanda Mokoena (Apr 2025)", amount:5000, date:"2025-05-03", category:"tutor" },
-  { id:"exp2", description:"Tutor pay — Ruan Botha (Apr 2025)",     amount:3960, date:"2025-05-03", category:"tutor" },
-  { id:"exp3", description:"Tutor pay — Lerato Sithole (Apr 2025)", amount:3680, date:"2025-05-03", category:"tutor" },
-  { id:"exp4", description:"Tutor pay — Marco Ferreira (Apr 2025)", amount:3360, date:"2025-05-03", category:"tutor" },
-];
-
-// Centre lesson pools — each centre buys a shared block of lessons
-const INIT_CENTRE_POOLS = [
-  { id:"cp1", centreId:"c1", totalBought:200, date:"2025-01-10", note:"Initial annual block" },
-  { id:"cp2", centreId:"c1", totalBought:100, date:"2025-04-01", note:"Top-up Q2"           },
-  { id:"cp3", centreId:"c2", totalBought:150, date:"2025-02-01", note:"Initial block"        },
-];
-
-// Per-student lesson usage at a centre (admin logs how many a student used)
-const INIT_CENTRE_LESSON_USAGE = [
-  { id:"clu1", centreId:"c1", studentId:"st2", quantity:12, date:"2025-03-31", note:"Term 1" },
-  { id:"clu2", centreId:"c1", studentId:"st3", quantity:15, date:"2025-03-31", note:"Term 1" },
-  { id:"clu3", centreId:"c2", studentId:"st4", quantity:10, date:"2025-03-31", note:"Term 1" },
-  { id:"clu4", centreId:"c1", studentId:"st2", quantity: 8, date:"2025-05-15", note:"Term 2 partial" },
-];
-
-// Centre owner accounts
-const INIT_CENTRE_OWNERS = [
-  { id:"co1", centreId:"c1", firstName:"Patricia", lastName:"Nkosi",   email:"patricia@northside.co.za" },
-  { id:"co2", centreId:"c2", firstName:"David",    lastName:"van Wyk", email:"david@southgate.co.za"   },
-];
-
-// Resources shared by tutors to students
-const INIT_RESOURCES = [
-  { id:"res1", fromTutorId:"t1", toStudentId:"st1", name:"Grade 11 Algebra Notes.pdf",     url:"#", type:"pdf",  date:"2025-05-01" },
-  { id:"res2", fromTutorId:"t1", toStudentId:"st1", name:"Quadratics Practice Sheet.pdf",  url:"#", type:"pdf",  date:"2025-05-08" },
-  { id:"res3", fromTutorId:"t2", toStudentId:"st2", name:"Essay Writing Guide.pdf",        url:"#", type:"pdf",  date:"2025-05-03" },
-];
-
-// Chat messages between tutors and students
-const INIT_CHAT_MESSAGES = [
-  { id:"cm1", tutorId:"t1", studentId:"st1", fromRole:"tutor",   message:"Hi Siyanda! I've uploaded the algebra notes. Let me know if you have questions.", date:"2025-05-01", time:"09:15" },
-  { id:"cm2", tutorId:"t1", studentId:"st1", fromRole:"student", message:"Thank you! I'll go through them before our next session.",                          date:"2025-05-01", time:"09:32" },
-  { id:"cm3", tutorId:"t1", studentId:"st1", fromRole:"tutor",   message:"Great. I've also shared the practice sheet — try questions 1–5.",                  date:"2025-05-08", time:"10:00" },
-];
-
-// Scheduled lessons (student-facing calendar)
-const INIT_SCHEDULED_LESSONS = [
-  { id:"sl1", studentId:"st1", tutorId:"t1", subjectId:"s1", date:"2025-06-03", time:"14:00", duration:60, meetingLink:"https://meet.google.com/abc-defg-hij", platform:"Google Meet", fixed:true,  note:"Weekly Maths" },
-  { id:"sl2", studentId:"st1", tutorId:"t1", subjectId:"s2", date:"2025-06-05", time:"15:00", duration:60, meetingLink:"https://teams.microsoft.com/l/meetup/xyz", platform:"Teams",       fixed:false, note:"Physical Science check-in" },
-  { id:"sl3", studentId:"st2", tutorId:"t2", subjectId:"s3", date:"2025-06-04", time:"16:00", duration:45, meetingLink:"https://zoom.us/j/1234567890",             platform:"Zoom",        fixed:true,  note:"English weekly" },
-];
-
-
-// ─── PACKAGES & INVOICING ─────────────────────────────────────────────────────
-
-const PACKAGES = [
-  { id:"pkg_trial",  name:"Trial Lesson (30 min)",      lessons:1,  price:115,   type:"trial"      },
-  { id:"pkg_ind",    name:"Individual Lesson (1 hr)",    lessons:1,  price:350,   type:"individual" },
-  { id:"pkg_single", name:"Single Loyalty Package (10)", lessons:10, price:3250,  type:"loyalty"    },
-  { id:"pkg_double", name:"Double Loyalty Package (20)", lessons:20, price:6300,  type:"loyalty"    },
-  { id:"pkg_50",     name:"50 Lesson Package",           lessons:50, price:15000, type:"loyalty"    },
-  { id:"pkg_custom", name:"Custom / Other",              lessons:0,  price:0,     type:"custom"     },
-];
-
-// Tutor pay rates per lesson type
-const TUTOR_RATES = {
-  standard: 235,   // private student, 1-hour lesson
-  centre:   275,   // centre student (R235 + R40 data charge)
-  academy:  225,   // academy/LMS enrolled student
-};
-
-// Seed tutor invoices (empty; generated by admin)
-const INIT_TUTOR_INVOICES = [];
-
-const INIT_INVOICES = [
-  { id:"inv1", studentId:"st1", invoiceNumber:"INV-001", date:"2026-02-10", status:"paid", paidDate:"2026-02-14",
-    lineItems:[
-      { id:"li1", description:"Trial Lesson (30 min)", qty:1, unitPrice:115,  lessons:1  },
-      { id:"li2", description:"Single Loyalty Package (10)", qty:1, unitPrice:3250, lessons:10 },
-    ], total:3365, notes:"" },
-  { id:"inv2", studentId:"st2", invoiceNumber:"INV-002", date:"2026-03-01", status:"paid", paidDate:"2026-03-05",
-    lineItems:[
-      { id:"li3", description:"Single Loyalty Package (10)", qty:1, unitPrice:3250, lessons:10 },
-    ], total:3250, notes:"" },
-  { id:"inv3", studentId:"st3", invoiceNumber:"INV-003", date:"2026-04-05", status:"paid", paidDate:"2026-04-08",
-    lineItems:[
-      { id:"li4", description:"Trial Lesson (30 min)", qty:1, unitPrice:115, lessons:1 },
-      { id:"li5", description:"Double Loyalty Package (20)", qty:1, unitPrice:6300, lessons:20 },
-    ], total:6415, notes:"" },
-  { id:"inv4", studentId:"st5", invoiceNumber:"INV-004", date:"2026-05-02", status:"sent", paidDate:"",
-    lineItems:[
-      { id:"li6", description:"Single Loyalty Package (10)", qty:1, unitPrice:3250, lessons:10 },
-    ], total:3250, notes:"" },
-  { id:"inv5", studentId:"st4", invoiceNumber:"INV-005", date:"2026-05-10", status:"paid", paidDate:"2026-05-12",
-    lineItems:[
-      { id:"li7", description:"Single Loyalty Package (10)", qty:1, unitPrice:3250, lessons:10 },
-    ], total:3250, notes:"" },
-];
-
-const INIT_STUDENT_REPORTS = [
-  {
-    id:"rpt1", tutorId:"t1", studentId:"st1",
-    month:"2026-05", subjectId:"sub1", subject:"Mathematics",
-    overallRating:"Good",
-    progressNarrative:"Sipho has shown great improvement this month. We covered quadratic equations and factorisation. He is confident with algebraic manipulation and recalls formulae well. Word problems remain an area that needs more attention — he tends to rush the setup phase.",
-    parentNotes:"Sipho is doing really well and has a great attitude in sessions. Please encourage him to attempt at least 2 past paper questions per week between lessons.",
-    nextMonthPlan:"We will move on to functions and graphs (parabola and hyperbola). I also plan to incorporate more timed practice to build exam confidence.",
-    lessonsCompleted:4,
-    createdAt:"2026-05-10",
-  },
-];
-
-const INIT_LESSON_LOGS = [
-  // Ayanda (t1) - standard student st1 (no centreId, academy enrolled)
-  { id:"ll1", studentId:"st1", tutorId:"t1", subjectId:"s1", date:"2026-04-18", status:"completed",
-    comment:"Covered polynomial expressions. Student showed solid progress.",
-    cancelReason:"", createdAt:"2026-04-18T14:30" },
-  { id:"ll2", studentId:"st1", tutorId:"t1", subjectId:"s1", date:"2026-04-25", status:"completed",
-    comment:"Revised factorisation. Student showed strong understanding.",
-    cancelReason:"", createdAt:"2026-04-25T14:35" },
-  { id:"ll3", studentId:"st1", tutorId:"t1", subjectId:"s1", date:"2026-05-05", status:"cancelled",
-    comment:"", cancelReason:"Student unwell — rescheduled.",
-    createdAt:"2026-05-05T13:00" },
-  { id:"ll6", studentId:"st1", tutorId:"t1", subjectId:"s1", date:"2026-05-12", status:"completed",
-    comment:"Functions and graphs. Student performed well.",
-    cancelReason:"", createdAt:"2026-05-12T14:30" },
-  // Ayanda (t1) - centre student st3 (has centreId c1)
-  { id:"ll5", studentId:"st3", tutorId:"t1", subjectId:"s2", date:"2026-04-20", status:"completed",
-    comment:"Introduced chemical bonding. Excellent engagement.",
-    cancelReason:"", createdAt:"2026-04-20T15:00" },
-  { id:"ll7", studentId:"st3", tutorId:"t1", subjectId:"s2", date:"2026-05-02", status:"completed",
-    comment:"Organic chemistry introduction. Good progress.",
-    cancelReason:"", createdAt:"2026-05-02T15:00" },
-  // Ruan (t2) - centre student st2 (has centreId c1)
-  { id:"ll4", studentId:"st2", tutorId:"t2", subjectId:"s3", date:"2026-04-22", status:"completed",
-    comment:"Worked on essay structure. Strong first draft produced.",
-    cancelReason:"", createdAt:"2026-04-22T16:05" },
-  { id:"ll8", studentId:"st2", tutorId:"t2", subjectId:"s3", date:"2026-05-06", status:"completed",
-    comment:"Literary analysis techniques. Student improving.",
-    cancelReason:"", createdAt:"2026-05-06T16:00" },
-  // Lerato (t3) - centre student st4 (has centreId c2)
-  { id:"ll9", studentId:"st4", tutorId:"t3", subjectId:"s4", date:"2026-04-24", status:"completed",
-    comment:"Cell biology revision. Thorough understanding demonstrated.",
-    cancelReason:"", createdAt:"2026-04-24T10:00" },
-  { id:"ll10", studentId:"st4", tutorId:"t3", subjectId:"s4", date:"2026-05-08", status:"completed",
-    comment:"Genetics and inheritance. Strong grasp of concepts.",
-    cancelReason:"", createdAt:"2026-05-08T10:00" },
-  // Marco (t4) - standard student st5 (no centreId, sibling of st1)
-  { id:"ll11", studentId:"st5", tutorId:"t4", subjectId:"s1", date:"2026-04-17", status:"completed",
-    comment:"Algebra foundations. Good session.",
-    cancelReason:"", createdAt:"2026-04-17T11:00" },
-  { id:"ll12", studentId:"st5", tutorId:"t4", subjectId:"s1", date:"2026-05-01", status:"completed",
-    comment:"Number patterns and sequences. Student engaged well.",
-    cancelReason:"", createdAt:"2026-05-01T11:00" },
-];
-
-const ACADEMY_STUDENT_IDS = ["st1","st3"];
-
-const ROLE_ACCOUNTS = [
-  { id:"admin1", role:"admin",        label:"Admin (Chanelle)",              ref:null  },
-  { id:"owner1", role:"owner",        label:"Owner",                         ref:null  },
-  { id:"co1",    role:"centreOwner",  label:"Centre Owner — Patricia (Northside)", ref:"co1" },
-  { id:"co2",    role:"centreOwner",  label:"Centre Owner — David (Southgate)",    ref:"co2" },
-  { id:"t1",     role:"tutor",        label:"Tutor — Ayanda",                ref:"t1"  },
-  { id:"t2",     role:"tutor",        label:"Tutor — Ruan",                  ref:"t2"  },
-  { id:"t3",     role:"tutor",        label:"Tutor — Lerato",                ref:"t3"  },
-  { id:"t4",     role:"tutor",        label:"Tutor — Marco",                 ref:"t4"  },
-  { id:"p1",     role:"parent",       label:"Parent — Bongi (Siyanda & Nomsa)", ref:"p1" },
-  { id:"p2",     role:"parent",       label:"Parent — Anita (Mia)",          ref:"p2"  },
-  { id:"st1",    role:"student",      label:"Student — Siyanda",             ref:"st1" },
-  { id:"st3",    role:"student",      label:"Student — Langa",               ref:"st3" },
-];
-
-
 // ─── LMS SEED DATA ────────────────────────────────────────────────────────────
 
 const INIT_COURSES = [
@@ -362,13 +162,13 @@ const INIT_PURCHASES = [
 
 // Monthly financials — turnover & expenses (manual input)
 const INIT_FINANCIALS = [
-  { id: "fin1", month: "2025-11", turnover: 14500, expenses: 7200 },
-  { id: "fin2", month: "2025-12", turnover: 11000, expenses: 6500 },
-  { id: "fin3", month: "2026-01", turnover: 0,     expenses: 8500 },
-  { id: "fin4", month: "2026-02", turnover: 0,     expenses: 9200 },
-  { id: "fin5", month: "2026-03", turnover: 0,     expenses: 10100 },
-  { id: "fin6", month: "2026-04", turnover: 0,     expenses: 11300 },
-  { id: "fin7", month: "2026-05", turnover: 0,     expenses: 12000 },
+  { id: "fin1", month: "2024-11", turnover: 14500, expenses: 7200 },
+  { id: "fin2", month: "2024-12", turnover: 11000, expenses: 6500 },
+  { id: "fin3", month: "2025-01", turnover: 18000, expenses: 8500 },
+  { id: "fin4", month: "2025-02", turnover: 21000, expenses: 9200 },
+  { id: "fin5", month: "2025-03", turnover: 23500, expenses: 10100 },
+  { id: "fin6", month: "2025-04", turnover: 26000, expenses: 11300 },
+  { id: "fin7", month: "2025-05", turnover: 28000, expenses: 12000 },
 ];
 
 // ─── UTILITIES ────────────────────────────────────────────────────────────────
@@ -397,107 +197,6 @@ const lastNMonths = (n) => {
     });
   }
   return months;
-};
-
-
-// Lesson balance: accounts for sibling pooling
-const getLessonBalance = (studentId, data) => {
-  const group = new Set([studentId]);
-  (data.siblings||[]).forEach(s => {
-    if (s.studentId1===studentId) group.add(s.studentId2);
-    if (s.studentId2===studentId) group.add(s.studentId1);
-  });
-  const groupIds = [...group];
-  const bought = (data.invoices||[])
-    .filter(inv=>groupIds.includes(inv.studentId)&&inv.status==="paid")
-    .reduce((sum,inv)=>sum+inv.lineItems.reduce((s,li)=>s+(li.lessons||0),0),0);
-  // All completed logs for this student regardless of which tutor delivered them
-  const used = (data.lessonLogs||[])
-    .filter(l=>groupIds.includes(l.studentId)&&l.status==="completed").length;
-  return { bought, used, remaining:bought-used, groupIds, isSiblingGroup:groupIds.length>1 };
-};
-
-// Determine lesson type for a student (affects tutor pay rate)
-const getLessonType = (studentId, data) => {
-  const student = (data.students||[]).find(s => s.id === studentId);
-  if (!student) return "standard";
-  if (student.centreId) return "centre";
-  if (ACADEMY_STUDENT_IDS.includes(studentId)) return "academy";
-  return "standard";
-};
-
-// Build a tutor invoice from lesson logs within a billing period
-const buildTutorInvoice = (tutorId, periodStart, periodEnd, data) => {
-  const tutor = (data.tutors||[]).find(t => t.id === tutorId);
-  const logs = (data.lessonLogs||[]).filter(l =>
-    l.tutorId === tutorId &&
-    l.status === "completed" &&
-    l.date >= periodStart &&
-    l.date <= periodEnd
-  );
-  const lineItems = logs.map(log => {
-    const type = getLessonType(log.studentId, data);
-    const rate = TUTOR_RATES[type] || 235;
-    const student = (data.students||[]).find(s => s.id === log.studentId);
-    const subject = (data.subjects||[]).find(s => s.id === log.subjectId);
-    return {
-      id: "tli" + Math.random().toString(36).slice(2,9),
-      lessonLogId: log.id,
-      studentName: student ? `${student.firstName} ${student.lastName}` : "Unknown",
-      studentId: log.studentId,
-      subjectName: subject?.name || "—",
-      date: log.date,
-      type,
-      rate,
-      amount: rate,
-    };
-  });
-  const total = lineItems.reduce((s, li) => s + li.amount, 0);
-  return {
-    id: "ti" + Math.random().toString(36).slice(2,9),
-    tutorId,
-    tutorName: tutor ? `${tutor.firstName} ${tutor.lastName}` : "Unknown",
-    periodStart,
-    periodEnd,
-    status: "draft",
-    lineItems,
-    total,
-    paidDate: "",
-    notes: "",
-    createdAt: new Date().toISOString().slice(0,10),
-  };
-};
-
-// Get current billing period: 16th of prev month → 25th of this month
-const getCurrentBillingPeriod = () => {
-  const d = new Date();
-  const y = d.getFullYear(), m = d.getMonth();
-  const start = new Date(y, m - 1, 16).toISOString().slice(0, 10);
-  const end   = new Date(y, m, 25).toISOString().slice(0, 10);
-  return { start, end };
-};
-
-// List past billing periods (last N)
-const getBillingPeriods = (n = 6) => {
-  const periods = [];
-  const d = new Date();
-  for (let i = 0; i < n; i++) {
-    const y = d.getFullYear(), m = d.getMonth() - i;
-    const start = new Date(y, m - 1, 16).toISOString().slice(0, 10);
-    const end   = new Date(y, m, 25).toISOString().slice(0, 10);
-    const startD = new Date(y, m - 1, 16);
-    const endD   = new Date(y, m, 25);
-    const label = `${startD.toLocaleString("en-ZA",{month:"short",day:"numeric"})} – ${endD.toLocaleString("en-ZA",{month:"short",day:"numeric",year:"numeric"})}`;
-    periods.push({ start, end, label });
-  }
-  return periods;
-};
-
-// Next invoice number
-const nextInvoiceNumber = (invoices) => {
-  const nums = (invoices||[]).map(inv=>parseInt(inv.invoiceNumber.replace("INV-",""))||0);
-  const max = nums.length ? Math.max(...nums) : 0;
-  return "INV-" + String(max+1).padStart(3,"0");
 };
 
 // ─── REPORT GENERATION ───────────────────────────────────────────────────────
@@ -613,202 +312,138 @@ const LogoMark = ({ size = 36 }) => {
   );
 };
 
-
 // ─── SHARED UI ────────────────────────────────────────────────────────────────
 
 const Badge = ({ children, color = "gray" }) => {
   const map = {
-    gray:   { bg:"#f1f5f9", text:"#475569", ring:"#cbd5e1" },
-    green:  { bg:"#dcfce7", text:"#15803d", ring:"#86efac" },
-    blue:   { bg:"#dbeafe", text:"#1d4ed8", ring:"#93c5fd" },
-    yellow: { bg:"#fef9c3", text:"#854d0e", ring:"#fde047" },
-    red:    { bg:"#fee2e2", text:"#b91c1c", ring:"#fca5a5" },
-    purple: { bg:"#f1f5f9", text:"#334155", ring:"#cbd5e1" },
-    indigo: { bg:"#e0f2fe", text:"#0369a1", ring:"#7dd3fc" },
-    orange: { bg:"#fff7ed", text:"#c2410c", ring:"#fdba74" },
-    teal:   { bg:"#ccfbf1", text:"#0f766e", ring:"#5eead4" },
-    rose:   { bg:"#ffe4e6", text:"#be123c", ring:"#fda4af" },
+    gray:   "bg-gray-100 text-gray-700",
+    green:  "bg-green-100 text-green-700",
+    blue:   "bg-blue-100 text-blue-700",
+    yellow: "bg-yellow-100 text-yellow-800",
+    red:    "bg-red-100 text-red-700",
+    purple: "bg-purple-100 text-purple-700",
+    indigo: "bg-teal-100 text-teal-700",
+    orange: "bg-orange-100 text-orange-700",
+    teal:   "bg-teal-100 text-teal-700",
+    rose:   "bg-rose-100 text-rose-700",
   };
-  const c = map[color] || map.gray;
-  return (
-    <span style={{ background:c.bg, color:c.text, border:`1px solid ${c.ring}50` }}
-      className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md text-xs font-medium">
-      {children}
-    </span>
-  );
+  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${map[color] || map.gray}`}>{children}</span>;
 };
 
-const CURR_COLOR = { IEB:"teal", CAPS:"green", Cambridge:"indigo" };
+const CURR_COLOR = { IEB: "teal", CAPS: "green", Cambridge: "purple" };
 
 const Modal = ({ title, onClose, children, wide, extraWide }) => (
-  <div className="modal-backdrop fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4" style={{ background:"rgba(5,12,20,0.72)", backdropFilter:"blur(6px)" }}>
-    <div className={`modal-panel bg-white w-full sm:rounded-2xl rounded-t-2xl ${extraWide?"sm:max-w-3xl":wide?"sm:max-w-2xl":"sm:max-w-lg"} max-h-[92vh] sm:max-h-[90vh] overflow-y-auto`}
-      style={{ boxShadow:"0 32px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08)" }}>
-      {/* drag handle on mobile */}
-      <div className="sm:hidden flex justify-center pt-3 pb-1">
-        <div className="w-10 h-1 rounded-full" style={{background:"#e2e8f0"}}/>
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+    <div className={`bg-white rounded-2xl shadow-2xl w-full ${extraWide ? "max-w-3xl" : wide ? "max-w-2xl" : "max-w-lg"} max-h-[90vh] overflow-y-auto`}>
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
       </div>
-      <div className="flex items-center justify-between px-6 py-4 sticky top-0 bg-white z-10 sm:rounded-t-2xl"
-        style={{ borderBottom:"1px solid #f1f5f9" }}>
-        <h2 className="text-base font-semibold" style={{ color:"#111827", letterSpacing:"-0.02em" }}>{title}</h2>
-        <button onClick={onClose}
-          className="w-8 h-8 rounded-full flex items-center justify-center hover:rotate-90" style={{transition:"transform 200ms cubic-bezier(0.23,1,0.32,1), background 150ms ease, color 150ms ease"}}
-          style={{ color:"#94a3b8", background:"#f8fafc" }}
-          onMouseEnter={e=>{e.currentTarget.style.background="#f1f5f9";e.currentTarget.style.color="#0d1e2a";}}
-          onMouseLeave={e=>{e.currentTarget.style.background="#f8fafc";e.currentTarget.style.color="#94a3b8";}}>
-          <X size={16}/>
-        </button>
-      </div>
-      <div className="px-6 py-5 pb-8 sm:pb-5">{children}</div>
+      <div className="px-6 py-5">{children}</div>
     </div>
   </div>
 );
 
 const Field = ({ label, children, hint }) => (
   <div className="mb-4">
-    {label && <label className="block text-xs font-semibold mb-1.5" style={{ color:"#64748b" }}>{label}</label>}
+    {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
     {children}
-    {hint && <p className="text-xs mt-1" style={{ color:"#94a3b8" }}>{hint}</p>}
+    {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
   </div>
 );
 
-const inp = "w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none bg-white";
-const Inp = ({ label, hint, ...p }) => (
-  <Field label={label} hint={hint}>
-    <input className={inp} style={{ borderColor:"#e5e7eb", color:"#111827", background:"#f9fafb" }} {...p}
-      onFocus={e=>{ e.target.style.borderColor=B.tealDark; e.target.style.boxShadow=`0 0 0 3px ${B.tealLight}`; e.target.style.background="white"; }}
-      onBlur={e=>{ e.target.style.borderColor="#e5e7eb"; e.target.style.boxShadow="none"; e.target.style.background="#f9fafb"; }}/>
-  </Field>
-);
+const inp = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white";
+const Inp = ({ label, hint, ...p }) => <Field label={label} hint={hint}><input className={inp} {...p} /></Field>;
 const Sel = ({ label, options, placeholder, hint, ...p }) => (
   <Field label={label} hint={hint}>
-    <select className={inp} style={{ borderColor:"#e5e7eb", color:"#111827", background:"#f9fafb" }} {...p}>
+    <select className={inp} {...p}>
       {placeholder && <option value="">{placeholder}</option>}
-      {options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}
+      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
     </select>
   </Field>
 );
-const Txt = ({ label, hint, ...p }) => (
-  <Field label={label} hint={hint}>
-    <textarea className={inp} style={{ borderColor:"#e5e7eb", color:"#111827", background:"#f9fafb" }} rows={3} {...p}
-      onFocus={e=>{ e.target.style.borderColor=B.tealDark; e.target.style.boxShadow=`0 0 0 3px ${B.tealLight}`; e.target.style.background="white"; }}
-      onBlur={e=>{ e.target.style.borderColor="#e5e7eb"; e.target.style.boxShadow="none"; e.target.style.background="#f9fafb"; }}/>
-  </Field>
-);
+const Txt = ({ label, hint, ...p }) => <Field label={label} hint={hint}><textarea className={inp} rows={3} {...p} /></Field>;
 
-const Btn = ({ children, onClick, variant="primary", size="md", className="", type="button", disabled, style:extraStyle }) => {
-  const sz = { sm:"px-3 py-1.5 text-xs gap-1.5", md:"px-4 py-2 text-sm gap-2", lg:"px-5 py-2.5 text-sm gap-2" }[size];
-  const vrStyle = {
-    primary:  { background:`linear-gradient(135deg, ${B.coral} 0%, ${B.coralDark} 100%)`, color:"white", border:"none", boxShadow:`0 1px 3px rgba(183,93,68,0.4), inset 0 1px 0 rgba(255,255,255,0.15)` },
-    secondary:{ background:"white", color:"#334155", border:"1px solid #e2e8f0", boxShadow:"0 1px 2px rgba(0,0,0,0.05)" },
-    danger:   { background:"linear-gradient(135deg,#ef4444,#dc2626)", color:"white", border:"none", boxShadow:"0 1px 3px rgba(220,38,38,0.4)" },
-    ghost:    { background:"transparent", color:"#64748b", border:"none", boxShadow:"none" },
-    success:  { background:"linear-gradient(135deg,#10b981,#059669)", color:"white", border:"none", boxShadow:"0 1px 3px rgba(5,150,105,0.4)" },
+const Btn = ({ children, onClick, variant = "primary", size = "md", className = "", type = "button", disabled }) => {
+  const sz = { sm: "px-3 py-1.5 text-xs", md: "px-4 py-2 text-sm", lg: "px-5 py-2.5 text-sm" }[size];
+  const vrMap = {
+    secondary: "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50",
+    danger:    "bg-red-600 text-white hover:bg-red-700",
+    ghost:     "text-gray-600 hover:bg-gray-100",
+    success:   "bg-emerald-600 text-white hover:bg-emerald-700",
   };
+  const vr = vrMap[variant] || "";
   return (
     <button type={type} disabled={disabled} onClick={onClick}
-      style={{transition:"transform 140ms cubic-bezier(0.23,1,0.32,1), opacity 140ms ease, filter 140ms ease", ...(vrStyle[variant]||vrStyle.primary), ...(extraStyle||{})}}
-      className={`inline-flex items-center rounded-xl font-semibold focus:outline-none disabled:opacity-40 hover:brightness-105 active:scale-[0.97] ${sz} ${className}`}>
+      className={`inline-flex items-center gap-2 rounded-lg font-medium transition-colors focus:outline-none disabled:opacity-40 ${sz} ${vr} ${className}`}
+      style={variant === "primary" ? { background: B.coral, color: "white" } : undefined}>
       {children}
     </button>
   );
 };
 
-const KPI = ({ title, value, sub, icon:Icon, color="teal" }) => {
-  const colors = {
-    teal:   { accent:B.tealDark, bg:"#f0fdfa", bar:B.teal,     icon:"#0d9488" },
-    coral:  { accent:B.coral,    bg:"#fff7f5", bar:B.coral,    icon:B.coral   },
-    gold:   { accent:"#b45309",  bg:"#fffbeb", bar:B.gold,     icon:"#d97706" },
-    indigo: { accent:B.tealDark, bg:"#f0fdfa", bar:B.tealDark, icon:B.tealDark},
-    green:  { accent:"#059669",  bg:"#f0fdf4", bar:"#10b981",  icon:"#059669" },
-    slate:  { accent:"#334155",  bg:"#f8fafc", bar:"#64748b",  icon:"#475569" },
-    amber:  { accent:"#b45309",  bg:"#fffbeb", bar:"#f59e0b",  icon:"#d97706" },
-    rose:   { accent:"#be123c",  bg:"#fff1f2", bar:"#f43f5e",  icon:"#e11d48" },
-  };
-  const c = colors[color]||colors.teal;
+const KPI = ({ title, value, sub, icon: Icon, color = "teal" }) => {
+  const ic = {
+    teal:   "text-white", coral: "text-white",
+    gold:   "text-white", green: "bg-green-50 text-green-600",
+    indigo: "text-white", amber: "bg-amber-50 text-amber-600",
+    purple: "bg-purple-50 text-purple-600", rose: "bg-rose-50 text-rose-600",
+  }[color] || "text-white";
+  const bg = { teal: B.teal, coral: B.coral, gold: B.gold, indigo: B.tealDark }[color];
   return (
-    <div className="rounded-2xl bg-white overflow-hidden flex flex-col"
-      style={{ boxShadow:"0 1px 3px rgba(0,0,0,0.04), 0 20px 40px -15px rgba(0,0,0,0.06)", border:"1px solid #eaecf0" }}>
-      <div className="h-1 w-full" style={{ background:`linear-gradient(90deg, ${c.bar}, ${c.bar}88)` }}/>
-      <div className="p-5 flex items-start gap-4">
-        <div className="rounded-xl p-2.5 shrink-0" style={{ background:c.bg }}>
-          <Icon size={20} style={{ color:c.icon }}/>
+    <div className="rounded-xl p-5 shadow-sm border border-gray-200 bg-white">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-sm text-gray-500 font-medium">{title}</p>
+          <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
+          {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
         </div>
-        <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-wider" style={{ color:"#9ca3af" }}>{title}</p>
-          <p className="text-2xl font-extrabold mt-1 leading-none tracking-tight" style={{ color:"#0d1e2a" }}>{value}</p>
-          {sub && <p className="text-xs mt-1.5 font-medium" style={{ color:"#94a3b8" }}>{sub}</p>}
-        </div>
+        <div className={`p-2 rounded-lg ${ic}`} style={bg ? { background: bg } : undefined}><Icon size={22} /></div>
       </div>
     </div>
   );
 };
 
 const TableWrap = ({ children }) => (
-  <div className="overflow-x-auto rounded-2xl" style={{ border:"1px solid #eaecf0", boxShadow:"0 1px 3px rgba(0,0,0,0.04), 0 20px 40px -15px rgba(0,0,0,0.04)" }}>
-    <table className="min-w-full text-sm">{children}</table>
+  <div className="overflow-x-auto rounded-xl border border-gray-200">
+    <table className="min-w-full divide-y divide-gray-200 text-sm">{children}</table>
   </div>
 );
-const TH = ({ children, className="" }) => (
-  <th className={`px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${className}`}
-    style={{ background:"#f8fafc", color:"#6b7280", borderBottom:"1px solid #e5e7eb" }}>{children}</th>
+const TH = ({ children, className = "" }) => (
+  <th className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-50 ${className}`}>{children}</th>
 );
-const TD = ({ children, className="" }) => <td className={`px-5 py-3.5 ${className}`} style={{ color:"#374151", borderBottom:"1px solid #f3f4f6" }}>{children}</td>;
-const TR = ({ children, onClick, className="" }) => (
+const TD = ({ children, className = "" }) => <td className={`px-4 py-3 text-gray-700 ${className}`}>{children}</td>;
+const TR = ({ children, onClick, className = "" }) => (
   <tr onClick={onClick}
-    className={`transition-colors ${onClick?"cursor-pointer":""} ${className}`}
-    onMouseEnter={e=>{e.currentTarget.style.background=onClick?"#f9fafb":"#fafafa";}}
-    onMouseLeave={e=>{e.currentTarget.style.background="";}}>
+    className={`border-b border-gray-100 last:border-0 ${onClick ? "cursor-pointer hover:bg-teal-50 transition-colors" : ""} ${className}`}>
     {children}
   </tr>
 );
 
 const SearchBar = ({ value, onChange, placeholder }) => (
   <div className="relative">
-    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color:"#94a3b8" }}/>
-    <input className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm focus:outline-none"
-      style={{ border:"1px solid #e5e7eb", color:"#111827", background:"#f9fafb", boxShadow:"none" }}
-      placeholder={placeholder||"Search…"} value={value} onChange={e=>onChange(e.target.value)}
-      onFocus={e=>{ e.target.style.borderColor=B.tealDark; e.target.style.boxShadow=`0 0 0 3px ${B.tealLight}`; e.target.style.background="white"; }}
-      onBlur={e=>{ e.target.style.borderColor="#e2e8f0"; e.target.style.boxShadow="0 1px 2px rgba(0,0,0,0.04)"; e.target.style.background="#f8fafc"; }}/>
+    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+    <input className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+      placeholder={placeholder || "Search…"} value={value} onChange={e => onChange(e.target.value)} />
   </div>
 );
 
 const Section = ({ title, children, action }) => (
-  <div className="bg-white rounded-2xl overflow-hidden"
-    style={{ border:"1px solid #eaecf0", boxShadow:"0 1px 3px rgba(0,0,0,0.04), 0 20px 40px -15px rgba(0,0,0,0.05)" }}>
-    <div className="flex items-center justify-between px-6 py-4"
-      style={{ borderBottom:"1px solid #f3f4f6", background:"#fafafa" }}>
-      <h3 className="text-sm font-semibold" style={{ color:"#111827", letterSpacing:"-0.01em" }}>{title}</h3>
+  <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+    <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+      <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
       {action}
     </div>
-    <div className="p-6 sm:p-8">{children}</div>
+    <div className="p-5">{children}</div>
   </div>
 );
 
 // ─── PAGE: DASHBOARD ─────────────────────────────────────────────────────────
 
-function Dashboard({ data, setData, onNav }) {
+function Dashboard({ data, onNav }) {
   const { students, tutors, subjects, links, financials } = data;
 
   const activeStudents = students.filter(s => s.status === "Active").length;
-
-  // Low lesson balance alerts (threshold ≤ 2 remaining)
-  const LOW_THRESHOLD = 2;
-  const lowBalanceStudents = useMemo(() => {
-    const seen = new Set();
-    return students
-      .filter(s => s.status === "Active")
-      .map(s => ({ student: s, bal: getLessonBalance(s.id, data) }))
-      .filter(({ student, bal }) => {
-        // Only show once per sibling group (keyed by sorted group IDs)
-        const key = [...bal.groupIds].sort().join(",");
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return bal.remaining <= LOW_THRESHOLD;
-      })
-      .sort((a, b) => a.bal.remaining - b.bal.remaining);
-  }, [students, data]);
   const months6 = useMemo(() => lastNMonths(6), []);
 
   const growthData = months6.map(m => ({
@@ -817,55 +452,12 @@ function Dashboard({ data, setData, onNav }) {
     newSubjects: links.filter(l => l.createdDate?.startsWith(m.key)).length,
   }));
 
-  // Profit summary — includes invoice income from paid invoices
+  // Profit summary
   const currentMonthKey = today().slice(0, 7);
-  const year = today().slice(0, 4);
-
-  // Invoice income grouped by month
-  const invoiceIncomeByMonth = useMemo(() => {
-    const map = {};
-    (data.invoices || []).filter(inv => inv.status === "paid").forEach(inv => {
-      const month = (inv.paidDate || inv.date || "").slice(0, 7);
-      if (month) map[month] = (map[month] || 0) + (inv.total || 0);
-    });
-    return map;
-  }, [data.invoices]);
-
   const currentFin = financials.find(f => f.month === currentMonthKey);
-  const currentInvoiceIncome = invoiceIncomeByMonth[currentMonthKey] || 0;
-  const currentIncome  = (currentFin?.turnover || 0) + currentInvoiceIncome;
-  const currentExpenses = currentFin?.expenses || 0;
-  const currentProfit  = currentIncome - currentExpenses;
-  const hasCurrentData = currentFin || currentInvoiceIncome > 0;
-
-  const ytdFin = financials.filter(f => f.month.startsWith(year));
-  const ytdInvoiceIncome = Object.entries(invoiceIncomeByMonth)
-    .filter(([m]) => m.startsWith(year)).reduce((s, [, v]) => s + v, 0);
-  const ytdManualIncome = ytdFin.reduce((s, f) => s + f.turnover, 0);
-  const ytdExpenses = ytdFin.reduce((s, f) => s + f.expenses, 0);
-  const ytdProfit   = (ytdManualIncome + ytdInvoiceIncome) - ytdExpenses;
-
-  // Financial trend: merge invoice income into chart data
-  const allFinMonths = useMemo(() => {
-    const set = new Set([
-      ...financials.map(f => f.month),
-      ...Object.keys(invoiceIncomeByMonth),
-    ]);
-    return [...set].sort((a, b) => a.localeCompare(b)).slice(-6);
-  }, [financials, invoiceIncomeByMonth]);
-
-  const trendData = allFinMonths.map(month => {
-    const fin = financials.find(f => f.month === month);
-    const invIncome = invoiceIncomeByMonth[month] || 0;
-    const totalIncome = (fin?.turnover || 0) + invIncome;
-    const expenses = fin?.expenses || 0;
-    return {
-      month:    fmtMonth(month),
-      Income:   totalIncome,
-      Expenses: expenses,
-      Profit:   totalIncome - expenses,
-    };
-  });
+  const ytdFin = financials.filter(f => f.month.startsWith(today().slice(0, 4)));
+  const ytdProfit = ytdFin.reduce((s, f) => s + (f.turnover - f.expenses), 0);
+  const currentProfit = currentFin ? currentFin.turnover - currentFin.expenses : null;
 
   // Students per subject
   const subjectStats = subjects.map(s => ({
@@ -883,15 +475,15 @@ function Dashboard({ data, setData, onNav }) {
         </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        <KPI title="Active Students"      value={activeStudents} sub={`of ${students.length} total`}        icon={Users}         color="indigo" />
-        <KPI title="Active Tutors"        value={tutors.filter(t=>t.status==="Active").length} sub="contractors" icon={GraduationCap} color="green" />
-        <KPI title="This Month Income"    value={hasCurrentData ? fmtZAR(currentIncome) : "—"} sub={`expenses: ${fmtZAR(currentExpenses)}`} icon={TrendingUp} color="teal" />
-        <KPI title="YTD Profit"           value={fmtZAR(ytdProfit)} sub={`${year} · income minus expenses`}  icon={DollarSign}    color="slate" />
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <KPI title="Active Students"  value={activeStudents}  sub={`of ${students.length} total`}            icon={Users}       color="indigo" />
+        <KPI title="Active Tutors"    value={tutors.filter(t => t.status === "Active").length}  sub="contractors" icon={GraduationCap} color="green" />
+        <KPI title="Current Month Profit" value={currentProfit != null ? fmtZAR(currentProfit) : "—"} sub="turnover minus expenses" icon={TrendingUp} color="teal" />
+        <KPI title="YTD Profit"       value={fmtZAR(ytdProfit)} sub={`${today().slice(0, 4)} year to date`}   icon={DollarSign}  color="purple" />
       </div>
 
       {/* Growth chart */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Section title="New Students & New Subjects per Month">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={growthData} barSize={16}>
@@ -912,7 +504,7 @@ function Dashboard({ data, setData, onNav }) {
               <div key={s.name} className="flex items-center gap-3">
                 <span className="text-sm text-gray-700 w-36 truncate">{s.name}</span>
                 <div className="flex-1 bg-gray-100 rounded-full h-2">
-                  <div className="h-2 rounded-full" style={{transition:"width 400ms cubic-bezier(0.23,1,0.32,1)"}}
+                  <div className="h-2 rounded-full transition-all"
                     style={{ width: `${activeStudents ? (s.count / activeStudents) * 100 : 0}%`, background: B.teal }} />
                 </div>
                 <span className="text-sm font-semibold text-gray-800 w-6 text-right">{s.count}</span>
@@ -923,67 +515,20 @@ function Dashboard({ data, setData, onNav }) {
         </Section>
       </div>
 
-      {/* Low lesson balance alerts */}
-      {lowBalanceStudents.length > 0 && (
-        <div className="rounded-2xl p-5" style={{background:"#fff7ed",border:"1px solid #fed7aa"}}>
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{background:"#f97316"}}>
-              <AlertTriangle size={14} style={{color:"white"}}/>
-            </div>
-            <h2 className="font-bold text-base" style={{color:"#9a3412"}}>Students Due for Invoicing ({lowBalanceStudents.length})</h2>
-          </div>
-          <div className="space-y-2">
-            {lowBalanceStudents.map(({ student, bal }) => {
-              const alreadyFlagged = (data.invoiceAlerts||{})[student.id];
-              const siblings = bal.groupIds.filter(id=>id!==student.id).map(id=>students.find(s=>s.id===id)?.firstName).filter(Boolean);
-              return (
-                <div key={student.id} className="flex items-center justify-between p-3 rounded-xl"
-                  style={{background:alreadyFlagged?"#f0fdf4":"white",border:`1px solid ${alreadyFlagged?"#86efac":"#fed7aa"}`}}>
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{student.firstName} {student.lastName}</p>
-                      {bal.remaining <= 0
-                        ? <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{background:"#fee2e2",color:"#991b1b"}}>Out of lessons</span>
-                        : <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{background:"#ffedd5",color:"#c2410c"}}>{bal.remaining} lesson{bal.remaining!==1?"s":""} left</span>
-                      }
-                      {siblings.length>0 && <span className="text-xs" style={{color:"#9ca3af"}}>+ siblings: {siblings.join(", ")}</span>}
-                    </div>
-                    <p className="text-xs mt-0.5" style={{color:"#9ca3af"}}>{bal.used} used · {bal.bought} bought · {student.curriculum} {student.grade}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Btn size="sm" variant="ghost" onClick={()=>onNav("invoicing")} style={{color:"#ea580c"}}>
-                      <FileText size={13}/> Create Invoice
-                    </Btn>
-                    {!alreadyFlagged
-                      ? <Btn size="sm" variant="secondary" onClick={()=>setData(d=>({...d,invoiceAlerts:{...(d.invoiceAlerts||{}), [student.id]:today()}}))}>
-                          Mark Invoiced
-                        </Btn>
-                      : <div className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-xl" style={{background:"#dcfce7",color:"#166534"}}>
-                          <CheckCircle size={12}/> Invoiced {(data.invoiceAlerts||{})[student.id]}
-                          <button className="ml-1 opacity-60 hover:opacity-100" title="Clear" onClick={()=>setData(d=>{const a={...(d.invoiceAlerts||{})};delete a[student.id];return{...d,invoiceAlerts:a};})}>×</button>
-                        </div>
-                    }
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Financial trend — income includes paid invoices */}
-      {trendData.length > 0 && (
-        <Section title="Financial Trend — Income (invoices + other) vs Expenses">
+      {/* Profit trend */}
+      {financials.length > 0 && (
+        <Section title="Financial Trend (last months)">
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={trendData}>
+            <AreaChart data={financials.slice(-6).map(f => ({
+              month:    fmtMonth(f.month),
+              Turnover: f.turnover,
+              Expenses: f.expenses,
+              Profit:   f.turnover - f.expenses,
+            }))}>
               <defs>
                 <linearGradient id="gp" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%"  stopColor="#22c55e" stopOpacity={0.15} />
                   <stop offset="95%" stopColor="#22c55e" stopOpacity={0}    />
-                </linearGradient>
-                <linearGradient id="gi" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#94cbd1" stopOpacity={0.15} />
-                  <stop offset="95%" stopColor="#94cbd1" stopOpacity={0}    />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -991,9 +536,9 @@ function Dashboard({ data, setData, onNav }) {
               <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `R${(v/1000).toFixed(0)}k`} />
               <Tooltip formatter={v => fmtZAR(v)} />
               <Legend />
-              <Area type="monotone" dataKey="Income"   stroke="#94cbd1" fill="url(#gi)" strokeWidth={2} />
               <Area type="monotone" dataKey="Profit"   stroke="#22c55e" fill="url(#gp)" strokeWidth={2} />
-              <Line type="monotone"  dataKey="Expenses" stroke="#ef4444" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
+              <Line  type="monotone" dataKey="Turnover" stroke="#94cbd1" strokeWidth={1.5} dot={false} />
+              <Line  type="monotone" dataKey="Expenses" stroke="#ef4444" strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
             </AreaChart>
           </ResponsiveContainer>
         </Section>
@@ -1010,9 +555,6 @@ function StudentsPage({ data, setData }) {
   const [form,    setForm]    = useState({});
   const [groupBy, setGroupBy] = useState("none"); // "none" | "curriculum" | "grade"
   const [filterCurr, setFilterCurr] = useState("");
-  // Tutor assignments staged while adding a student [{tutorId, subjectId}]
-  const [stagedLinks, setStagedLinks] = useState([]);
-  const [linkForm, setLinkForm] = useState({ tutorId:"", subjectId:"" });
 
   const filtered = data.students.filter(s => {
     const q = search.toLowerCase();
@@ -1033,27 +575,18 @@ function StudentsPage({ data, setData }) {
     return [{ key: "all", label: "", items: filtered }];
   }, [filtered, groupBy]);
 
-  const openAdd  = () => { setForm({ firstName: "", lastName: "", curriculum: "IEB", grade: "Grade 10", status: "Active", enrolledDate: today(), centreId: "" }); setStagedLinks([]); setLinkForm({tutorId:"",subjectId:""}); setModal("add"); };
+  const openAdd  = () => { setForm({ firstName: "", lastName: "", curriculum: "IEB", grade: "Grade 10", status: "Active", enrolledDate: today(), centreId: "" }); setModal("add"); };
   const openEdit = (s, e) => { e?.stopPropagation(); setForm({ ...s }); setModal("edit"); };
   const openView = (s) => { setForm({ ...s }); setModal("view"); };
 
   const save = () => {
     if (!form.firstName || !form.lastName) return;
-    setData(d => {
-      const newId = "st" + uid();
-      const studentId = modal === "add" ? newId : form.id;
-      const newLinks = modal === "add"
-        ? stagedLinks.map(sl => ({ id:"lk"+uid(), studentId, tutorId:sl.tutorId, subjectId:sl.subjectId, createdDate:today() }))
-        : [];
-      return {
-        ...d,
-        students: modal === "add"
-          ? [...d.students, { ...form, id: newId }]
-          : d.students.map(s => s.id === form.id ? form : s),
-        links: [...d.links, ...newLinks],
-      };
-    });
-    setStagedLinks([]); setLinkForm({tutorId:"",subjectId:""});
+    setData(d => ({
+      ...d,
+      students: modal === "add"
+        ? [...d.students, { ...form, id: "st" + uid() }]
+        : d.students.map(s => s.id === form.id ? form : s),
+    }));
     setModal(null);
   };
 
@@ -1180,59 +713,7 @@ function StudentsPage({ data, setData }) {
             onChange={e => setForm(f => ({ ...f, enrolledDate: e.target.value }))} />
           <Sel label="Centre" options={centreOpts} value={form.centreId || ""}
             onChange={e => setForm(f => ({ ...f, centreId: e.target.value }))} />
-
-          {/* Tutor assignment — only when adding a new student */}
-          {modal === "add" && (
-            <div className="mt-4 pt-4" style={{borderTop:"1px solid #eef2f1"}}>
-              <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{color:"#5a9fa6"}}>Assign Tutor(s)</p>
-              {/* Staged links list */}
-              {stagedLinks.length > 0 && (
-                <div className="space-y-2 mb-3">
-                  {stagedLinks.map((sl,i) => {
-                    const t = data.tutors.find(x=>x.id===sl.tutorId);
-                    const s = data.subjects.find(x=>x.id===sl.subjectId);
-                    return (
-                      <div key={i} className="flex items-center justify-between px-3 py-2 rounded-xl" style={{background:"#f0f9fa",border:"1px solid #b2e0e4"}}>
-                        <span className="text-sm font-medium" style={{color:"#0d1e2a"}}>{t?.firstName} {t?.lastName} — <span style={{color:"#5a9fa6"}}>{s?.name}</span></span>
-                        <button onClick={()=>setStagedLinks(ls=>ls.filter((_,j)=>j!==i))}><X size={13} style={{color:"#ef4444"}}/></button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              {/* Add link form */}
-              <div className="grid grid-cols-2 gap-3 mb-2">
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Tutor</label>
-                  <select className={inp} value={linkForm.tutorId} onChange={e=>setLinkForm(f=>({...f,tutorId:e.target.value,subjectId:""}))}>
-                    <option value="">Select tutor…</option>
-                    {data.tutors.filter(t=>t.status==="Active").map(t=>(
-                      <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Subject</label>
-                  <select className={inp} value={linkForm.subjectId} onChange={e=>setLinkForm(f=>({...f,subjectId:e.target.value}))} disabled={!linkForm.tutorId}>
-                    <option value="">Select subject…</option>
-                    {linkForm.tutorId && data.subjects
-                      .filter(s => data.tutors.find(t=>t.id===linkForm.tutorId)?.subjectIds?.includes(s.id)
-                        && !stagedLinks.some(sl=>sl.tutorId===linkForm.tutorId&&sl.subjectId===s.id))
-                      .map(s=><option key={s.id} value={s.id}>{s.name}</option>)
-                    }
-                  </select>
-                </div>
-              </div>
-              <Btn size="sm" variant="secondary"
-                disabled={!linkForm.tutorId||!linkForm.subjectId}
-                onClick={()=>{ setStagedLinks(ls=>[...ls,{tutorId:linkForm.tutorId,subjectId:linkForm.subjectId}]); setLinkForm({tutorId:"",subjectId:""}); }}>
-                <Plus size={12}/> Add Tutor Assignment
-              </Btn>
-              {stagedLinks.length===0 && <p className="text-xs mt-2" style={{color:"#9ca3af"}}>Optional — you can also assign tutors later from the student detail.</p>}
-            </div>
-          )}
-
-          <div className="flex items-center justify-between mt-4">
+          <div className="flex items-center justify-between mt-2">
             {modal === "edit" && <Btn variant="danger" size="sm" onClick={() => remove(form.id)}><Trash2 size={13} /> Delete</Btn>}
             <div className="flex gap-3 ml-auto">
               <Btn variant="secondary" onClick={() => setModal(null)}>Cancel</Btn>
@@ -1258,9 +739,6 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
   const [tab, setTab] = useState("links");
   const [purchaseForm, setPurchaseForm] = useState({ quantity: "", date: today(), note: "" });
   const [siblingId, setSiblingId] = useState("");
-  const [modalStudTab, setModalStudTab] = useState("logbook");
-  const [assignForm, setAssignForm] = useState({ tutorId:"", subjectId:"" });
-  const bal = getLessonBalance(student.id, data);
 
   const lks      = data.links.filter(l => l.studentId === student.id);
   const siblings = data.siblings.filter(s => s.studentId1 === student.id || s.studentId2 === student.id)
@@ -1296,17 +774,6 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
   };
 
   const removeLink = (id) => setData(d => ({ ...d, links: d.links.filter(l => l.id !== id) }));
-
-  const addTutorLink = () => {
-    if (!assignForm.tutorId || !assignForm.subjectId) return;
-    if (data.links.some(l => l.studentId===student.id && l.tutorId===assignForm.tutorId && l.subjectId===assignForm.subjectId)) return;
-    setData(d => ({ ...d, links: [...d.links, { id:"lk"+uid(), studentId:student.id, tutorId:assignForm.tutorId, subjectId:assignForm.subjectId, createdDate:today() }] }));
-    setAssignForm({ tutorId:"", subjectId:"" });
-  };
-  const assignableTutors  = data.tutors.filter(t => t.status === "Active");
-  const assignableSubjects = assignForm.tutorId
-    ? data.subjects.filter(s => data.tutors.find(t=>t.id===assignForm.tutorId)?.subjectIds?.includes(s.id) && !data.links.some(l=>l.studentId===student.id&&l.tutorId===assignForm.tutorId&&l.subjectId===s.id))
-    : [];
 
   const siblingOpts = data.students
     .filter(s => s.id !== student.id && !siblings.some(x => x.id === s.id))
@@ -1345,65 +812,41 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-lg flex-wrap">
-        {[
-          ["links", `Links (${lks.length})`],
-          ["lessons", `Lessons (${purchases.length})`],
-          ["siblings", `Siblings (${siblings.length})`],
-          ["logbook", "Logbook"],
-          ["rep", "Reports"],
-        ].map(([t,label]) => (
+      <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-lg">
+        {["links","lessons","siblings"].map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 py-1.5 rounded-md text-xs font-medium capitalize transition-colors ${tab === t ? "bg-white shadow text-teal-700" : "text-gray-500 hover:text-gray-700"}`}>
-            {label}
+            {t} {t === "links" && `(${lks.length})`}
+            {t === "lessons" && `(${purchases.length})`}
+            {t === "siblings" && `(${siblings.length})`}
           </button>
         ))}
       </div>
 
       {tab === "links" && (
-        <div className="space-y-3">
-          <div className="p-4 rounded-2xl" style={{background:"#f0f9fa",border:"1px solid #b2e0e4"}}>
-            <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{color:"#5a9fa6"}}>Assign a Tutor</p>
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Tutor</label>
-                <select className={inp} value={assignForm.tutorId} onChange={e=>setAssignForm(f=>({...f,tutorId:e.target.value,subjectId:""}))}>
-                  <option value="">Select tutor…</option>
-                  {assignableTutors.map(t=><option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Subject</label>
-                <select className={inp} value={assignForm.subjectId} onChange={e=>setAssignForm(f=>({...f,subjectId:e.target.value}))} disabled={!assignForm.tutorId||assignableSubjects.length===0}>
-                  <option value="">{assignForm.tutorId&&assignableSubjects.length===0?"All subjects assigned":"Select subject…"}</option>
-                  {assignableSubjects.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              </div>
-            </div>
-            <Btn onClick={addTutorLink} disabled={!assignForm.tutorId||!assignForm.subjectId}><Plus size={13}/> Assign</Btn>
-          </div>
-          {lks.length===0
-            ? <p className="text-sm text-gray-400 text-center py-3">No tutors assigned yet.</p>
-            : lks.map(lk=>{
-                const tutor=data.tutors.find(t=>t.id===lk.tutorId);
-                const subj=data.subjects.find(s=>s.id===lk.subjectId);
-                return (
-                  <div key={lk.id} className="flex items-center justify-between p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm text-white" style={{background:B.tealDark}}>{tutor?.firstName[0]}{tutor?.lastName[0]}</div>
-                      <div>
-                        <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{tutor?.firstName} {tutor?.lastName}</p>
-                        <p className="text-xs" style={{color:"#9ca3af"}}>Since {fmtDate(lk.createdDate)}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge color="indigo">{subj?.name}</Badge>
-                      <Btn size="sm" variant="ghost" onClick={()=>removeLink(lk.id)}><X size={13}/></Btn>
-                    </div>
+        <div className="space-y-2">
+          {lks.map(lk => {
+            const tutor = data.tutors.find(t => t.id === lk.tutorId);
+            const subj  = data.subjects.find(s => s.id === lk.subjectId);
+            return (
+              <div key={lk.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs">
+                    {tutor?.firstName[0]}{tutor?.lastName[0]}
                   </div>
-                );
-              })
-          }
+                  <div>
+                    <p className="text-sm font-medium">{tutor?.firstName} {tutor?.lastName}</p>
+                    <p className="text-xs text-gray-400">Since {fmtDate(lk.createdDate)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge color="indigo">{subj?.name}</Badge>
+                  <Btn size="sm" variant="ghost" onClick={() => removeLink(lk.id)}><X size={13} /></Btn>
+                </div>
+              </div>
+            );
+          })}
+          {lks.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No links yet.</p>}
         </div>
       )}
 
@@ -1455,38 +898,6 @@ function StudentDetailModal({ student, data, setData, onClose, onEdit }) {
           ))}
           {siblings.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No siblings linked.</p>}
         </div>
-      )}
-
-      {tab === "logbook" && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>Lesson Balance</p>
-              <p className="text-xs" style={{color:"#9ca3af"}}>
-                {bal.remaining} remaining · {bal.used} used of {bal.bought} bought
-                {bal.isSiblingGroup && <span className="ml-1 italic">(shared sibling pool)</span>}
-              </p>
-            </div>
-            <Badge color={bal.remaining <= 2 ? "red" : bal.remaining <= 5 ? "yellow" : "green"}>
-              {bal.remaining} left
-            </Badge>
-          </div>
-          <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-4">
-            {[["logbook","Logbook"],["reports","Reports"]].map(([t,l])=>(
-              <button key={t} onClick={()=>setModalStudTab(t)}
-                className="px-3 py-1 rounded-md text-xs font-medium transition-colors"
-                style={modalStudTab===t?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
-                {l}
-              </button>
-            ))}
-          </div>
-          {modalStudTab==="logbook" && <LogbookView studentId={student.id} data={data}/>}
-          {modalStudTab==="reports" && <StudentReportsTab studentId={student.id} data={data} setData={setData} isAdminView={true}/>}
-        </div>
-      )}
-
-      {tab === "rep" && (
-        <StudentReportsTab studentId={student.id} data={data} setData={setData} isAdminView={true}/>
       )}
     </Modal>
   );
@@ -1549,7 +960,7 @@ function TutorsPage({ data, setData }) {
 
       <SearchBar value={search} onChange={setSearch} placeholder="Search tutors…" />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map(t => {
           const subjects       = data.subjects.filter(s => t.subjectIds?.includes(s.id));
           const lks            = data.links.filter(l => l.tutorId === t.id);
@@ -1560,7 +971,7 @@ function TutorsPage({ data, setData }) {
           const hasComplaint = notes.some(n => n.type === "complaint");
           return (
             <div key={t.id} onClick={() => openView(t)}
-              className="card-hover bg-white rounded-xl border border-gray-200 p-5 shadow-sm cursor-pointer">
+              className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="flex items-start justify-between mb-3">
                 <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold">
                   {t.firstName[0]}{t.lastName[0]}
@@ -1632,340 +1043,99 @@ function TutorsPage({ data, setData }) {
 }
 
 function TutorDetailModal({ tutor, data, setData, onClose, onEdit }) {
-  const [tab, setTab] = useState("students");       // students | notes
-  const [selStudentId, setSelStudentId] = useState(null); // expanded student
-  const [studentTab, setStudentTab] = useState("logbook"); // logbook | reports | schedule | chat
-  const [noteForm, setNoteForm] = useState({ type:"compliment", note:"", date:today() });
-  const [logModal, setLogModal] = useState(null);   // studentId
-  const [schedModal, setSchedModal] = useState(null);
-  const [schedForm, setSchedForm] = useState({ date:"", time:"", duration:"60", platform:"", meetingLink:"", note:"", subjectId:"", fixed:false });
-  const [chatMsg, setChatMsg] = useState("");
-
-  // Assign student form
-  const [assignForm, setAssignForm] = useState({ studentId:"", subjectId:"" });
-  const [showAssign, setShowAssign] = useState(false);
-
-  const notes = data.tutorNotes.filter(n=>n.tutorId===tutor.id);
-  const lks   = data.links.filter(l=>l.tutorId===tutor.id);
-  const assignedStudentIds = [...new Set(lks.map(l=>l.studentId))];
-  const assignedStudents   = assignedStudentIds.map(id=>data.students.find(s=>s.id===id)).filter(Boolean);
-
-  // Subjects this tutor teaches
-  const tutorSubjects = data.subjects.filter(s=>tutor.subjectIds?.includes(s.id));
-
-  // Students not yet assigned any subject with this tutor
-  const unassignedStudents = data.students.filter(s=>s.status==="Active");
-
-  // Eligible subjects for assign form (tutor's subjects, not already linked for this student+subject)
-  const assignableSubjects = assignForm.studentId
-    ? tutorSubjects.filter(s=>!data.links.some(l=>l.tutorId===tutor.id&&l.studentId===assignForm.studentId&&l.subjectId===s.id))
-    : tutorSubjects;
-
-  const addAssignment = () => {
-    if (!assignForm.studentId||!assignForm.subjectId) return;
-    if (data.links.some(l=>l.tutorId===tutor.id&&l.studentId===assignForm.studentId&&l.subjectId===assignForm.subjectId)) return;
-    setData(d=>({...d, links:[...d.links,{id:"lk"+uid(),tutorId:tutor.id,studentId:assignForm.studentId,subjectId:assignForm.subjectId,createdDate:today()}]}));
-    setAssignForm({studentId:"",subjectId:""});
-    setShowAssign(false);
-  };
-
-  const removeAssignment = (linkId) => setData(d=>({...d, links:d.links.filter(l=>l.id!==linkId)}));
+  const [noteForm, setNoteForm] = useState({ type: "compliment", note: "", date: today() });
+  const notes = data.tutorNotes.filter(n => n.tutorId === tutor.id);
+  const lks   = data.links.filter(l => l.tutorId === tutor.id);
+  const activeStudents = [...new Set(
+    lks.filter(l => data.students.find(s => s.id === l.studentId)?.status === "Active").map(l => l.studentId)
+  )];
 
   const addNote = () => {
     if (!noteForm.note) return;
-    setData(d=>({...d, tutorNotes:[...d.tutorNotes,{...noteForm,id:"tn"+uid(),tutorId:tutor.id}]}));
-    setNoteForm({type:"compliment",note:"",date:today()});
+    setData(d => ({ ...d, tutorNotes: [...d.tutorNotes, { ...noteForm, id: "tn" + uid(), tutorId: tutor.id }] }));
+    setNoteForm({ type: "compliment", note: "", date: today() });
   };
-  const removeNote = (id) => setData(d=>({...d, tutorNotes:d.tutorNotes.filter(n=>n.id!==id)}));
+  const removeNote = (id) => setData(d => ({ ...d, tutorNotes: d.tutorNotes.filter(n => n.id !== id) }));
 
-  const sendChat = (studentId) => {
-    if (!chatMsg.trim()) return;
-    setData(d=>({...d, chatMessages:[...(d.chatMessages||[]),{id:"cm"+uid(),tutorId:tutor.id,studentId,fromRole:"tutor",message:chatMsg.trim(),date:today(),time:new Date().toTimeString().slice(0,5)}]}));
-    setChatMsg("");
-  };
-
-  const saveSchedule = (studentId) => {
-    if (!schedForm.date||!schedForm.time) return;
-    setData(d=>({...d, scheduledLessons:[...(d.scheduledLessons||[]),{id:"sl"+uid(),tutorId:tutor.id,studentId,...schedForm,createdAt:today()}]}));
-    setSchedModal(null);
-  };
-
-  const noteColor = {compliment:"green",complaint:"red",general:"gray"};
+  const noteIcon = { compliment: <ThumbsUp size={14} className="text-green-500" />, complaint: <ThumbsDown size={14} className="text-red-500" />, general: <StickyNote size={14} className="text-gray-400" /> };
+  const noteColor = { compliment: "green", complaint: "red", general: "gray" };
 
   return (
     <Modal title={`${tutor.firstName} ${tutor.lastName}`} onClose={onClose} wide>
-      {/* Header */}
-      <div className="flex items-center gap-4 p-4 rounded-2xl mb-4" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-        <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl text-white" style={{background:B.tealDark}}>
+      <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl mb-5">
+        <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xl">
           {tutor.firstName[0]}{tutor.lastName[0]}
         </div>
         <div className="flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
             <p className="font-semibold text-gray-900">{tutor.firstName} {tutor.lastName}</p>
-            <Badge color={tutor.status==="Active"?"green":"gray"}>{tutor.status}</Badge>
+            <Badge color={tutor.status === "Active" ? "green" : "gray"}>{tutor.status}</Badge>
           </div>
           <p className="text-sm text-gray-500">{tutor.email} · {tutor.phone}</p>
           <div className="flex flex-wrap gap-1 mt-1">
-            {tutorSubjects.map(s=><Badge key={s.id} color="indigo">{s.name}</Badge>)}
+            {data.subjects.filter(s => tutor.subjectIds?.includes(s.id)).map(s => <Badge key={s.id} color="indigo">{s.name}</Badge>)}
           </div>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-bold" style={{color:B.tealDark}}>{assignedStudents.length}</p>
-          <p className="text-xs text-gray-400">students</p>
-          <Btn size="sm" variant="ghost" className="mt-1" onClick={onEdit}><Edit2 size={13}/> Edit</Btn>
+          <p className="text-3xl font-bold" style={{ color: B.tealDark }}>{activeStudents.length}</p>
+          <p className="text-xs text-gray-400">active students</p>
+          <Btn size="sm" variant="ghost" className="mt-1" onClick={onEdit}><Edit2 size={13} /> Edit</Btn>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-4 bg-gray-100 p-1 rounded-xl">
-        {[["students","Students"],["notes","Notes"]].map(([t,l])=>(
-          <button key={t} onClick={()=>setTab(t)}
-            className="flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors"
-            style={tab===t?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
-            {l} {t==="students"&&`(${assignedStudents.length})`} {t==="notes"&&`(${notes.length})`}
-          </button>
-        ))}
+      {/* Active students list */}
+      {activeStudents.length > 0 && (
+        <div className="mb-5">
+          <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Current Students</p>
+          <div className="flex flex-wrap gap-2">
+            {activeStudents.map(sid => {
+              const st   = data.students.find(s => s.id === sid);
+              const subjIds = [...new Set(lks.filter(l => l.studentId === sid).map(l => l.subjectId))];
+              return st ? (
+                <div key={sid} className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                  <span className="font-medium">{st.firstName} {st.lastName}</span>
+                  {subjIds.map(id => {
+                    const subj = data.subjects.find(x => x.id === id);
+                    return subj ? <Badge key={id} color="indigo">{subj.name}</Badge> : null;
+                  })}
+                </div>
+              ) : null;
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Notes */}
+      <div className="border-t border-gray-100 pt-4">
+        <p className="text-sm font-semibold text-gray-700 mb-3">Notes ({notes.length})</p>
+        <div className="flex gap-2 mb-4 p-3 bg-gray-50 rounded-xl flex-wrap">
+          <select className={`${inp} w-36`} value={noteForm.type} onChange={e => setNoteForm(f => ({ ...f, type: e.target.value }))}>
+            {NOTE_TYPES.map(t => <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+          </select>
+          <input className={`${inp} flex-1`} placeholder="Write note…" value={noteForm.note} onChange={e => setNoteForm(f => ({ ...f, note: e.target.value }))} />
+          <input className={`${inp} w-36`} type="date" value={noteForm.date} onChange={e => setNoteForm(f => ({ ...f, date: e.target.value }))} />
+          <Btn onClick={addNote} disabled={!noteForm.note}><Plus size={14} /> Add</Btn>
+        </div>
+        <div className="space-y-2 max-h-56 overflow-y-auto">
+          {notes.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No notes yet.</p>}
+          {[...notes].sort((a, b) => b.date.localeCompare(a.date)).map(n => (
+            <div key={n.id} className="flex items-start gap-3 p-3 border border-gray-200 rounded-xl">
+              <div className="mt-0.5">{noteIcon[n.type]}</div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge color={noteColor[n.type]}>{n.type}</Badge>
+                  <span className="text-xs text-gray-400">{fmtDate(n.date)}</span>
+                </div>
+                <p className="text-sm text-gray-700">{n.note}</p>
+              </div>
+              <Btn size="sm" variant="ghost" onClick={() => removeNote(n.id)}><Trash2 size={12} className="text-red-400" /></Btn>
+            </div>
+          ))}
+        </div>
       </div>
-
-      {/* ── STUDENTS TAB ── */}
-      {tab==="students" && (
-        <div className="space-y-3">
-          {/* Assign button */}
-          <div className="flex justify-end">
-            <Btn size="sm" onClick={()=>setShowAssign(v=>!v)}><Plus size={13}/> Assign Student</Btn>
-          </div>
-
-          {/* Assign form */}
-          {showAssign && (
-            <div className="p-4 rounded-2xl space-y-3" style={{background:"#f0f9fa",border:"1px solid #b2e0e4"}}>
-              <p className="text-xs font-bold uppercase tracking-wider" style={{color:B.tealDark}}>Assign a Student to {tutor.firstName}</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Student</label>
-                  <select className={inp} value={assignForm.studentId} onChange={e=>setAssignForm(f=>({...f,studentId:e.target.value,subjectId:""}))}>
-                    <option value="">Select student…</option>
-                    {unassignedStudents.map(s=><option key={s.id} value={s.id}>{s.firstName} {s.lastName} — {s.curriculum} {s.grade}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Subject</label>
-                  <select className={inp} value={assignForm.subjectId} onChange={e=>setAssignForm(f=>({...f,subjectId:e.target.value}))} disabled={!assignForm.studentId}>
-                    <option value="">Select subject…</option>
-                    {assignableSubjects.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Btn onClick={addAssignment} disabled={!assignForm.studentId||!assignForm.subjectId}>Assign</Btn>
-                <Btn variant="secondary" onClick={()=>{setShowAssign(false);setAssignForm({studentId:"",subjectId:""});}}>Cancel</Btn>
-              </div>
-            </div>
-          )}
-
-          {/* Student list */}
-          {assignedStudents.length===0 && !showAssign && (
-            <p className="text-sm text-center py-6" style={{color:"#9ca3af"}}>No students assigned yet. Use the button above to assign one.</p>
-          )}
-
-          {assignedStudents.map(s=>{
-            const sLks    = lks.filter(l=>l.studentId===s.id);
-            const sSubjs  = sLks.map(l=>data.subjects.find(sub=>sub.id===l.subjectId)).filter(Boolean);
-            const open    = selStudentId===s.id;
-            const bal     = getLessonBalance(s.id, data);
-            const chatMsgs = (data.chatMessages||[]).filter(m=>m.tutorId===tutor.id&&m.studentId===s.id).sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
-            const sched   = (data.scheduledLessons||[]).filter(l=>l.tutorId===tutor.id&&l.studentId===s.id).sort((a,b)=>a.date.localeCompare(b.date));
-            const parent  = data.parents?.find(p=>p.studentIds?.includes(s.id));
-            return (
-              <div key={s.id} className="rounded-2xl overflow-hidden" style={{border:`1px solid ${open?B.teal:"#eef2f1"}`}}>
-                {/* Collapsed header */}
-                <button className="w-full flex items-center justify-between p-4 text-left transition-colors"
-                  style={{background:open?"#f0f9fa":"#f8faf9"}}
-                  onClick={()=>{ setSelStudentId(open?null:s.id); setStudentTab("logbook"); }}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0" style={{background:B.teal}}>
-                      {s.firstName[0]}{s.lastName[0]}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{s.firstName} {s.lastName}</p>
-                      <p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{s.curriculum} · {s.grade} · {sSubjs.map(x=>x.name).join(", ")}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex gap-2 text-xs">
-                      <span className="px-2 py-1 rounded-lg font-semibold" style={{background:"#dcfce7",color:"#166534"}}>{bal.remaining} left</span>
-                      <span className="px-2 py-1 rounded-lg font-semibold" style={{background:"#f1f5f9",color:"#475569"}}>{bal.used} used</span>
-                    </div>
-                    <div className="flex gap-1" onClick={e=>e.stopPropagation()}>
-                      {sLks.map(lk=>(
-                        <button key={lk.id} title="Remove this subject assignment"
-                          className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-red-100 transition-colors"
-                          onClick={()=>removeAssignment(lk.id)}>
-                          <X size={10} style={{color:"#ef4444"}}/>
-                        </button>
-                      ))}
-                    </div>
-                    <ChevronRight size={15} style={{color:"#9ca3af",transform:open?"rotate(90deg)":"none",transition:"transform .2s"}}/>
-                  </div>
-                </button>
-
-                {/* Expanded panel */}
-                {open && (
-                  <div className="border-t p-4 space-y-4" style={{borderColor:"#eef2f1"}}>
-                    {/* Student info */}
-                    <div className="grid grid-cols-2 gap-3 text-xs p-3 rounded-xl" style={{background:"white",border:"1px solid #eef2f1"}}>
-                      {[["Status",s.status],["Curriculum",s.curriculum],["Grade",s.grade],["Enrolled",fmtDate(s.enrolledDate)],
-                        ["Parent",parent?`${parent.firstName} ${parent.lastName}`:"—"],
-                        ["Siblings",getLessonBalance(s.id,data).isSiblingGroup?"Yes (shared pool)":"No"]
-                      ].map(([k,v])=>(
-                        <div key={k}><p className="font-bold uppercase tracking-wider" style={{color:"#9ca3af"}}>{k}</p><p className="mt-0.5 font-medium" style={{color:"#0d1e2a"}}>{v}</p></div>
-                      ))}
-                    </div>
-
-                    {/* Action bar */}
-                    <div className="flex gap-2 flex-wrap">
-                      <Btn size="sm" onClick={()=>setLogModal(s.id)}><BookMarked size={12}/> Log Lesson</Btn>
-                      <Btn size="sm" variant="secondary" onClick={()=>{setSchedModal(s.id);setSchedForm({date:"",time:"",duration:"60",platform:"",meetingLink:"",note:"",subjectId:sLks[0]?.subjectId||"",fixed:false});}}><CalendarDays size={12}/> Schedule</Btn>
-                    </div>
-
-                    {/* Sub-tabs */}
-                    <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
-                      {[["logbook","Logbook"],["reports","Reports"],["schedule","Schedule"],["chat","Chat"]].map(([t,l])=>(
-                        <button key={t} onClick={()=>setStudentTab(t)}
-                          className="flex-1 py-1 rounded-md text-xs font-medium transition-colors"
-                          style={studentTab===t?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
-                          {l}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Logbook */}
-                    {studentTab==="logbook" && <LogbookView studentId={s.id} data={data} currentTutorId={tutor.id}/>}
-
-                    {/* Reports */}
-                    {studentTab==="reports" && <StudentReportsTab studentId={s.id} data={data} setData={setData} tutorId={tutor.id}/>}
-
-                    {/* Schedule */}
-                    {studentTab==="schedule" && (
-                      <div className="space-y-2">
-                        {sched.length===0 && <p className="text-sm text-center py-4" style={{color:"#9ca3af"}}>No scheduled lessons yet.</p>}
-                        {sched.map(sl=>{
-                          const subj=data.subjects.find(x=>x.id===sl.subjectId);
-                          return (
-                            <div key={sl.id} className="flex items-center justify-between p-3 rounded-xl" style={{background:"white",border:"1px solid #eef2f1"}}>
-                              <div>
-                                <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{fmtDate(sl.date)} {sl.time && `at ${sl.time}`}</p>
-                                <p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{subj?.name||"—"} · {sl.duration} min · {sl.platform||"Platform TBC"} {sl.fixed?"· Fixed":""}</p>
-                                {sl.meetingLink && <a href={sl.meetingLink} target="_blank" rel="noreferrer" className="text-xs underline" style={{color:B.teal}}>Join link</a>}
-                              </div>
-                              <Btn size="sm" variant="ghost" onClick={()=>setData(d=>({...d,scheduledLessons:(d.scheduledLessons||[]).filter(x=>x.id!==sl.id)}))}><Trash2 size={12} className="text-red-400"/></Btn>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* Chat */}
-                    {studentTab==="chat" && (
-                      <div>
-                        <div className="space-y-2 max-h-52 overflow-y-auto mb-3 p-2 rounded-xl" style={{background:"#f8faf9"}}>
-                          {chatMsgs.length===0 && <p className="text-xs text-center py-4" style={{color:"#9ca3af"}}>No messages yet.</p>}
-                          {chatMsgs.map(m=>(
-                            <div key={m.id} className={`flex ${m.fromRole==="tutor"?"justify-end":"justify-start"}`}>
-                              <div className="max-w-xs px-3 py-2 rounded-2xl text-sm"
-                                style={m.fromRole==="tutor"?{background:B.teal,color:"white"}:{background:"white",border:"1px solid #e5e7eb",color:"#374151"}}>
-                                <p>{m.message}</p>
-                                <p className="text-xs mt-0.5 opacity-70">{m.date} {m.time}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex gap-2">
-                          <input className={`${inp} flex-1`} placeholder="Send a message…" value={chatMsg}
-                            onChange={e=>setChatMsg(e.target.value)}
-                            onKeyDown={e=>e.key==="Enter"&&sendChat(s.id)}/>
-                          <Btn onClick={()=>sendChat(s.id)} disabled={!chatMsg.trim()}>Send</Btn>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ── NOTES TAB ── */}
-      {tab==="notes" && (
-        <div>
-          <div className="flex gap-2 mb-4 p-3 rounded-xl flex-wrap" style={{background:"#f8faf9"}}>
-            <select className={`${inp} w-36`} value={noteForm.type} onChange={e=>setNoteForm(f=>({...f,type:e.target.value}))}>
-              {NOTE_TYPES.map(t=><option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
-            </select>
-            <input className={`${inp} flex-1`} placeholder="Write note…" value={noteForm.note} onChange={e=>setNoteForm(f=>({...f,note:e.target.value}))}/>
-            <input className={`${inp} w-36`} type="date" value={noteForm.date} onChange={e=>setNoteForm(f=>({...f,date:e.target.value}))}/>
-            <Btn onClick={addNote} disabled={!noteForm.note}><Plus size={14}/> Add</Btn>
-          </div>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {notes.length===0 && <p className="text-sm text-gray-400 text-center py-4">No notes yet.</p>}
-            {[...notes].sort((a,b)=>b.date.localeCompare(a.date)).map(n=>(
-              <div key={n.id} className="flex items-start gap-3 p-3 border border-gray-200 rounded-xl">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge color={noteColor[n.type]}>{n.type}</Badge>
-                    <span className="text-xs text-gray-400">{fmtDate(n.date)}</span>
-                  </div>
-                  <p className="text-sm text-gray-700">{n.note}</p>
-                </div>
-                <Btn size="sm" variant="ghost" onClick={()=>removeNote(n.id)}><Trash2 size={12} className="text-red-400"/></Btn>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Log Lesson modal */}
-      {logModal && <LogLessonModal studentId={logModal} tutorId={tutor.id} data={data} setData={setData} onClose={()=>setLogModal(null)}/>}
-
-      {/* Schedule modal */}
-      {schedModal && (
-        <Modal title={`Schedule Lesson — ${data.students.find(s=>s.id===schedModal)?.firstName}`} onClose={()=>setSchedModal(null)}>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <Inp label="Date" type="date" value={schedForm.date} onChange={e=>setSchedForm(f=>({...f,date:e.target.value}))}/>
-              <Inp label="Time" type="time" value={schedForm.time} onChange={e=>setSchedForm(f=>({...f,time:e.target.value}))}/>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Duration (min)</label>
-                <select className={inp} value={schedForm.duration} onChange={e=>setSchedForm(f=>({...f,duration:e.target.value}))}>
-                  {["30","45","60","90","120"].map(d=><option key={d} value={d}>{d} min</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Subject</label>
-                <select className={inp} value={schedForm.subjectId} onChange={e=>setSchedForm(f=>({...f,subjectId:e.target.value}))}>
-                  <option value="">Select…</option>
-                  {lks.filter(l=>l.studentId===schedModal).map(l=>{const sub=data.subjects.find(s=>s.id===l.subjectId);return sub?<option key={l.id} value={l.subjectId}>{sub.name}</option>:null;})}
-                </select>
-              </div>
-            </div>
-            <Inp label="Platform (e.g. Zoom, Teams, Google Meet)" value={schedForm.platform} onChange={e=>setSchedForm(f=>({...f,platform:e.target.value}))}/>
-            <Inp label="Meeting Link" value={schedForm.meetingLink} onChange={e=>setSchedForm(f=>({...f,meetingLink:e.target.value}))} placeholder="https://…"/>
-            <Inp label="Note (optional)" value={schedForm.note} onChange={e=>setSchedForm(f=>({...f,note:e.target.value}))}/>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input type="checkbox" checked={schedForm.fixed} onChange={e=>setSchedForm(f=>({...f,fixed:e.target.checked}))}/>
-              Fixed recurring slot
-            </label>
-            <div className="flex gap-2 justify-end">
-              <Btn variant="secondary" onClick={()=>setSchedModal(null)}>Cancel</Btn>
-              <Btn onClick={()=>saveSchedule(schedModal)} disabled={!schedForm.date||!schedForm.time}>Save</Btn>
-            </div>
-          </div>
-        </Modal>
-      )}
     </Modal>
   );
 }
-
 
 // ─── PAGE: LINKS ──────────────────────────────────────────────────────────────
 
@@ -2084,47 +1254,12 @@ function LinksPage({ data, setData }) {
 function AccountingPage({ data, setData }) {
   const [modal, setModal] = useState(null);
   const [form,  setForm]  = useState({});
-  const [tab,   setTab]   = useState("overview"); // "overview" | "revenue" | "invoices" | "expenses"
 
-  // ── Invoice income: group paid invoices by month ──────────────────────────
-  const invoiceIncomeByMonth = useMemo(() => {
-    const map = {};
-    (data.invoices || []).filter(inv => inv.status === "paid").forEach(inv => {
-      const month = (inv.paidDate || inv.date || "").slice(0, 7);
-      if (!month) return;
-      map[month] = (map[month] || 0) + (inv.total || 0);
-    });
-    return map; // { "2026-05": 12500, ... }
-  }, [data.invoices]);
-
-  // ── Merge months from both invoices and manual financials ─────────────────
-  const allMonths = useMemo(() => {
-    const set = new Set([
-      ...Object.keys(invoiceIncomeByMonth),
-      ...data.financials.map(f => f.month),
-    ]);
-    return [...set].sort((a, b) => b.localeCompare(a));
-  }, [invoiceIncomeByMonth, data.financials]);
-
-  const getFinancial = (month) => data.financials.find(f => f.month === month) || null;
-
-  // ── YTD calculations ───────────────────────────────────────────────────────
-  const year = today().slice(0, 4);
-  const ytdInvoiceIncome = Object.entries(invoiceIncomeByMonth)
-    .filter(([m]) => m.startsWith(year))
-    .reduce((s, [, v]) => s + v, 0);
-  const ytdManualTurnover = data.financials.filter(f => f.month.startsWith(year)).reduce((s, f) => s + f.turnover, 0);
-  const ytdTotalIncome = ytdInvoiceIncome + ytdManualTurnover;
-  const ytdExpenses    = data.financials.filter(f => f.month.startsWith(year)).reduce((s, f) => s + f.expenses, 0);
-  const ytdProfit      = ytdTotalIncome - ytdExpenses;
-
-  // ── Recent paid invoices for the income feed ───────────────────────────────
-  const recentPaid = useMemo(() =>
-    [...(data.invoices || [])].filter(inv => inv.status === "paid")
-      .sort((a, b) => (b.paidDate || b.date || "").localeCompare(a.paidDate || a.date || ""))
-      .slice(0, 20),
-    [data.invoices]
-  );
+  const sorted = [...data.financials].sort((a, b) => b.month.localeCompare(a.month));
+  const ytd    = data.financials.filter(f => f.month.startsWith(today().slice(0, 4)));
+  const ytdTurnover = ytd.reduce((s, f) => s + f.turnover, 0);
+  const ytdExpenses = ytd.reduce((s, f) => s + f.expenses, 0);
+  const ytdProfit   = ytdTurnover - ytdExpenses;
 
   const openAdd = () => {
     const m = today().slice(0, 7);
@@ -2133,323 +1268,111 @@ function AccountingPage({ data, setData }) {
   };
 
   const save = () => {
-    if (!form.month || form.expenses === "") return;
-    const existing = data.financials.find(f => f.month === form.month && !form.id);
-    if (existing && !form.id) {
-      // merge into existing record
-      setData(d => ({
-        ...d,
-        financials: d.financials.map(f => f.month === form.month
-          ? { ...f, turnover: (f.turnover||0) + Number(form.turnover||0), expenses: (f.expenses||0) + Number(form.expenses||0) }
-          : f),
-      }));
-    } else {
-      const entry = { ...form, id: form.id || "fin" + uid(), turnover: Number(form.turnover||0), expenses: Number(form.expenses||0) };
-      setData(d => ({
-        ...d,
-        financials: form.id
-          ? d.financials.map(f => f.id === form.id ? entry : f)
-          : [...d.financials, entry],
-      }));
-    }
+    if (!form.month || form.turnover === "" || form.expenses === "") return;
+    const entry = { ...form, id: form.id || "fin" + uid(), turnover: Number(form.turnover), expenses: Number(form.expenses) };
+    setData(d => ({
+      ...d,
+      financials: form.id
+        ? d.financials.map(f => f.id === form.id ? entry : f)
+        : [...d.financials, entry],
+    }));
     setModal(null);
   };
 
   const remove = (id) => setData(d => ({ ...d, financials: d.financials.filter(f => f.id !== id) }));
 
-  // ── Chart: combined income, expenses, profit ───────────────────────────────
-  const chartMonths = [...allMonths].sort((a, b) => a.localeCompare(b)).slice(-12);
-  const chartData = chartMonths.map(month => {
-    const fin = getFinancial(month);
-    const invIncome = invoiceIncomeByMonth[month] || 0;
-    const manualTurnover = fin?.turnover || 0;
-    const totalIncome = invIncome + manualTurnover;
-    const expenses = fin?.expenses || 0;
-    return {
-      month: fmtMonth(month),
-      "Invoice Income": invIncome,
-      "Other Income": manualTurnover,
-      Expenses: expenses,
-      Profit: totalIncome - expenses,
-    };
-  });
-
-  const TabBtn = ({ id, label }) => (
-    <button onClick={() => setTab(id)}
-      className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${tab===id ? "text-white" : "text-gray-600 hover:bg-gray-100"}`}
-      style={tab===id ? {background:"#5a9fa6"} : {}}>
-      {label}
-    </button>
-  );
+  const chartData = [...data.financials].sort((a,b) => a.month.localeCompare(b.month)).slice(-12).map(f => ({
+    month:    fmtMonth(f.month),
+    Turnover: f.turnover,
+    Expenses: f.expenses,
+    Profit:   f.turnover - f.expenses,
+  }));
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Accounting</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Invoice income is pulled automatically from paid invoices</p>
+          <h1 className="text-2xl font-bold text-gray-900">Accounting</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Manual monthly overview — turnover minus expenses</p>
         </div>
-        <div className="flex gap-2">
-          <Btn variant="secondary" onClick={openAdd}><Plus size={15}/> Add Expense / Manual Entry</Btn>
-        </div>
+        <Btn onClick={openAdd}><Plus size={15} /> Add Month</Btn>
       </div>
 
-      {/* YTD KPIs */}
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-        <KPI title="Invoice Income YTD"  value={fmtZAR(ytdInvoiceIncome)}  sub="from paid invoices" icon={FileText}    color="teal"  />
-        <KPI title="Other Income YTD"    value={fmtZAR(ytdManualTurnover)} sub="manual entries"     icon={TrendingUp}  color="indigo"/>
-        <KPI title="Expenses YTD"        value={fmtZAR(ytdExpenses)}       sub={year}               icon={DollarSign}  color="rose"  />
-        <KPI title="Net Profit YTD"      value={fmtZAR(ytdProfit)}         sub={year}               icon={CheckCircle} color={ytdProfit >= 0 ? "green" : "rose"} />
+      {/* YTD summary */}
+      <div className="grid grid-cols-3 gap-4">
+        <KPI title="YTD Turnover"  value={fmtZAR(ytdTurnover)} sub={today().slice(0, 4)} icon={TrendingUp}  color="indigo" />
+        <KPI title="YTD Expenses"  value={fmtZAR(ytdExpenses)} sub={today().slice(0, 4)} icon={DollarSign}  color="rose"   />
+        <KPI title="YTD Profit"    value={fmtZAR(ytdProfit)}   sub={today().slice(0, 4)} icon={CheckCircle} color={ytdProfit >= 0 ? "green" : "rose"} />
       </div>
 
-      {/* Tabs */}
-      <div className="flex flex-wrap gap-1 bg-gray-100 rounded-xl p-1">
-        <TabBtn id="overview"  label="Overview"       />
-        <TabBtn id="revenue"   label="Revenue Split"  />
-        <TabBtn id="invoices"  label="Invoice Income" />
-        <TabBtn id="expenses"  label="Manual Entries" />
-      </div>
-
-      {/* ── OVERVIEW TAB ── */}
-      {tab === "overview" && (
-        <>
-          {chartData.length > 0 && (
-            <Section title="Monthly Income vs Expenses vs Profit">
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={chartData} barSize={14}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
-                  <XAxis dataKey="month" tick={{fontSize:11}}/>
-                  <YAxis tick={{fontSize:11}} tickFormatter={v=>`R${(v/1000).toFixed(0)}k`}/>
-                  <Tooltip formatter={v=>fmtZAR(v)}/>
-                  <Legend/>
-                  <Bar dataKey="Invoice Income" fill="#94cbd1" stackId="income" radius={[0,0,0,0]}/>
-                  <Bar dataKey="Other Income"   fill="#5a9fa6" stackId="income" radius={[4,4,0,0]}/>
-                  <Bar dataKey="Expenses"       fill="#ef4444" radius={[4,4,0,0]}/>
-                  <Bar dataKey="Profit"         fill="#22c55e" radius={[4,4,0,0]}/>
-                </BarChart>
-              </ResponsiveContainer>
-            </Section>
-          )}
-
-          {/* Combined monthly table */}
-          <Section title="Monthly Breakdown">
-            <TableWrap>
-              <thead><tr>
-                <TH>Month</TH>
-                <TH className="text-right">Invoice Income</TH>
-                <TH className="text-right">Other Income</TH>
-                <TH className="text-right">Total Income</TH>
-                <TH className="text-right">Expenses</TH>
-                <TH className="text-right">Profit</TH>
-                <TH>Margin</TH>
-              </tr></thead>
-              <tbody>
-                {allMonths.length === 0 && (
-                  <tr><td colSpan={7} className="text-center text-sm text-gray-400 py-8">No data yet. Mark invoices as paid or add manual entries.</td></tr>
-                )}
-                {allMonths.map(month => {
-                  const fin = getFinancial(month);
-                  const invIncome = invoiceIncomeByMonth[month] || 0;
-                  const manIncome = fin?.turnover || 0;
-                  const totalIncome = invIncome + manIncome;
-                  const expenses = fin?.expenses || 0;
-                  const profit = totalIncome - expenses;
-                  const margin = totalIncome ? ((profit / totalIncome) * 100).toFixed(1) : 0;
-                  return (
-                    <TR key={month}>
-                      <TD className="font-medium">{fmtMonth(month)}</TD>
-                      <TD className="text-right">
-                        {invIncome > 0
-                          ? <span className="font-medium" style={{color:"#5a9fa6"}}>{fmtZAR(invIncome)}</span>
-                          : <span className="text-gray-300">—</span>}
-                      </TD>
-                      <TD className="text-right">
-                        {manIncome > 0 ? fmtZAR(manIncome) : <span className="text-gray-300">—</span>}
-                      </TD>
-                      <TD className="text-right font-semibold">{fmtZAR(totalIncome)}</TD>
-                      <TD className="text-right text-red-600">{expenses > 0 ? fmtZAR(expenses) : <span className="text-gray-300">—</span>}</TD>
-                      <TD className={`text-right font-bold ${profit >= 0 ? "text-green-600" : "text-red-600"}`}>{fmtZAR(profit)}</TD>
-                      <TD>
-                        <div className="flex items-center gap-2">
-                          <div className="w-20 bg-gray-100 rounded-full h-1.5">
-                            <div className={`h-1.5 rounded-full ${profit >= 0 ? "bg-green-500" : "bg-red-500"}`}
-                              style={{width:`${Math.min(Math.abs(Number(margin)),100)}%`}}/>
-                          </div>
-                          <span className="text-xs text-gray-500">{margin}%</span>
-                        </div>
-                      </TD>
-                    </TR>
-                  );
-                })}
-              </tbody>
-            </TableWrap>
-          </Section>
-        </>
-      )}
-
-      {/* ── INVOICE INCOME TAB ── */}
-      {tab === "invoices" && (
-        <Section title="Paid Invoice Income">
-          {recentPaid.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
-              <FileText size={32} className="mx-auto mb-3 opacity-40"/>
-              <p className="text-sm">No paid invoices yet. Mark invoices as paid in the Invoicing tab and they will appear here automatically.</p>
-            </div>
-          ) : (
-            <TableWrap>
-              <thead><tr>
-                <TH>Invoice #</TH><TH>Student</TH><TH>Date Paid</TH><TH className="text-right">Amount</TH>
-              </tr></thead>
-              <tbody>
-                {recentPaid.map(inv => {
-                  const st = data.students.find(s => s.id === inv.studentId);
-                  return (
-                    <TR key={inv.id}>
-                      <TD className="font-mono text-xs">{inv.invoiceNumber}</TD>
-                      <TD>{st ? `${st.firstName} ${st.lastName}` : "—"}</TD>
-                      <TD>{inv.paidDate || inv.date || "—"}</TD>
-                      <TD className="text-right font-semibold" style={{color:"#5a9fa6"}}>{fmtZAR(inv.total||0)}</TD>
-                    </TR>
-                  );
-                })}
-              </tbody>
-            </TableWrap>
-          )}
+      {/* Chart */}
+      {chartData.length > 0 && (
+        <Section title="Turnover vs Expenses vs Profit">
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={chartData} barSize={16}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+              <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+              <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `R${(v/1000).toFixed(0)}k`} />
+              <Tooltip formatter={v => fmtZAR(v)} />
+              <Legend />
+              <Bar dataKey="Turnover" fill="#94cbd1" radius={[4,4,0,0]} />
+              <Bar dataKey="Expenses" fill="#ef4444" radius={[4,4,0,0]} />
+              <Bar dataKey="Profit"   fill="#22c55e" radius={[4,4,0,0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </Section>
       )}
 
-      {/* ── REVENUE SPLIT TAB ── */}
-      {tab === "revenue" && (() => {
-        // Group paid student invoices by month
-        const clientByMonth = {};
-        (data.invoices||[]).filter(inv=>inv.status==="paid").forEach(inv => {
-          const m = (inv.paidDate||inv.date||"").slice(0,7);
-          if (m) clientByMonth[m] = (clientByMonth[m]||0) + (inv.total||0);
-        });
-        // Group paid tutor invoices by month (use periodEnd month as key)
-        const tutorByMonth = {};
-        (data.tutorInvoices||[]).filter(ti=>ti.status==="paid").forEach(ti => {
-          const m = (ti.paidDate||ti.periodEnd||"").slice(0,7);
-          if (m) tutorByMonth[m] = (tutorByMonth[m]||0) + (ti.total||0);
-        });
-        // Combine all months
-        const allM = [...new Set([...Object.keys(clientByMonth),...Object.keys(tutorByMonth)])].sort((a,b)=>b.localeCompare(a));
-        // Totals
-        const totalClient = Object.values(clientByMonth).reduce((s,v)=>s+v,0);
-        const totalTutor  = Object.values(tutorByMonth).reduce((s,v)=>s+v,0);
-        const totalL2L    = totalClient - totalTutor;
-        return (
-          <div className="space-y-5">
-            {/* Summary KPIs */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="rounded-2xl p-5 bg-white overflow-hidden" style={{border:"1px solid #e8eef2",boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
-                <div className="h-1 w-full mb-4 rounded-full" style={{background:"#94cbd1"}}/>
-                <p className="text-xs font-semibold uppercase tracking-widest" style={{color:"#94a3b8"}}>Total Client Revenue</p>
-                <p className="text-2xl font-extrabold mt-1" style={{color:"#0d1e2a"}}>{fmtZAR(totalClient)}</p>
-                <p className="text-xs mt-1" style={{color:"#94a3b8"}}>from paid student invoices</p>
-              </div>
-              <div className="rounded-2xl p-5 bg-white overflow-hidden" style={{border:"1px solid #e8eef2",boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
-                <div className="h-1 w-full mb-4 rounded-full" style={{background:"#d7735a"}}/>
-                <p className="text-xs font-semibold uppercase tracking-widest" style={{color:"#94a3b8"}}>Tutor Costs</p>
-                <p className="text-2xl font-extrabold mt-1" style={{color:"#0d1e2a"}}>{fmtZAR(totalTutor)}</p>
-                <p className="text-xs mt-1" style={{color:"#94a3b8"}}>from paid tutor invoices</p>
-              </div>
-              <div className="rounded-2xl p-5 bg-white overflow-hidden" style={{border:"1px solid #e8eef2",boxShadow:"0 1px 4px rgba(0,0,0,0.06)"}}>
-                <div className="h-1 w-full mb-4 rounded-full" style={{background:"#10b981"}}/>
-                <p className="text-xs font-semibold uppercase tracking-widest" style={{color:"#94a3b8"}}>Learn to Link Earnings</p>
-                <p className="text-2xl font-extrabold mt-1" style={{color:totalL2L>=0?"#059669":"#dc2626"}}>{fmtZAR(totalL2L)}</p>
-                <p className="text-xs mt-1" style={{color:"#94a3b8"}}>client revenue minus tutor costs</p>
-              </div>
-            </div>
-            {/* Monthly breakdown */}
-            <Section title="Monthly Revenue Split">
-              <TableWrap>
-                <thead><tr>
-                  <TH>Month</TH>
-                  <TH className="text-right">Client Revenue</TH>
-                  <TH className="text-right">Tutor Costs</TH>
-                  <TH className="text-right">L2L Earnings</TH>
-                  <TH>Margin</TH>
-                </tr></thead>
-                <tbody>
-                  {allM.length === 0 && <tr><td colSpan={5} className="text-center text-sm py-8" style={{color:"#94a3b8"}}>No data yet. Pay student invoices and tutor invoices to see the split.</td></tr>}
-                  {allM.map(m => {
-                    const client = clientByMonth[m] || 0;
-                    const tutor  = tutorByMonth[m]  || 0;
-                    const l2l    = client - tutor;
-                    const margin = client ? ((l2l / client) * 100).toFixed(1) : 0;
-                    return (
-                      <TR key={m}>
-                        <TD className="font-medium">{fmtMonth(m)}</TD>
-                        <TD className="text-right font-semibold" style={{color:"#5a9fa6"}}>{fmtZAR(client)}</TD>
-                        <TD className="text-right" style={{color:"#d7735a"}}>{tutor > 0 ? fmtZAR(tutor) : <span style={{color:"#cbd5e1"}}>—</span>}</TD>
-                        <TD className={`text-right font-bold`} style={{color:l2l>=0?"#059669":"#dc2626"}}>{fmtZAR(l2l)}</TD>
-                        <TD>
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 bg-gray-100 rounded-full h-1.5">
-                              <div className="h-1.5 rounded-full" style={{width:`${Math.min(Math.abs(Number(margin)),100)}%`,background:l2l>=0?"#10b981":"#ef4444"}}/>
-                            </div>
-                            <span className="text-xs" style={{color:"#94a3b8"}}>{margin}%</span>
-                          </div>
-                        </TD>
-                      </TR>
-                    );
-                  })}
-                </tbody>
-              </TableWrap>
-            </Section>
-            {/* Rate reminder */}
-            <div className="rounded-2xl p-5" style={{background:"#f8fafc",border:"1px solid #e2e8f0"}}>
-              <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{color:"#94a3b8"}}>Tutor Pay Rates</p>
-              <div className="flex flex-wrap gap-4 text-sm">
-                <span><span className="font-bold" style={{color:"#0d1e2a"}}>R235</span> <span style={{color:"#64748b"}}>Standard (private 1hr)</span></span>
-                <span><span className="font-bold" style={{color:"#0d1e2a"}}>R275</span> <span style={{color:"#64748b"}}>Centre student (R235 + R40 data)</span></span>
-                <span><span className="font-bold" style={{color:"#0d1e2a"}}>R225</span> <span style={{color:"#64748b"}}>Academy student</span></span>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* ── MANUAL ENTRIES TAB ── */}
-      {tab === "expenses" && (
-        <Section title="Manual Entries (Expenses & Other Income)">
-          <div className="mb-3 flex justify-end">
-            <Btn onClick={openAdd}><Plus size={15}/> Add Entry</Btn>
-          </div>
-          <TableWrap>
-            <thead><tr>
-              <TH>Month</TH><TH className="text-right">Other Income</TH><TH className="text-right">Expenses</TH><TH></TH>
-            </tr></thead>
-            <tbody>
-              {[...data.financials].sort((a,b)=>b.month.localeCompare(a.month)).map(f => (
-                <TR key={f.id}>
-                  <TD className="font-medium">{fmtMonth(f.month)}</TD>
-                  <TD className="text-right">{fmtZAR(f.turnover)}</TD>
-                  <TD className="text-right text-red-600">{fmtZAR(f.expenses)}</TD>
-                  <TD>
-                    <div className="flex gap-1">
-                      <Btn size="sm" variant="ghost" onClick={()=>{setForm({...f});setModal("edit");}}><Edit2 size={13}/></Btn>
-                      <Btn size="sm" variant="ghost" onClick={()=>remove(f.id)}><Trash2 size={13} className="text-red-400"/></Btn>
+      {/* Table */}
+      <TableWrap>
+        <thead><tr>
+          <TH>Month</TH><TH className="text-right">Turnover</TH><TH className="text-right">Expenses</TH><TH className="text-right">Profit</TH><TH>Margin</TH><TH></TH>
+        </tr></thead>
+        <tbody>
+          {sorted.map(f => {
+            const profit = f.turnover - f.expenses;
+            const margin = f.turnover ? ((profit / f.turnover) * 100).toFixed(1) : 0;
+            return (
+              <TR key={f.id}>
+                <TD className="font-medium">{fmtMonth(f.month)}</TD>
+                <TD className="text-right">{fmtZAR(f.turnover)}</TD>
+                <TD className="text-right text-red-600">{fmtZAR(f.expenses)}</TD>
+                <TD className={`text-right font-semibold ${profit >= 0 ? "text-green-600" : "text-red-600"}`}>{fmtZAR(profit)}</TD>
+                <TD>
+                  <div className="flex items-center gap-2">
+                    <div className="w-20 bg-gray-100 rounded-full h-1.5">
+                      <div className={`h-1.5 rounded-full ${profit >= 0 ? "bg-green-500" : "bg-red-500"}`}
+                        style={{ width: `${Math.min(Math.abs(Number(margin)), 100)}%` }} />
                     </div>
-                  </TD>
-                </TR>
-              ))}
-              {data.financials.length === 0 && <tr><td colSpan={4} className="text-center text-sm text-gray-400 py-8">No manual entries yet.</td></tr>}
-            </tbody>
-          </TableWrap>
-        </Section>
-      )}
+                    <span className="text-xs text-gray-500">{margin}%</span>
+                  </div>
+                </TD>
+                <TD>
+                  <div className="flex gap-1">
+                    <Btn size="sm" variant="ghost" onClick={() => { setForm({ ...f }); setModal("edit"); }}><Edit2 size={13} /></Btn>
+                    <Btn size="sm" variant="ghost" onClick={() => remove(f.id)}><Trash2 size={13} className="text-red-400" /></Btn>
+                  </div>
+                </TD>
+              </TR>
+            );
+          })}
+          {sorted.length === 0 && <tr><td colSpan={6} className="text-center text-sm text-gray-400 py-8">No entries yet.</td></tr>}
+        </tbody>
+      </TableWrap>
 
       {(modal === "add" || modal === "edit") && (
-        <Modal title={modal === "add" ? "Add Manual Entry" : "Edit Entry"} onClose={() => setModal(null)}>
-          <p className="text-xs text-gray-500 mb-4 -mt-1">Invoice income is tracked automatically. Use this for expenses and any income not captured by invoices.</p>
+        <Modal title={modal === "add" ? "Add Month" : "Edit Month"} onClose={() => setModal(null)}>
           <Inp label="Month" type="month" value={form.month || ""} onChange={e => setForm(f => ({ ...f, month: e.target.value }))} />
-          <Inp label="Other Income (R)" type="number" min={0} placeholder="0" value={form.turnover} onChange={e => setForm(f => ({ ...f, turnover: e.target.value }))} />
-          <Inp label="Expenses (R)" type="number" min={0} placeholder="0" value={form.expenses} onChange={e => setForm(f => ({ ...f, expenses: e.target.value }))} />
+          <Inp label="Turnover (R)" type="number" min={0} value={form.turnover} onChange={e => setForm(f => ({ ...f, turnover: e.target.value }))} />
+          <Inp label="Expenses (R)" type="number" min={0} value={form.expenses} onChange={e => setForm(f => ({ ...f, expenses: e.target.value }))} />
+          {form.turnover !== "" && form.expenses !== "" && (
+            <div className={`p-3 rounded-lg text-sm font-medium mb-4 ${(form.turnover - form.expenses) >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
+              Profit: {fmtZAR(Number(form.turnover) - Number(form.expenses))}
+            </div>
+          )}
           <div className="flex justify-end gap-3 mt-2">
             <Btn variant="secondary" onClick={() => setModal(null)}>Cancel</Btn>
-            <Btn onClick={save} disabled={!form.month}>Save</Btn>
+            <Btn onClick={save} disabled={!form.month || form.turnover === "" || form.expenses === ""}>Save</Btn>
           </div>
         </Modal>
       )}
@@ -3449,7 +2372,7 @@ function CentresPage({ data, setData }) {
           const hasComplaint = notes.some(n => n.type === "complaint");
           return (
             <div key={c.id} onClick={() => openView(c)}
-              className="card-hover bg-white rounded-xl border border-gray-200 p-5 shadow-sm cursor-pointer">
+              className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
               <div className="flex items-start justify-between mb-3">
                 <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center text-teal-700">
                   <Building2 size={20} />
@@ -3630,506 +2553,6 @@ function CentreDetailModal({ centre, data, setData, onClose, onEdit }) {
   );
 }
 
-
-// ─── PAGE: INVOICING ─────────────────────────────────────────────────────────
-
-function InvoicingPage({ data, setData }) {
-  const [search, setSearch]           = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [modal, setModal]             = useState(null); // "create" | "view"
-  const [viewInv, setViewInv]         = useState(null);
-  const [dlLoading, setDlLoading]     = useState(null);
-  const [form, setForm]               = useState({
-    studentId:"", lineItems:[], notes:"", dueDate:"", discount:0,
-  });
-  const [customLine, setCustomLine] = useState({ description:"", qty:"1", unitPrice:"", lessons:"" });
-
-  const invoices = data.invoices||[];
-  const filtered = invoices.filter(inv=>{
-    const student = data.students.find(s=>s.id===inv.studentId);
-    const name = student?`${student.firstName} ${student.lastName}`:"";
-    const matchSearch = name.toLowerCase().includes(search.toLowerCase())||inv.invoiceNumber.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter==="all"||inv.status===statusFilter;
-    return matchSearch && matchStatus;
-  }).sort((a,b)=>b.date.localeCompare(a.date));
-
-  const openCreate = () => {
-    const due = new Date(); due.setDate(due.getDate()+14);
-    setForm({ studentId:"", lineItems:[], notes:"", dueDate:due.toISOString().slice(0,10), discount:0 });
-    setModal("create");
-  };
-
-  const addPackageLine = (pkg) => setForm(f=>({...f, lineItems:[...f.lineItems,{
-    id:"li"+uid(), description:pkg.name, qty:1, unitPrice:pkg.price, lessons:pkg.lessons,
-  }]}));
-
-  const addCustomLine = () => {
-    if (!customLine.description||!customLine.unitPrice) return;
-    setForm(f=>({...f, lineItems:[...f.lineItems,{
-      id:"li"+uid(), description:customLine.description,
-      qty:parseInt(customLine.qty)||1, unitPrice:parseFloat(customLine.unitPrice)||0,
-      lessons:parseInt(customLine.lessons)||0,
-    }]}));
-    setCustomLine({description:"",qty:"1",unitPrice:"",lessons:""});
-  };
-  const removeLine = (id) => setForm(f=>({...f, lineItems:f.lineItems.filter(l=>l.id!==id)}));
-
-  const subtotal  = (items) => items.reduce((s,l)=>s+(l.qty*l.unitPrice),0);
-  const calcTotal = (items, discount=0) => Math.max(0, subtotal(items) - discount);
-
-  const saveInvoice = () => {
-    if (!form.studentId||form.lineItems.length===0) return;
-    const inv = {
-      id:"inv"+uid(), studentId:form.studentId,
-      invoiceNumber:nextInvoiceNumber(data.invoices),
-      date:today(), dueDate:form.dueDate, status:"draft",
-      paidDate:"", lineItems:form.lineItems,
-      subtotal:subtotal(form.lineItems), discount:parseFloat(form.discount)||0,
-      total:calcTotal(form.lineItems, parseFloat(form.discount)||0),
-      notes:form.notes,
-    };
-    setData(d=>({...d, invoices:[...(d.invoices||[]),inv]}));
-    setModal(null);
-  };
-
-  const markSent = (invId) => {
-    setData(d=>({...d,
-      invoices:d.invoices.map(i=>i.id===invId?{...i,status:"sent"}:i),
-      students:d.students.map(s=>{ const inv=d.invoices.find(i=>i.id===invId); return (inv&&s.id===inv.studentId&&s.status==="Pending")?{...s,status:"Invoice Sent"}:s; }),
-    }));
-    setViewInv(v=>v?{...v,status:"sent"}:v);
-  };
-
-  const markPaid = (invId) => {
-    setData(d=>({...d,
-      invoices:d.invoices.map(i=>i.id===invId?{...i,status:"paid",paidDate:today()}:i),
-      students:d.students.map(s=>{ const inv=d.invoices.find(i=>i.id===invId); return (inv&&s.id===inv.studentId)?{...s,status:"Active"}:s; }),
-    }));
-    setViewInv(v=>v?{...v,status:"paid",paidDate:today()}:v);
-  };
-
-  const deleteInvoice = (invId) => {
-    setData(d=>({...d, invoices:d.invoices.filter(i=>i.id!==invId)}));
-    setModal(null); setViewInv(null);
-  };
-
-  // ── PDF download ───────────────────────────────────────────────────────────
-  const downloadInvoicePDF = async (inv) => {
-    setDlLoading(inv.id);
-    try {
-      if (!window.jspdf) {
-        await new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
-      }
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ unit:'mm', format:'a4' });
-      const W=210; const H=297;
-      const tealD=[90,159,166], coral=[215,115,90], dark=[13,30,42], gray=[107,114,128], white=[255,255,255], light=[248,250,249];
-
-      const student = data.students.find(s=>s.id===inv.studentId);
-      const parent  = data.parents?.find(p=>p.studentIds?.includes(inv.studentId));
-      const billTo  = parent ? `${parent.firstName} ${parent.lastName}` : (student ? `${student.firstName} ${student.lastName}` : '—');
-      const sColor  = {draft:gray, sent:[217,119,6], paid:[22,163,74]}[inv.status]||gray;
-      const sLabel  = {draft:'DRAFT', sent:'AWAITING PAYMENT', paid:'PAID'}[inv.status]||'';
-
-      // ── Header band ──
-      doc.setFillColor(...tealD); doc.rect(0,0,W,38,'F');
-      doc.setFillColor(...coral); doc.rect(0,38,W,2,'F');
-      doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(24);
-      doc.text('LEARN TO LINK',14,18);
-      doc.setFont('helvetica','normal'); doc.setFontSize(9);
-      doc.text('Empowering learners, one lesson at a time.',14,26);
-      doc.setFont('helvetica','bold'); doc.setFontSize(18);
-      doc.text('INVOICE',W-14,20,{align:'right'});
-      doc.setFont('helvetica','normal'); doc.setFontSize(9);
-      doc.text(inv.invoiceNumber,W-14,28,{align:'right'});
-
-      // ── Status badge ──
-      doc.setFillColor(...sColor); doc.roundedRect(W-50,32,36,8,2,2,'F');
-      doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(8);
-      doc.text(sLabel,W-32,37.5,{align:'center'});
-
-      let y=48;
-
-      // ── Two-column meta ──
-      // Left: Bill To
-      doc.setTextColor(...gray); doc.setFont('helvetica','bold'); doc.setFontSize(8);
-      doc.text('BILL TO',14,y);
-      doc.setTextColor(...dark); doc.setFont('helvetica','normal'); doc.setFontSize(10);
-      doc.text(billTo,14,y+6);
-      if (student) {
-        doc.setFontSize(9); doc.setTextColor(...gray);
-        doc.text(`Student: ${student.firstName} ${student.lastName}`,14,y+12);
-        doc.text(`${student.curriculum} · ${student.grade}`,14,y+17);
-      }
-
-      // Right: Invoice details
-      const rightX=W-14;
-      const details=[['Invoice No:', inv.invoiceNumber],['Date:', fmtDate(inv.date)],['Due Date:', inv.dueDate?fmtDate(inv.dueDate):'—'],['Status:', sLabel]];
-      details.forEach(([k,v],i)=>{
-        const dy=y+(i*7);
-        doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...gray);
-        doc.text(k,rightX-45,dy);
-        doc.setFont('helvetica','normal'); doc.setTextColor(...dark);
-        doc.text(String(v),rightX,dy,{align:'right'});
-      });
-
-      y+=28;
-
-      // ── Line items table header ──
-      doc.setFillColor(...tealD); doc.rect(14,y,W-28,8,'F');
-      doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(9);
-      doc.text('DESCRIPTION',17,y+5.5);
-      doc.text('LESSONS',110,y+5.5,{align:'center'});
-      doc.text('QTY',145,y+5.5,{align:'center'});
-      doc.text('UNIT PRICE',168,y+5.5,{align:'right'});
-      doc.text('AMOUNT',W-14,y+5.5,{align:'right'});
-      y+=8;
-
-      // ── Line items ──
-      inv.lineItems.forEach((line,i)=>{
-        const bg = i%2===0?light:white;
-        doc.setFillColor(...bg); doc.rect(14,y,W-28,8,'F');
-        doc.setTextColor(...dark); doc.setFont('helvetica','normal'); doc.setFontSize(9);
-        doc.text(String(line.description).slice(0,55),17,y+5.5);
-        doc.text(line.lessons>0?String(line.lessons):'—',110,y+5.5,{align:'center'});
-        doc.text(String(line.qty||1),145,y+5.5,{align:'center'});
-        doc.text(`R ${Number(line.unitPrice).toFixed(2)}`,168,y+5.5,{align:'right'});
-        doc.text(`R ${(Number(line.qty||1)*Number(line.unitPrice)).toFixed(2)}`,W-14,y+5.5,{align:'right'});
-        y+=8;
-      });
-
-      // ── Totals ──
-      y+=4;
-      const sub=inv.subtotal||inv.total;
-      const disc=inv.discount||0;
-      const tot=inv.total;
-      const totLines=[[`Subtotal`,`R ${Number(sub).toFixed(2)}`]];
-      if (disc>0) totLines.push([`Discount`,`- R ${Number(disc).toFixed(2)}`]);
-      totLines.push([`TOTAL DUE`,`R ${Number(tot).toFixed(2)}`]);
-      totLines.forEach(([k,v],i)=>{
-        const isTotal=i===totLines.length-1;
-        if (isTotal) { doc.setFillColor(...tealD); doc.rect(W-70,y-1,56,9,'F'); }
-        doc.setFont('helvetica', isTotal?'bold':'normal');
-        doc.setFontSize(isTotal?11:9);
-        if(isTotal){doc.setTextColor(...white);}else{doc.setTextColor(...gray);}
-        doc.text(k,W-72,y+5,{align:'right'});
-        if(isTotal){doc.setTextColor(...white);}else{doc.setTextColor(...dark);}
-        doc.text(v,W-14,y+5,{align:'right'});
-        y+=isTotal?10:7;
-      });
-
-      // ── Banking details placeholder ──
-      y+=8;
-      doc.setFillColor(248,250,249); doc.roundedRect(14,y,W-28,30,3,3,'F');
-      doc.setDrawColor(...tealD); doc.setLineWidth(0.3); doc.roundedRect(14,y,W-28,30,3,3,'S');
-      doc.setTextColor(...tealD); doc.setFont('helvetica','bold'); doc.setFontSize(9);
-      doc.text('BANKING DETAILS',18,y+7);
-      doc.setTextColor(...dark); doc.setFont('helvetica','normal'); doc.setFontSize(9);
-      const banking=[['Bank:','[BANK NAME]'],['Account Name:','LEARN TO LINK'],['Account No:','[ACCOUNT NUMBER]'],['Branch Code:','[BRANCH CODE]'],['Reference:',inv.invoiceNumber]];
-      let bx=18; let by=y+14;
-      banking.forEach(([k,v])=>{
-        doc.setFont('helvetica','bold'); doc.text(k,bx,by);
-        doc.setFont('helvetica','normal'); doc.text(v,bx+36,by);
-        bx+=38; if(bx>W-50){bx=18;by+=7;}
-      });
-      y+=36;
-
-      // ── Notes ──
-      if (inv.notes) {
-        y+=4;
-        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...gray);
-        doc.text('NOTES',14,y);
-        doc.setFont('helvetica','normal'); doc.setTextColor(...dark);
-        const nlines=doc.splitTextToSize(inv.notes,W-28);
-        doc.text(nlines,14,y+6);
-        y+=6+nlines.length*5;
-      }
-
-      if (inv.status==='paid'&&inv.paidDate) {
-        y+=4;
-        doc.setFillColor(220,252,231); doc.roundedRect(14,y,W-28,10,2,2,'F');
-        doc.setTextColor(22,163,74); doc.setFont('helvetica','bold'); doc.setFontSize(9);
-        doc.text(`✓  Payment received on ${fmtDate(inv.paidDate)} — Thank you!`,W/2,y+6.5,{align:'center'});
-      }
-
-      // ── Footer ──
-      doc.setFillColor(...tealD); doc.rect(0,H-14,W,14,'F');
-      doc.setTextColor(...white); doc.setFont('helvetica','normal'); doc.setFontSize(8);
-      doc.text('LEARN TO LINK  |  learntolink.co.za  |  info@learntolink.co.za',W/2,H-8,{align:'center'});
-      doc.text('Thank you for choosing LEARN TO LINK.',W/2,H-3,{align:'center'});
-
-      const fname=`${inv.invoiceNumber}_${student?.lastName||'Invoice'}.pdf`.replace(/\s+/g,'_');
-      doc.save(fname);
-    } catch(e){ console.error(e); alert('PDF generation failed. Please try again.'); }
-    setDlLoading(null);
-  };
-
-  const statusColor = {draft:"gray",sent:"yellow",paid:"green"};
-  const statusLabel = {draft:"Draft",sent:"Sent",paid:"Paid"};
-
-  return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Invoicing</h1>
-          <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>{invoices.filter(i=>i.status==="sent").length} awaiting payment · {invoices.filter(i=>i.status==="paid").length} paid</p>
-        </div>
-        <Btn onClick={openCreate}><Plus size={15}/> New Invoice</Btn>
-      </div>
-
-      {/* KPIs */}
-      <div className="grid grid-cols-4 gap-4">
-        <KPI title="Draft"           value={invoices.filter(i=>i.status==="draft").length}  icon={FileText}   color="indigo"/>
-        <KPI title="Awaiting Payment" value={invoices.filter(i=>i.status==="sent").length}   icon={TrendingUp} color="amber"/>
-        <KPI title="Paid This Month"  value={invoices.filter(i=>i.status==="paid"&&i.paidDate?.startsWith(today().slice(0,7))).length} icon={CheckCircle} color="green"/>
-        <KPI title="Total Collected"  value={fmtZAR(invoices.filter(i=>i.status==="paid").reduce((s,i)=>s+i.total,0))} icon={DollarSign} color="teal"/>
-      </div>
-
-      {/* Filters */}
-      <div className="flex gap-3 items-center flex-wrap">
-        <div className="flex-1 min-w-48"><SearchBar value={search} onChange={setSearch} placeholder="Search student or invoice #…"/></div>
-        <div className="flex gap-1">
-          {["all","draft","sent","paid"].map(s=>(
-            <button key={s} onClick={()=>setStatusFilter(s)}
-              className="px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider capitalize" style={{transition:"background 150ms ease, color 150ms ease"}}
-              style={statusFilter===s?{background:B.tealDark,color:"white"}:{background:"white",color:"#374151",border:"1px solid #e5e7eb"}}>
-              {s}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Invoice list */}
-      <Section title="Invoices">
-        {filtered.length===0?<p className="text-sm text-center py-6" style={{color:"#9ca3af"}}>No invoices found.</p>:(
-          <TableWrap>
-            <thead><tr><TH>#</TH><TH>Student</TH><TH>Date</TH><TH>Due</TH><TH>Lessons</TH><TH>Total</TH><TH>Status</TH><TH></TH></tr></thead>
-            <tbody>{filtered.map(inv=>{
-              const student=data.students.find(s=>s.id===inv.studentId);
-              const totalLessons=inv.lineItems.reduce((s,l)=>s+(l.lessons||0),0);
-              const overdue=inv.status==="sent"&&inv.dueDate&&inv.dueDate<today();
-              return (
-                <TR key={inv.id} onClick={()=>{setViewInv(inv);setModal("view");}}>
-                  <TD><span className="font-mono font-bold text-xs" style={{color:B.tealDark}}>{inv.invoiceNumber}</span></TD>
-                  <TD><span className="font-semibold">{student?`${student.firstName} ${student.lastName}`:"—"}</span></TD>
-                  <TD>{fmtDate(inv.date)}</TD>
-                  <TD>
-                    <span className={overdue?"font-bold":""}  style={{color:overdue?"#dc2626":"inherit"}}>
-                      {inv.dueDate?fmtDate(inv.dueDate):"—"}{overdue?" ⚠":""}
-                    </span>
-                  </TD>
-                  <TD>{totalLessons>0?`${totalLessons} lessons`:"—"}</TD>
-                  <TD><span className="font-bold">{fmtZAR(inv.total)}</span></TD>
-                  <TD><Badge color={statusColor[inv.status]}>{statusLabel[inv.status]}</Badge></TD>
-                  <TD onClick={e=>e.stopPropagation()} className="flex gap-1">
-                    <Btn size="sm" variant="ghost" title="Download PDF" onClick={()=>downloadInvoicePDF(inv)} disabled={dlLoading===inv.id}>
-                      {dlLoading===inv.id?"…":<FileText size={12}/>}
-                    </Btn>
-                    {inv.status==="draft"&&<Btn size="sm" onClick={()=>markSent(inv.id)}>Mark Sent</Btn>}
-                    {inv.status==="sent"&&<Btn size="sm" variant="success" onClick={()=>markPaid(inv.id)}><CheckCircle size={13}/> Mark Paid</Btn>}
-                    {inv.status==="paid"&&<span className="text-xs" style={{color:"#059669"}}>✓ {fmtDate(inv.paidDate)}</span>}
-                  </TD>
-                </TR>
-              );
-            })}</tbody>
-          </TableWrap>
-        )}
-      </Section>
-
-      {/* Create invoice modal */}
-      {modal==="create"&&(
-        <Modal title="New Invoice" onClose={()=>setModal(null)} extraWide>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Student *</label>
-              <select className={inp} value={form.studentId} onChange={e=>setForm(f=>({...f,studentId:e.target.value}))}>
-                <option value="">Select student…</option>
-                {data.students.map(s=><option key={s.id} value={s.id}>{s.firstName} {s.lastName} ({s.curriculum} · {s.grade})</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Due Date</label>
-              <input className={inp} type="date" value={form.dueDate} onChange={e=>setForm(f=>({...f,dueDate:e.target.value}))}/>
-            </div>
-          </div>
-
-          {/* Package quick-add */}
-          <div className="mb-4">
-            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>Quick Add Package</p>
-            <div className="flex flex-wrap gap-2">
-              {PACKAGES.filter(p=>p.type!=="custom").map(pkg=>(
-                <button key={pkg.id} onClick={()=>addPackageLine(pkg)}
-                  className="px-3 py-2 rounded-xl text-xs font-semibold text-left" style={{transition:"background 150ms ease, color 150ms ease"}}
-                  style={{background:"#f8faf9",border:"1px solid #eef2f1",color:"#374151"}}
-                  onMouseEnter={e=>e.currentTarget.style.background=B.tealLight}
-                  onMouseLeave={e=>e.currentTarget.style.background="#f8faf9"}>
-                  <span className="font-bold" style={{color:"#0d1e2a"}}>{pkg.name}</span>
-                  <span className="ml-2" style={{color:B.tealDark}}>{fmtZAR(pkg.price)}</span>
-                  {pkg.lessons>0&&<span className="ml-1 text-xs" style={{color:"#9ca3af"}}>· {pkg.lessons} lessons</span>}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Custom line */}
-          <div className="p-3 rounded-xl mb-4" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>Add Custom Line Item</p>
-            <div className="grid grid-cols-4 gap-2 items-end">
-              <div className="col-span-2">
-                <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
-                  placeholder="Description" value={customLine.description} onChange={e=>setCustomLine(f=>({...f,description:e.target.value}))}/>
-              </div>
-              <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
-                placeholder="Unit Price (R)" type="number" value={customLine.unitPrice} onChange={e=>setCustomLine(f=>({...f,unitPrice:e.target.value}))}/>
-              <input className="w-full border rounded-xl px-3 py-2 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
-                placeholder="Lessons #" type="number" value={customLine.lessons} onChange={e=>setCustomLine(f=>({...f,lessons:e.target.value}))}/>
-            </div>
-            <Btn size="sm" className="mt-2" onClick={addCustomLine} disabled={!customLine.description||!customLine.unitPrice}><Plus size={13}/> Add Line</Btn>
-          </div>
-
-          {/* Line items */}
-          {form.lineItems.length>0&&(
-            <div className="mb-4 rounded-xl overflow-hidden" style={{border:"1px solid #eef2f1"}}>
-              <table className="w-full text-sm">
-                <thead><tr style={{background:B.tealDark}}>
-                  {["Description","Lessons","Qty","Unit Price","Amount",""].map(h=><th key={h} className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{color:"white"}}>{h}</th>)}
-                </tr></thead>
-                <tbody>
-                  {form.lineItems.map((l,i)=>(
-                    <tr key={l.id} style={{background:i%2===0?"#f8faf9":"white"}}>
-                      <td className="px-3 py-2 font-medium" style={{color:"#0d1e2a"}}>{l.description}</td>
-                      <td className="px-3 py-2 text-center" style={{color:"#9ca3af"}}>{l.lessons>0?l.lessons:"—"}</td>
-                      <td className="px-3 py-2 text-center">{l.qty}</td>
-                      <td className="px-3 py-2">{fmtZAR(l.unitPrice)}</td>
-                      <td className="px-3 py-2 font-bold" style={{color:B.tealDark}}>{fmtZAR(l.qty*l.unitPrice)}</td>
-                      <td className="px-3 py-2"><button onClick={()=>removeLine(l.id)}><X size={13} style={{color:"#ef4444"}}/></button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="px-4 py-3 text-sm" style={{borderTop:"1px solid #eef2f1",background:"#f0f9fa"}}>
-                <div className="flex justify-end gap-8 mb-1">
-                  <span style={{color:"#9ca3af"}}>Subtotal</span>
-                  <span className="font-semibold" style={{color:"#0d1e2a"}}>{fmtZAR(subtotal(form.lineItems))}</span>
-                </div>
-                <div className="flex items-center justify-end gap-3">
-                  <span style={{color:"#9ca3af"}}>Discount (R)</span>
-                  <input className="border rounded-lg px-2 py-1 text-sm w-24 text-right" style={{borderColor:"#e5e7eb"}}
-                    type="number" min={0} value={form.discount}
-                    onChange={e=>setForm(f=>({...f,discount:e.target.value}))}/>
-                </div>
-                <div className="flex justify-end gap-8 mt-2 pt-2" style={{borderTop:"1px solid #eef2f1"}}>
-                  <span className="font-bold" style={{color:"#0d1e2a"}}>Total Due</span>
-                  <span className="font-bold text-lg" style={{color:B.tealDark}}>{fmtZAR(calcTotal(form.lineItems,parseFloat(form.discount)||0))}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Notes to Client (optional)</label>
-            <textarea className={`${inp} w-full`} rows={2} placeholder="e.g. Please use invoice number as reference when making payment." value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))}/>
-          </div>
-
-          <div className="flex gap-2 justify-end mt-4">
-            <Btn variant="secondary" onClick={()=>setModal(null)}>Cancel</Btn>
-            <Btn onClick={saveInvoice} disabled={!form.studentId||form.lineItems.length===0}><FileText size={15}/> Create Invoice</Btn>
-          </div>
-        </Modal>
-      )}
-
-      {/* View invoice modal */}
-      {modal==="view"&&viewInv&&(()=>{
-        const student=data.students.find(s=>s.id===viewInv.studentId);
-        const parent=data.parents?.find(p=>p.studentIds?.includes(viewInv.studentId));
-        const billTo=parent?`${parent.firstName} ${parent.lastName}`:(student?`${student.firstName} ${student.lastName}`:"—");
-        const totalLessons=viewInv.lineItems.reduce((s,l)=>s+(l.lessons||0),0);
-        const sub=viewInv.subtotal||viewInv.total;
-        const disc=viewInv.discount||0;
-        const overdue=viewInv.status==="sent"&&viewInv.dueDate&&viewInv.dueDate<today();
-        return (
-          <Modal title={viewInv.invoiceNumber} onClose={()=>setModal(null)} wide>
-            {/* Invoice header */}
-            <div className="rounded-2xl p-5 mb-4" style={{background:"#0d1e2a"}}>
-              <div className="flex items-start justify-between gap-3 flex-wrap">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#94cbd1"}}>LEARN TO LINK — Invoice</p>
-                  <p className="font-bold text-xl" style={{color:"white"}}>{viewInv.invoiceNumber}</p>
-                  <p className="text-sm mt-1" style={{color:"#94cbd1"}}>Billed to: {billTo}</p>
-                  {student&&<p className="text-xs mt-0.5" style={{color:"#6b7280"}}>Student: {student.firstName} {student.lastName} · {student.curriculum} {student.grade}</p>}
-                </div>
-                <div className="text-right">
-                  <Badge color={{draft:"gray",sent:"yellow",paid:"green"}[viewInv.status]}>{statusLabel[viewInv.status]}</Badge>
-                  <p className="text-xs mt-2" style={{color:"#9ca3af"}}>Issued: {fmtDate(viewInv.date)}</p>
-                  {viewInv.dueDate&&<p className="text-xs" style={{color:overdue?"#f87171":"#9ca3af"}}>Due: {fmtDate(viewInv.dueDate)}{overdue?" ⚠ Overdue":""}</p>}
-                  {totalLessons>0&&<p className="text-xs mt-1" style={{color:"#94cbd1"}}>{totalLessons} lessons included</p>}
-                </div>
-              </div>
-            </div>
-
-            {/* Line items */}
-            <div className="rounded-xl overflow-hidden mb-4" style={{border:"1px solid #eef2f1"}}>
-              <table className="w-full text-sm">
-                <thead><tr style={{background:B.tealDark}}>
-                  {["Description","Lessons","Qty","Unit Price","Amount"].map(h=><th key={h} className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider" style={{color:"white"}}>{h}</th>)}
-                </tr></thead>
-                <tbody>
-                  {viewInv.lineItems.map((l,i)=>(
-                    <tr key={l.id} style={{background:i%2===0?"#f8faf9":"white"}}>
-                      <td className="px-3 py-3 font-medium" style={{color:"#0d1e2a"}}>{l.description}</td>
-                      <td className="px-3 py-3 text-center" style={{color:"#9ca3af"}}>{l.lessons>0?l.lessons:"—"}</td>
-                      <td className="px-3 py-3 text-center">{l.qty||1}</td>
-                      <td className="px-3 py-3">{fmtZAR(l.unitPrice)}</td>
-                      <td className="px-3 py-3 font-bold" style={{color:B.tealDark}}>{fmtZAR((l.qty||1)*l.unitPrice)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="px-4 py-3 text-sm space-y-1" style={{borderTop:"1px solid #eef2f1",background:"#f8faf9"}}>
-                <div className="flex justify-end gap-8"><span style={{color:"#9ca3af"}}>Subtotal</span><span className="font-medium">{fmtZAR(sub)}</span></div>
-                {disc>0&&<div className="flex justify-end gap-8"><span style={{color:"#9ca3af"}}>Discount</span><span className="font-medium" style={{color:"#d97706"}}>- {fmtZAR(disc)}</span></div>}
-                <div className="flex justify-end gap-8 pt-2" style={{borderTop:"1px solid #eef2f1"}}>
-                  <span className="font-bold text-base">Total Due</span>
-                  <span className="font-bold text-xl" style={{color:B.tealDark}}>{fmtZAR(viewInv.total)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Banking details */}
-            <div className="rounded-xl p-4 mb-4" style={{background:"#f0f9fa",border:"1px solid #b2e0e4"}}>
-              <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:B.tealDark}}>Banking Details</p>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-                {[["Bank","[BANK NAME]"],["Account Name","LEARN TO LINK"],["Account No","[ACCOUNT NUMBER]"],["Branch Code","[BRANCH CODE]"],["Reference",viewInv.invoiceNumber]].map(([k,v])=>(
-                  <div key={k} className="flex gap-2">
-                    <span className="font-semibold w-28 shrink-0" style={{color:"#374151"}}>{k}:</span>
-                    <span style={{color:k==="Reference"?B.tealDark:"#0d1e2a",fontWeight:k==="Reference"?"700":"400"}}>{v}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {viewInv.notes&&<p className="text-sm mb-4 px-1" style={{color:"#6b7280"}}>📝 {viewInv.notes}</p>}
-            {viewInv.status==="paid"&&<p className="text-xs mb-4 font-semibold" style={{color:"#059669"}}>✓ Payment received on {fmtDate(viewInv.paidDate)} — student marked Active</p>}
-
-            <div className="flex gap-2 justify-between">
-              <Btn variant="danger" size="sm" onClick={()=>{ if(window.confirm('Delete this invoice?')) deleteInvoice(viewInv.id); }}><Trash2 size={13}/> Delete</Btn>
-              <div className="flex gap-2">
-                <Btn variant="secondary" onClick={()=>setModal(null)}>Close</Btn>
-                <Btn variant="ghost" onClick={()=>downloadInvoicePDF(viewInv)} disabled={dlLoading===viewInv.id}>
-                  {dlLoading===viewInv.id?"Generating…":<><FileText size={13}/> Download PDF</>}
-                </Btn>
-                {viewInv.status==="draft"&&<Btn onClick={()=>markSent(viewInv.id)}>Mark Sent</Btn>}
-                {viewInv.status==="sent"&&<Btn variant="success" onClick={()=>markPaid(viewInv.id)}><CheckCircle size={15}/> Mark Paid</Btn>}
-              </div>
-            </div>
-          </Modal>
-        );
-      })()}
-    </div>
-  );
-}
-
-
 // ─── PAGE: REPORTS ────────────────────────────────────────────────────────────
 
 function ReportsPage({ data }) {
@@ -4243,2000 +2666,201 @@ function ReportsPage({ data }) {
   );
 }
 
+// ─── APP ──────────────────────────────────────────────────────────────────────
 
+const NAV = [
+  { id: "dashboard",  label: "Dashboard",   icon: LayoutDashboard },
+  { id: "students",   label: "Students",    icon: Users           },
+  { id: "tutors",     label: "Tutors",      icon: GraduationCap   },
+  { id: "links",      label: "Links",       icon: LinkIcon        },
+  { id: "centres",    label: "Centres",     icon: Building2       },
+  { id: "accounting", label: "Accounting",  icon: DollarSign      },
+  { id: "stats",      label: "Stats",       icon: BarChart2       },
+  { id: "reports",    label: "Reports",     icon: FileText        },
+  { id: "settings",   label: "Settings",    icon: SettingsIcon    },
+  { id: "academy",    label: "Academy",     icon: BookOpen, divider: true },
+];
 
-// ─── LESSON LOGBOOK & LOG LESSON ─────────────────────────────────────────────
+// ─── USERS ────────────────────────────────────────────────────────────────────
 
+const USERS = [
+  { username: "chanellepeverett", password: "LEARNTOLINK4me", displayName: "Chanelle Peverett", role: "Owner" },
+  { username: "moniqueslabbert",  password: "LEARNTOLINK4me", displayName: "Monique Slabbert",  role: "Admin" },
+];
 
-// ─── STUDENT REPORTS TAB ──────────────────────────────────────────────────────
-function StudentReportsTab({ studentId, data, setData, tutorId, isAdminView }) {
-  const student  = data.students.find(s=>s.id===studentId);
-  const reports  = (data.studentReports||[])
-    .filter(r=>r.studentId===studentId)
-    .sort((a,b)=>b.month.localeCompare(a.month));
-  const canCreate = !!tutorId;
+// ─── LOGIN PAGE ───────────────────────────────────────────────────────────────
 
-  const [creating, setCreating] = useState(false);
-  const [viewRpt,  setViewRpt]  = useState(null);
-  const [dlLoading, setDlLoading] = useState(false);
+function LoginPage({ onLogin }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error,    setError]    = useState("");
+  const [showPw,   setShowPw]   = useState(false);
 
-  // Only show subjects this student is linked to (for this tutor if applicable)
-  const linkedSubjects = tutorId
-    ? data.links.filter(l=>l.studentId===studentId&&l.tutorId===tutorId).map(l=>data.subjects.find(s=>s.id===l.subjectId)).filter(Boolean)
-    : data.links.filter(l=>l.studentId===studentId).map(l=>data.subjects.find(s=>s.id===l.subjectId)).filter(Boolean);
-  const uniqueSubjects = linkedSubjects.filter((s,i,a)=>a.findIndex(x=>x.id===s.id)===i);
-
-  const currentMonth = today().slice(0,7);
-  const emptyForm = { month:currentMonth, subjectId:uniqueSubjects[0]?.id||"", overallRating:"Good", progressNarrative:"", parentNotes:"", nextMonthPlan:"" };
-  const [form, setFrm] = useState(emptyForm);
-
-  const getLessonsThisMonth = (subjectId, month) =>
-    (data.lessonLogs||[]).filter(l=>l.studentId===studentId&&l.subjectId===subjectId&&l.date.startsWith(month)&&l.status==="completed").length;
-
-  const saveReport = () => {
-    if (!form.subjectId||!form.progressNarrative||!form.nextMonthPlan) return;
-    const subj = data.subjects.find(s=>s.id===form.subjectId);
-    const lessonsCompleted = getLessonsThisMonth(form.subjectId, form.month);
-    setData(d=>({...d, studentReports:[...(d.studentReports||[]),{
-      id:"rpt"+uid(), tutorId:tutorId||"admin", studentId,
-      month:form.month, subjectId:form.subjectId, subject:subj?.name||"",
-      overallRating:form.overallRating,
-      progressNarrative:form.progressNarrative,
-      parentNotes:form.parentNotes,
-      nextMonthPlan:form.nextMonthPlan,
-      lessonsCompleted,
-      createdAt:today(),
-    }]}));
-    setFrm(emptyForm); setCreating(false);
+  const submit = (e) => {
+    e.preventDefault();
+    const user = USERS.find(u => u.username === username.trim() && u.password === password);
+    if (user) { onLogin(user); }
+    else { setError("Incorrect username or password. Please try again."); }
   };
 
-  const deleteReport = (id) => setData(d=>({...d, studentReports:(d.studentReports||[]).filter(r=>r.id!==id)}));
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4"
+         style={{ background: `linear-gradient(135deg, ${B.tealLight} 0%, #f0f9fa 60%, ${B.coralLight} 100%)` }}>
+      <div className="w-full max-w-sm">
+        {/* Logo card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-8 pt-8 pb-6 mb-4">
+          {/* Logo */}
+          <div className="flex flex-col items-center mb-8">
+            <LogoMark size={56} />
+            <p className="mt-3 text-sm font-bold tracking-widest uppercase" style={{ color: B.tealDark }}>LEARN TO LINK</p>
+            <p className="text-xs text-gray-400 tracking-wide">CRM + Academy</p>
+          </div>
 
-  // ── PDF download ───────────────────────────────────────────────────────────
-  const downloadPDF = async (rpt) => {
-    setDlLoading(rpt.id);
-    try {
-      if (!window.jspdf) {
-        await new Promise((res,rej)=>{
-          const s=document.createElement('script');
-          s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-          s.onload=res; s.onerror=rej; document.head.appendChild(s);
-        });
-      }
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ unit:'mm', format:'a4' });
-      const W=210, H=297;
-      const tealD=[90,159,166], tealL=[148,203,209], coral=[215,115,90], dark=[13,30,42], gray=[107,114,128], white=[255,255,255];
+          <h2 className="text-lg font-semibold text-gray-900 mb-1">Sign in</h2>
+          <p className="text-sm text-gray-500 mb-5">Enter your credentials to continue.</p>
 
-      const tutor = data.tutors.find(t=>t.id===rpt.tutorId);
-      const subj  = data.subjects.find(s=>s.id===rpt.subjectId);
-      const monthLabel = rpt.month ? new Date(rpt.month+'-01T12:00:00').toLocaleString('en-ZA',{month:'long',year:'numeric'}) : '';
-
-      // ── Header band ──
-      doc.setFillColor(...tealD); doc.rect(0,0,W,38,'F');
-      doc.setFillColor(...coral); doc.rect(0,38,W,2,'F');
-
-      // Brand
-      doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(24);
-      doc.text('LEARN TO LINK',14,18);
-      doc.setFont('helvetica','normal'); doc.setFontSize(9);
-      doc.text('Empowering learners, one lesson at a time.',14,26);
-
-      // Report label (right)
-      doc.setFont('helvetica','bold'); doc.setFontSize(11);
-      doc.text('MONTHLY PROGRESS REPORT',W-14,17,{align:'right'});
-      doc.setFont('helvetica','normal'); doc.setFontSize(9);
-      doc.text(monthLabel,W-14,25,{align:'right'});
-
-      // ── Student info box ──
-      let y=48;
-      doc.setFillColor(248,250,249); doc.roundedRect(14,y,W-28,30,3,3,'F');
-      doc.setTextColor(...dark); doc.setFont('helvetica','bold'); doc.setFontSize(15);
-      doc.text(`${student?.firstName||''} ${student?.lastName||''}`,20,y+10);
-      const info=[['Subject',subj?.name||rpt.subject||'—'],['Grade',student?.grade||'—'],['Curriculum',student?.curriculum||'—'],['Tutor',`${tutor?.firstName||''} ${tutor?.lastName||''}`.trim()||'—']];
-      doc.setFontSize(8);
-      info.forEach(([k,v],i)=>{
-        const x=20+(i*46);
-        doc.setFont('helvetica','bold'); doc.setTextColor(...gray); doc.text(k.toUpperCase(),x,y+18);
-        doc.setFont('helvetica','normal'); doc.setTextColor(...dark); doc.text(String(v),x,y+24);
-      });
-
-      // ── Rating + lessons badge ──
-      y+=38;
-      const rColors={Excellent:[22,163,74],Good:[...tealD],Satisfactory:[217,119,6],'Needs Improvement':[220,38,38]};
-      const rc=rColors[rpt.overallRating]||gray;
-      doc.setFillColor(...rc); doc.roundedRect(14,y,58,9,2,2,'F');
-      doc.setTextColor(...white); doc.setFont('helvetica','bold'); doc.setFontSize(8);
-      doc.text(`Overall: ${rpt.overallRating}`,43,y+6,{align:'center'});
-      if (rpt.lessonsCompleted!==undefined) {
-        doc.setFillColor(240,249,250); doc.roundedRect(76,y,62,9,2,2,'F');
-        doc.setTextColor(...tealD); doc.setFont('helvetica','normal');
-        doc.text(`Lessons completed: ${rpt.lessonsCompleted}`,107,y+6,{align:'center'});
-      }
-
-      // ── Section helper ──
-      y+=16;
-      const addSection = (title, body, accent) => {
-        if (!body) return;
-        if (y > H-50) { doc.addPage(); y=20; }
-        doc.setTextColor(...accent); doc.setFont('helvetica','bold'); doc.setFontSize(11);
-        doc.text(title,14,y);
-        doc.setDrawColor(...accent); doc.setLineWidth(0.4); doc.line(14,y+2,W-14,y+2);
-        y+=8;
-        doc.setTextColor(...dark); doc.setFont('helvetica','normal'); doc.setFontSize(10);
-        const lines=doc.splitTextToSize(body,W-28);
-        lines.forEach(line=>{ if(y>H-25){doc.addPage();y=20;} doc.text(line,14,y); y+=6; });
-        y+=6;
-      };
-
-      addSection('Section 1 — Progress & Improvement', rpt.progressNarrative, tealD);
-      if (rpt.parentNotes) addSection('Notes to Parent', rpt.parentNotes, coral);
-      addSection('Section 2 — Looking Ahead: Next Month Plan', rpt.nextMonthPlan, tealD);
-
-      // Section 3 — auto summary
-      const s3=[`Lessons completed this month: ${rpt.lessonsCompleted??'—'}`,`Overall rating: ${rpt.overallRating}`,`Report prepared by: ${tutor?.firstName||''} ${tutor?.lastName||''}`.trim(),`Date created: ${rpt.createdAt||''}`].join('\n');
-      addSection('Section 3 — Summary Overview', s3, gray);
-
-      // ── Footer ──
-      const footerY=H-10;
-      doc.setFillColor(...tealD); doc.rect(0,footerY-6,W,16,'F');
-      doc.setTextColor(...white); doc.setFont('helvetica','normal'); doc.setFontSize(8);
-      doc.text('LEARN TO LINK  |  learntolink.co.za  |  info@learntolink.co.za',W/2,footerY,{align:'center'});
-
-      const fname=`${student?.firstName||'Student'}_${student?.lastName||''}_${rpt.month||''}_${subj?.name||rpt.subject||'Report'}.pdf`.replace(/\s+/g,'_');
-      doc.save(fname);
-    } catch(e) { console.error(e); alert('PDF generation failed. Please try again.'); }
-    setDlLoading(null);
-  };
-
-  // ── Form ──
-  if (creating) return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h3 className="font-bold text-base" style={{color:"#0d1e2a"}}>Monthly Report — {student?.firstName} {student?.lastName}</h3>
-        <Btn variant="ghost" size="sm" onClick={()=>{setCreating(false);setFrm(emptyForm);}}>Cancel</Btn>
-      </div>
-
-      {/* Info row */}
-      <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Month *</label>
-          <input className={inp} type="month" value={form.month} onChange={e=>setFrm(f=>({...f,month:e.target.value}))}/>
-        </div>
-        <div>
-          <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Subject *</label>
-          <select className={inp} value={form.subjectId} onChange={e=>setFrm(f=>({...f,subjectId:e.target.value}))}>
-            <option value="">Select subject…</option>
-            {(uniqueSubjects.length ? uniqueSubjects : data.subjects).map(s=><option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="text-xs font-bold uppercase tracking-wider mb-1 block" style={{color:"#9ca3af"}}>Overall Rating</label>
-          <select className={inp} value={form.overallRating} onChange={e=>setFrm(f=>({...f,overallRating:e.target.value}))}>
-            {["Excellent","Good","Satisfactory","Needs Improvement"].map(r=><option key={r} value={r}>{r}</option>)}
-          </select>
-        </div>
-      </div>
-
-      {form.subjectId && form.month && (
-        <div className="text-xs px-3 py-2 rounded-lg" style={{background:"#f0f9fa",color:"#5a9fa6"}}>
-          Lessons completed in {form.month} for this subject: <strong>{getLessonsThisMonth(form.subjectId, form.month)}</strong> (auto-calculated from lesson log)
-        </div>
-      )}
-
-      {/* Section 1 */}
-      <div className="rounded-2xl p-4" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-        <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#5a9fa6"}}>Section 1 — Progress & Improvement *</p>
-        <p className="text-xs mb-2" style={{color:"#9ca3af"}}>Describe what the student improved on, what they struggled with, and anything you want the parent to know.</p>
-        <textarea className={`${inp} w-full`} rows={5} placeholder="e.g. This month we focused on quadratic equations. Sipho has shown good improvement with factorisation but still struggles with word problems. Please encourage daily practice…" value={form.progressNarrative} onChange={e=>setFrm(f=>({...f,progressNarrative:e.target.value}))}/>
-      </div>
-
-      {/* Notes to parent (optional but highlighted) */}
-      <div className="rounded-2xl p-4" style={{background:"#fff7ed",border:"1px solid #fed7aa"}}>
-        <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#c2410c"}}>Notes to Parent (optional)</p>
-        <p className="text-xs mb-2" style={{color:"#9ca3af"}}>Any specific messages, concerns, or requests for the parent.</p>
-        <textarea className={`${inp} w-full`} rows={3} placeholder="e.g. Please ensure homework is completed before each session…" value={form.parentNotes} onChange={e=>setFrm(f=>({...f,parentNotes:e.target.value}))}/>
-      </div>
-
-      {/* Section 2 */}
-      <div className="rounded-2xl p-4" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-        <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#5a9fa6"}}>Section 2 — Next Month Plan *</p>
-        <p className="text-xs mb-2" style={{color:"#9ca3af"}}>What topics or skills will you cover next month? What are the key goals?</p>
-        <textarea className={`${inp} w-full`} rows={4} placeholder="e.g. Next month we will cover functions and graphs (parabola and hyperbola). The goal is to build confidence with sketching and interpretation before the mid-year exams…" value={form.nextMonthPlan} onChange={e=>setFrm(f=>({...f,nextMonthPlan:e.target.value}))}/>
-      </div>
-
-      <div className="flex gap-2 pt-2">
-        <Btn onClick={saveReport} disabled={!form.subjectId||!form.progressNarrative||!form.nextMonthPlan}>Save Report</Btn>
-        <Btn variant="secondary" onClick={()=>{setCreating(false);setFrm(emptyForm);}}>Cancel</Btn>
-      </div>
-    </div>
-  );
-
-  // ── Single report view ──
-  if (viewRpt) {
-    const rptTutor = data.tutors.find(t=>t.id===viewRpt.tutorId);
-    const rptSubj  = data.subjects.find(s=>s.id===viewRpt.subjectId);
-    const rcMap = {Excellent:"green",Good:"teal",Satisfactory:"yellow","Needs Improvement":"red"};
-    const monthLabel = viewRpt.month ? new Date(viewRpt.month+'-01T12:00:00').toLocaleString('en-ZA',{month:'long',year:'numeric'}) : '';
-    return (
-      <div className="space-y-4">
-        {/* Report header */}
-        <div className="rounded-2xl p-4" style={{background:"#0d1e2a"}}>
-          <div className="flex items-start justify-between gap-3 flex-wrap">
+          <form onSubmit={submit} className="space-y-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#94cbd1"}}>LEARN TO LINK — Monthly Progress Report</p>
-              <h3 className="font-bold text-lg" style={{color:"white"}}>{student?.firstName} {student?.lastName}</h3>
-              <p className="text-sm mt-0.5" style={{color:"#94cbd1"}}>{rptSubj?.name||viewRpt.subject} · {monthLabel}</p>
-              <p className="text-xs mt-0.5" style={{color:"#6b7280"}}>Tutor: {rptTutor?.firstName} {rptTutor?.lastName} · {student?.curriculum} {student?.grade}</p>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+              <input
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
+                value={username} onChange={e => { setUsername(e.target.value); setError(""); }}
+                placeholder="e.g. chanellepeverett" autoComplete="username" autoFocus />
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <Badge color={rcMap[viewRpt.overallRating]||"gray"}>{viewRpt.overallRating}</Badge>
-              {viewRpt.lessonsCompleted!==undefined && <span className="text-xs" style={{color:"#9ca3af"}}>{viewRpt.lessonsCompleted} lesson{viewRpt.lessonsCompleted!==1?"s":""} completed</span>}
-            </div>
-          </div>
-        </div>
-
-        {/* Sections */}
-        {[
-          ["Section 1 — Progress & Improvement", viewRpt.progressNarrative, "#5a9fa6"],
-          viewRpt.parentNotes ? ["Notes to Parent", viewRpt.parentNotes, "#d7735a"] : null,
-          ["Section 2 — Next Month Plan", viewRpt.nextMonthPlan, "#5a9fa6"],
-        ].filter(Boolean).map(([label,val,color])=>val?(
-          <div key={label} className="p-4 rounded-2xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color}}>{label}</p>
-            <p className="text-sm whitespace-pre-wrap leading-relaxed" style={{color:"#374151"}}>{val}</p>
-          </div>
-        ):null)}
-
-        {/* Auto section 3 */}
-        <div className="p-4 rounded-2xl" style={{background:"#f0f9fa",border:"1px solid #b2e0e4"}}>
-          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#5a9fa6"}}>Section 3 — Summary Overview</p>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            {[["Lessons Completed",viewRpt.lessonsCompleted??'—'],["Overall Rating",viewRpt.overallRating],["Prepared By",`${rptTutor?.firstName||''} ${rptTutor?.lastName||''}`.trim()||'—'],["Report Date",viewRpt.createdAt||'—']].map(([k,v])=>(
-              <div key={k}><p className="text-xs font-bold uppercase tracking-wider" style={{color:"#9ca3af"}}>{k}</p><p className="mt-0.5 font-medium" style={{color:"#0d1e2a"}}>{v}</p></div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <Btn variant="ghost" size="sm" onClick={()=>setViewRpt(null)}>← Back</Btn>
-          <Btn size="sm" onClick={()=>downloadPDF(viewRpt)} disabled={dlLoading===viewRpt.id}>
-            {dlLoading===viewRpt.id ? "Generating…" : <><FileText size={13}/> Download PDF</>}
-          </Btn>
-        </div>
-      </div>
-    );
-  }
-
-  // ── List view ──
-  return (
-    <div>
-      {canCreate && <div className="flex justify-end mb-4"><Btn onClick={()=>setCreating(true)}><Plus size={14}/> New Monthly Report</Btn></div>}
-      {reports.length === 0 && <p className="text-sm text-center py-8" style={{color:"#9ca3af"}}>No reports yet.{canCreate?" Create one above.":""}</p>}
-      <div className="space-y-3">
-        {reports.map(r=>{
-          const rTutor = data.tutors.find(t=>t.id===r.tutorId);
-          const rSubj  = data.subjects.find(s=>s.id===r.subjectId);
-          const rcMap  = {Excellent:"green",Good:"teal",Satisfactory:"yellow","Needs Improvement":"red"};
-          const monthLabel = r.month ? new Date(r.month+'-01T12:00:00').toLocaleString('en-ZA',{month:'long',year:'numeric'}) : r.date||'';
-          return (
-            <div key={r.id} className="p-4 rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
-              style={{background:"#f8faf9",border:"1px solid #eef2f1"}} onClick={()=>setViewRpt(r)}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-bold" style={{color:"#0d1e2a"}}>{rSubj?.name||r.subject}</p>
-                    <Badge color={rcMap[r.overallRating]||"gray"}>{r.overallRating}</Badge>
-                    {r.lessonsCompleted!==undefined && <span className="text-xs px-2 py-0.5 rounded-full" style={{background:"#f0f9fa",color:"#5a9fa6"}}>{r.lessonsCompleted} lessons</span>}
-                  </div>
-                  <p className="text-xs mt-0.5" style={{color:"#9ca3af"}}>{monthLabel} · {rTutor?.firstName} {rTutor?.lastName}</p>
-                </div>
-                <div className="flex gap-1 shrink-0" onClick={e=>e.stopPropagation()}>
-                  <Btn size="sm" variant="ghost" onClick={()=>setViewRpt(r)}><Eye size={13}/></Btn>
-                  <Btn size="sm" variant="ghost" onClick={()=>downloadPDF(r)} disabled={dlLoading===r.id} title="Download PDF">
-                    {dlLoading===r.id ? "…" : <FileText size={13}/>}
-                  </Btn>
-                  {(canCreate||isAdminView) && <Btn size="sm" variant="ghost" onClick={()=>deleteReport(r.id)}><Trash2 size={13} className="text-red-400"/></Btn>}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-
-function LogbookView({ studentId, data, currentTutorId }) {
-  const logs = (data.lessonLogs||[])
-    .filter(l=>l.studentId===studentId)
-    .sort((a,b)=>b.date.localeCompare(a.date));
-  const [filter, setFilter] = useState("all");
-  const filtered = filter==="all" ? logs : logs.filter(l=>l.status===filter);
-
-  if (logs.length===0) return <p className="text-sm py-4 text-center" style={{color:"#9ca3af"}}>No lessons logged yet.</p>;
-
-  return (
-    <div>
-      <div className="flex gap-2 mb-4">
-        {[["all","All"],["completed","Completed"],["cancelled","Cancelled"]].map(([v,l])=>(
-          <button key={v} onClick={()=>setFilter(v)}
-            className="px-3 py-1.5 rounded-xl text-xs font-semibold" style={{transition:"background 150ms ease, color 150ms ease"}}
-            style={filter===v?{background:B.teal,color:"white"}:{background:"#f8faf9",color:"#374151",border:"1px solid #e5e7eb"}}>
-            {l}
-          </button>
-        ))}
-      </div>
-      <div className="space-y-3">
-        {filtered.map(l=>{
-          const tutor=data.tutors.find(t=>t.id===l.tutorId);
-          const subj=data.subjects.find(s=>s.id===l.subjectId);
-          const cancelled=l.status==="cancelled";
-          return (
-            <div key={l.id} className="rounded-2xl p-4" style={{background:cancelled?"#fef2f2":"#f8faf9",border:`1px solid ${cancelled?"#fecaca":"#eef2f1"}`}}>
-              <div className="flex items-start justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-3">
-                  <div className="text-center min-w-10">
-                    <p className="text-xs font-bold uppercase" style={{color:"#9ca3af"}}>{new Date(l.date+"T00:00:00").toLocaleString("en-ZA",{month:"short"})}</p>
-                    <p className="text-xl font-bold leading-none" style={{color:"#0d1e2a"}}>{new Date(l.date+"T00:00:00").getDate()}</p>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-bold" style={{color:"#0d1e2a"}}>{tutor?.firstName} {tutor?.lastName}</span>
-                      {subj&&<Badge color="indigo">{subj.name}</Badge>}
-                      <Badge color={cancelled?"red":"green"}>{cancelled?"Cancelled":"Completed"}</Badge>
-                    </div>
-                    <p className="text-xs mt-0.5" style={{color:"#9ca3af"}}>{fmtDate(l.date)}</p>
-                  </div>
-                </div>
-              </div>
-              {cancelled&&l.cancelReason&&(
-                <div className="mt-3 p-2 rounded-lg" style={{background:"#fee2e2"}}>
-                  <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{color:"#991b1b"}}>Cancellation reason</p>
-                  <p className="text-sm" style={{color:"#7f1d1d"}}>{l.cancelReason}</p>
-                </div>
-              )}
-              {!cancelled&&l.comment&&(
-                <div className="mt-3 p-3 rounded-xl" style={{background:"white",border:"1px solid #eef2f1"}}>
-                  <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{color:"#9ca3af"}}>Lesson notes</p>
-                  <p className="text-sm whitespace-pre-wrap" style={{color:"#374151"}}>{l.comment}</p>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function LogLessonModal({ studentId, tutorId, data, setData, onClose }) {
-  const student = data.students.find(s=>s.id===studentId);
-  const tutor   = data.tutors.find(t=>t.id===tutorId);
-  const myLinks = data.links.filter(l=>l.studentId===studentId&&l.tutorId===tutorId);
-  const [form, setForm] = useState({
-    date: today(),
-    subjectId: myLinks[0]?.subjectId||"",
-    status: "completed",
-    comment: "",
-    cancelReason: "",
-  });
-  const set = (k,v) => setForm(f=>({...f,[k]:v}));
-  const valid = form.status==="completed" ? form.comment.trim().length>0 : form.cancelReason.trim().length>0;
-
-  const save = () => {
-    if (!valid) return;
-    setData(d=>({...d, lessonLogs:[...(d.lessonLogs||[]),{
-      id:"ll"+uid(), studentId, tutorId,
-      subjectId:form.subjectId,
-      date:form.date,
-      status:form.status,
-      comment:form.status==="completed"?form.comment.trim():"",
-      cancelReason:form.status==="cancelled"?form.cancelReason.trim():"",
-      createdAt:new Date().toISOString().slice(0,16),
-    }]}));
-    onClose();
-  };
-
-  return (
-    <Modal title={`Log Lesson — ${student?.firstName} ${student?.lastName}`} onClose={onClose} wide>
-      <div className="mb-4 p-3 rounded-xl flex items-center gap-3" style={{background:B.tealLight}}>
-        <GraduationCap size={16} style={{color:B.tealDark}}/>
-        <p className="text-sm font-semibold" style={{color:B.tealDark}}>Tutor: {tutor?.firstName} {tutor?.lastName}</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <Inp label="Date of Lesson" type="date" value={form.date} onChange={e=>set("date",e.target.value)}/>
-        <Sel label="Subject" value={form.subjectId} onChange={e=>set("subjectId",e.target.value)}
-          options={myLinks.map(l=>({value:l.subjectId,label:data.subjects.find(s=>s.id===l.subjectId)?.name||l.subjectId}))}
-          placeholder="Select subject"/>
-      </div>
-
-      <Field label="Lesson Status">
-        <div className="flex gap-2">
-          {[["completed","✓ Completed"],["cancelled","✕ Cancelled"]].map(([v,l])=>(
-            <button key={v} onClick={()=>set("status",v)}
-              className="flex-1 py-2.5 rounded-xl text-sm font-semibold" style={{transition:"background 150ms ease, color 150ms ease, opacity 150ms ease"}}
-              style={form.status===v
-                ?(v==="completed"?{background:"#d1fae5",color:"#065f46",border:"2px solid #10b981"}:{background:"#fee2e2",color:"#991b1b",border:"2px solid #dc2626"})
-                :{background:"#f8faf9",color:"#374151",border:"2px solid #e5e7eb"}}>
-              {l}
-            </button>
-          ))}
-        </div>
-      </Field>
-
-      {form.status==="completed" && (
-        <div className="mb-4">
-          <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{color:"#9ca3af"}}>
-            Lesson Notes <span style={{color:B.coral}}>*</span>
-          </label>
-          <textarea
-            className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-all bg-white"
-            style={{borderColor:form.comment.trim()?B.teal:"#e5e7eb",minHeight:"120px",color:"#111827"}}
-            placeholder="What was covered in this lesson? Include topics, progress, homework set, anything relevant. (Required)"
-            value={form.comment} onChange={e=>set("comment",e.target.value)}
-            onFocus={e=>{e.target.style.borderColor=B.teal;e.target.style.boxShadow="0 0 0 3px #e8f5f7";}}
-            onBlur={e=>{e.target.style.borderColor=form.comment.trim()?B.teal:"#e5e7eb";e.target.style.boxShadow="none";}}/>
-          {!form.comment.trim() && <p className="text-xs mt-1" style={{color:B.coral}}>Lesson notes are required before saving.</p>}
-        </div>
-      )}
-
-      {form.status==="cancelled" && (
-        <div className="mb-4">
-          <label className="block text-xs font-bold uppercase tracking-wider mb-1.5" style={{color:"#9ca3af"}}>
-            Cancellation Reason <span style={{color:B.coral}}>*</span>
-          </label>
-          <textarea
-            className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-all bg-white"
-            style={{borderColor:form.cancelReason.trim()?B.teal:"#e5e7eb",minHeight:"80px",color:"#111827"}}
-            placeholder="Why was this lesson cancelled? (Required)"
-            value={form.cancelReason} onChange={e=>set("cancelReason",e.target.value)}
-            onFocus={e=>{e.target.style.borderColor=B.teal;e.target.style.boxShadow="0 0 0 3px #e8f5f7";}}
-            onBlur={e=>{e.target.style.borderColor=form.cancelReason.trim()?B.teal:"#e5e7eb";e.target.style.boxShadow="none";}}/>
-        </div>
-      )}
-
-      <div className="flex gap-2 justify-end">
-        <Btn variant="secondary" onClick={onClose}>Cancel</Btn>
-        <Btn onClick={save} disabled={!valid}>
-          <CheckCircle size={15}/> Save Lesson Log
-        </Btn>
-      </div>
-    </Modal>
-  );
-}
-
-// ─── ROLE VIEWS ───────────────────────────────────────────────────────────────
-
-// ── PARENT VIEW ──────────────────────────────────────────────────────────────
-function ParentView({ data, setData, parentRef }) {
-  const [parentStudTab, setParentStudTab] = useState({});
-  const parent = data.parents.find(p=>p.id===parentRef);
-  if (!parent) return <div className="p-8 text-center" style={{color:"#9ca3af"}}>Parent not found.</div>;
-  const students = data.students.filter(s=>parent.studentIds.includes(s.id));
-  const [selId, setSelId] = useState(students[0]?.id||null);
-  const [noteModal, setNoteModal] = useState(null);
-  const [noteText, setNoteText] = useState("");
-  const student = students.find(s=>s.id===selId);
-
-  const submit = (tutorId) => {
-    if (!noteText.trim()) return;
-    setData(d=>({...d, parentTutorNotes:[...d.parentTutorNotes, { id:"ptn"+uid(), parentId:parent.id, tutorId, note:noteText.trim(), date:today(), visibleTo:["admin","tutor"] }]}));
-    setNoteText(""); setNoteModal(null);
-  };
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Welcome, {parent.firstName}</h1>
-        <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>Your children's learning overview</p>
-      </div>
-      {students.length>1 && (
-        <div className="flex gap-2">
-          {students.map(s=>(
-            <button key={s.id} onClick={()=>setSelId(s.id)} className="px-4 py-2 rounded-xl text-sm font-semibold" style={{transition:"background 150ms ease, color 150ms ease"}}
-              style={selId===s.id?{background:B.teal,color:"white"}:{background:"white",color:"#374151",border:"1px solid #e5e7eb"}}>
-              {s.firstName}
-            </button>
-          ))}
-        </div>
-      )}
-      {student && (()=>{
-        const purchases = data.purchases.filter(p=>p.studentId===student.id);
-        const total = purchases.reduce((s,p)=>s+p.quantity,0);
-        const used = data.links.filter(l=>l.studentId===student.id).length*4;
-        const rem = Math.max(0,total-used);
-        const low = rem<=2 && total>0;
-        const tutorLinks = data.links.filter(l=>l.studentId===student.id);
-        const tutorNotes = data.tutorNotes.filter(n=>tutorLinks.some(l=>l.tutorId===n.tutorId));
-        return (
-          <div className="space-y-4">
-            {low && (
-              <div className="rounded-2xl px-5 py-4 flex items-start gap-3" style={{background:"#fef3c7",border:"1px solid #fde68a"}}>
-                <span className="text-xl">⚠️</span>
-                <div>
-                  <p className="text-sm font-bold" style={{color:"#92400e"}}>Only {rem} lesson{rem!==1?"s":""} remaining!</p>
-                  <p className="text-xs mt-0.5" style={{color:"#b45309"}}>Please contact LEARN TO LINK to top up {student.firstName}'s package.</p>
-                </div>
-              </div>
-            )}
-            <Section title={`${student.firstName} ${student.lastName}`}>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                {[["Curriculum",student.curriculum],["Grade",student.grade],["Status",student.status],["Enrolled",fmtDate(student.enrolledDate)]].map(([k,v])=>(
-                  <div key={k}><p className="text-xs font-bold uppercase tracking-wider" style={{color:"#9ca3af"}}>{k}</p><p className="mt-0.5" style={{color:"#0d1e2a"}}>{v}</p></div>
-                ))}
-              </div>
-            </Section>
-            {(()=>{
-              const bal = getLessonBalance(student.id, data);
-              const lowBal = bal.remaining <= 2 && bal.bought > 0;
-              return (
-                <>
-                  {lowBal && (
-                    <div className="rounded-2xl px-5 py-4 flex items-start gap-3" style={{background:"#fef3c7",border:"1px solid #fde68a"}}>
-                      <span className="text-xl">⚠️</span>
-                      <div>
-                        <p className="text-sm font-bold" style={{color:"#92400e"}}>Only {bal.remaining} lesson{bal.remaining!==1?"s":""} remaining{bal.isSiblingGroup?" (shared sibling pool)":""}!</p>
-                        <p className="text-xs mt-0.5" style={{color:"#b45309"}}>Please contact LEARN TO LINK to top up {student.firstName}'s lessons.</p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-3 gap-4">
-                    {[["Lessons Bought",bal.bought,"#0d1e2a"],["Used",bal.used,B.coral],["Remaining",bal.remaining,bal.remaining<=2?"#d97706":"#059669"]].map(([k,v,c])=>(
-                      <div key={k} className="rounded-2xl p-4 bg-white text-center" style={{border:"1px solid #eef2f1"}}>
-                        <p className="text-3xl font-bold" style={{color:c}}>{v}</p>
-                        <p className="text-xs font-bold uppercase tracking-wider mt-1" style={{color:"#9ca3af"}}>{k}</p>
-                      </div>
-                    ))}
-                  </div>
-                  {bal.isSiblingGroup&&<p className="text-xs" style={{color:"#6b7280"}}>* Lessons are shared across siblings in this account.</p>}
-                </>
-              );
-            })()}
-            <Section title="Lesson Packages">
-              <div className="flex gap-8 mb-4">
-                {[["Total Bought",total,"#0d1e2a"],["Estimated Remaining",rem,rem<=2?"#d97706":"#059669"]].map(([k,v,c])=>(
-                  <div key={k} className="text-center">
-                    <p className="text-3xl font-bold" style={{color:c}}>{v}</p>
-                    <p className="text-xs font-bold uppercase tracking-wider mt-1" style={{color:"#9ca3af"}}>{k}</p>
-                  </div>
-                ))}
-              </div>
-              {purchases.length>0 && (
-                <TableWrap><thead><tr><TH>Date</TH><TH>Qty</TH><TH>Note</TH></tr></thead>
-                <tbody>{purchases.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>(
-                  <TR key={p.id}><TD>{fmtDate(p.date)}</TD><TD className="font-semibold">{p.quantity}</TD><TD>{p.note||"—"}</TD></TR>
-                ))}</tbody></TableWrap>
-              )}
-            </Section>
-            <Section title="Linked Tutors">
-              {tutorLinks.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No tutors yet.</p>:(
-                <div className="space-y-2">
-                  {tutorLinks.map(lk=>{
-                    const t=data.tutors.find(t=>t.id===lk.tutorId);
-                    const s=data.subjects.find(s=>s.id===lk.subjectId);
-                    return t?(
-                      <div key={lk.id} className="flex items-center justify-between p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-                        <div>
-                          <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{t.firstName} {t.lastName}</p>
-                          <p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{s?.name||"—"}</p>
-                        </div>
-                        <Btn size="sm" variant="secondary" onClick={()=>{setNoteModal(t.id);setNoteText("");}}>Leave Feedback</Btn>
-                      </div>
-                    ):null;
-                  })}
-                </div>
-              )}
-            </Section>
-            {tutorNotes.length>0 && (
-              <Section title="Notes from Tutors">
-                {tutorNotes.map(n=>{
-                  const t=data.tutors.find(t=>t.id===n.tutorId);
-                  return (
-                    <div key={n.id} className="p-3 rounded-xl mb-2" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge color={n.type==="compliment"?"green":n.type==="complaint"?"red":"gray"}>{n.type}</Badge>
-                        <span className="text-xs" style={{color:"#9ca3af"}}>{t?.firstName} {t?.lastName} · {fmtDate(n.date)}</span>
-                      </div>
-                      <p className="text-sm" style={{color:"#374151"}}>{n.note}</p>
-                    </div>
-                  );
-                })}
-              </Section>
-            )}
-          </div>
-        );
-      })()}
-      {student && (
-        <Section title="Lesson Logbook">
-          <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-4">
-            {[["logbook","Logbook"],["reports","Reports"]].map(([t,l])=>(
-              <button key={t} onClick={()=>setParentStudTab(prev=>({...prev,[student.id]:t}))}
-                className="px-3 py-1 rounded-md text-xs font-medium transition-colors"
-                style={(parentStudTab[student.id]||"logbook")===t?{background:"white",color:B.tealDark,boxShadow:"0 1px 3px rgba(0,0,0,.1)"}:{color:"#6b7280"}}>
-                {l}
-              </button>
-            ))}
-          </div>
-          {(parentStudTab[student.id]||"logbook")==="logbook" && <LogbookView studentId={student.id} data={data}/>}
-          {(parentStudTab[student.id]||"logbook")==="reports" && <StudentReportsTab studentId={student.id} data={data} setData={setData}/>}
-        </Section>
-      )}
-
-      {noteModal&&(()=>{
-        const t=data.tutors.find(t=>t.id===noteModal);
-        return (
-          <Modal title={`Feedback — ${t?.firstName} ${t?.lastName}`} onClose={()=>setNoteModal(null)}>
-            <Txt label="Your feedback" value={noteText} onChange={e=>setNoteText(e.target.value)} placeholder="Share your feedback..."/>
-            <p className="text-xs mb-4" style={{color:"#9ca3af"}}>Seen by admin and tutor only. Won't appear in your view after submitting.</p>
-            <div className="flex gap-2 justify-end">
-              <Btn variant="secondary" onClick={()=>setNoteModal(null)}>Cancel</Btn>
-              <Btn onClick={()=>submit(noteModal)}>Submit</Btn>
-            </div>
-          </Modal>
-        );
-      })()}
-    </div>
-  );
-}
-
-// ── CENTRE OWNER VIEW ────────────────────────────────────────────────────────
-function CentreOwnerView({ data, setData, ownerRef }) {
-  const owner = data.centreOwners?.find(o=>o.id===ownerRef);
-  const centre = owner ? data.centres.find(c=>c.id===owner.centreId) : null;
-  if (!owner||!centre) return <div className="p-8 text-center" style={{color:"#9ca3af"}}>Centre owner record not found.</div>;
-
-  const [usageModal, setUsageModal] = useState(null); // studentId
-  const [usageForm, setUsageForm] = useState({ qty:"", note:"" });
-  const [topupModal, setTopupModal] = useState(false);
-  const [topupForm, setTopupForm] = useState({ qty:"", note:"" });
-
-  const centreStudents = data.students.filter(s=>s.centreId===centre.id);
-  const pools = (data.centrePools||[]).filter(p=>p.centreId===centre.id);
-  const allUsage = (data.centreLessonUsage||[]).filter(u=>u.centreId===centre.id);
-
-  const totalBought = pools.reduce((s,p)=>s+p.totalBought,0);
-  const totalUsed = allUsage.reduce((s,u)=>s+u.quantity,0);
-  const remaining = totalBought - totalUsed;
-  const low = remaining <= 20 && totalBought > 0;
-
-  const getStudentUsed = (studentId) => allUsage.filter(u=>u.studentId===studentId).reduce((s,u)=>s+u.quantity,0);
-
-  const logUsage = () => {
-    const qty = parseInt(usageForm.qty)||0;
-    if (!qty||!usageModal) return;
-    setData(d=>({...d, centreLessonUsage:[...(d.centreLessonUsage||[]), { id:"clu"+uid(), centreId:centre.id, studentId:usageModal, quantity:qty, date:today(), note:usageForm.note }]}));
-    setUsageModal(null); setUsageForm({qty:"",note:""});
-  };
-
-  const logTopup = () => {
-    const qty = parseInt(topupForm.qty)||0;
-    if (!qty) return;
-    setData(d=>({...d, centrePools:[...(d.centrePools||[]), { id:"cp"+uid(), centreId:centre.id, totalBought:qty, date:today(), note:topupForm.note }]}));
-    setTopupModal(false); setTopupForm({qty:"",note:""});
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>{centre.name}</h1>
-          <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>Centre lesson pool and student overview</p>
-        </div>
-        <Btn onClick={()=>setTopupModal(true)}><Plus size={15}/> Record Top-up</Btn>
-      </div>
-
-      {low && (
-        <div className="rounded-2xl px-5 py-4 flex items-start gap-3" style={{background:"#fef3c7",border:"1px solid #fde68a"}}>
-          <span className="text-xl">⚠️</span>
-          <div>
-            <p className="text-sm font-bold" style={{color:"#92400e"}}>Lesson pool running low — only {remaining} lessons remaining!</p>
-            <p className="text-xs mt-0.5" style={{color:"#b45309"}}>Consider purchasing a top-up block soon.</p>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-3 gap-4">
-        <KPI title="Total Lessons Bought" value={totalBought} icon={BookMarked} color="teal"/>
-        <KPI title="Lessons Used" value={totalUsed} icon={CheckCircle} color="coral"/>
-        <KPI title="Remaining" value={remaining} sub={low?"⚠ Running low":undefined} icon={TrendingUp} color={low?"amber":"green"}/>
-      </div>
-
-      <Section title="Lesson Pool Purchases"
-        action={<Btn size="sm" onClick={()=>setTopupModal(true)}><Plus size={13}/> Top Up</Btn>}>
-        {pools.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No purchases recorded.</p>:(
-          <TableWrap><thead><tr><TH>Date</TH><TH>Qty</TH><TH>Note</TH></tr></thead>
-          <tbody>{pools.sort((a,b)=>b.date.localeCompare(a.date)).map(p=>(
-            <TR key={p.id}><TD>{fmtDate(p.date)}</TD><TD className="font-semibold">{p.totalBought}</TD><TD>{p.note||"—"}</TD></TR>
-          ))}</tbody></TableWrap>
-        )}
-      </Section>
-
-      <Section title="Students & Lesson Usage">
-        {centreStudents.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No students at this centre.</p>:(
-          <TableWrap>
-            <thead><tr><TH>Student</TH><TH>Curriculum</TH><TH>Grade</TH><TH>Lessons Used</TH><TH></TH></tr></thead>
-            <tbody>
-              {centreStudents.map(s=>{
-                const used = getStudentUsed(s.id);
-                const tutorLinks = data.links.filter(l=>l.studentId===s.id);
-                const subjects = [...new Set(tutorLinks.map(l=>data.subjects.find(sub=>sub.id===l.subjectId)?.name).filter(Boolean))];
-                return (
-                  <TR key={s.id}>
-                    <TD>
-                      <p className="font-semibold" style={{color:"#0d1e2a"}}>{s.firstName} {s.lastName}</p>
-                      <p className="text-xs" style={{color:"#6b7280"}}>{subjects.join(", ")||"No subjects"}</p>
-                    </TD>
-                    <TD><Badge color={CURR_COLOR[s.curriculum]||"gray"}>{s.curriculum}</Badge></TD>
-                    <TD>{s.grade}</TD>
-                    <TD>
-                      <span className="font-bold text-lg" style={{color:"#0d1e2a"}}>{used}</span>
-                      <span className="text-xs ml-1" style={{color:"#9ca3af"}}>lessons</span>
-                    </TD>
-                    <TD><Btn size="sm" variant="secondary" onClick={()=>{setUsageModal(s.id);setUsageForm({qty:"",note:""});}}>Log Usage</Btn></TD>
-                  </TR>
-                );
-              })}
-            </tbody>
-          </TableWrap>
-        )}
-      </Section>
-
-      {usageModal&&(
-        <Modal title="Log Lesson Usage" onClose={()=>setUsageModal(null)}>
-          {(()=>{const s=data.students.find(s=>s.id===usageModal); return <p className="text-sm mb-4" style={{color:"#6b7280"}}>Recording usage for <strong>{s?.firstName} {s?.lastName}</strong></p>; })()}
-          <Inp label="Lessons Used" type="number" value={usageForm.qty} onChange={e=>setUsageForm(f=>({...f,qty:e.target.value}))}/>
-          <Inp label="Note (optional)" value={usageForm.note} onChange={e=>setUsageForm(f=>({...f,note:e.target.value}))}/>
-          <div className="flex gap-2 justify-end">
-            <Btn variant="secondary" onClick={()=>setUsageModal(null)}>Cancel</Btn>
-            <Btn onClick={logUsage}>Save</Btn>
-          </div>
-        </Modal>
-      )}
-      {topupModal&&(
-        <Modal title="Record Lesson Top-up" onClose={()=>setTopupModal(false)}>
-          <p className="text-sm mb-4" style={{color:"#6b7280"}}>Add a new block of lessons to {centre.name}'s pool.</p>
-          <Inp label="Lessons Purchased" type="number" value={topupForm.qty} onChange={e=>setTopupForm(f=>({...f,qty:e.target.value}))}/>
-          <Inp label="Note (optional)" value={topupForm.note} onChange={e=>setTopupForm(f=>({...f,note:e.target.value}))}/>
-          <div className="flex gap-2 justify-end">
-            <Btn variant="secondary" onClick={()=>setTopupModal(false)}>Cancel</Btn>
-            <Btn onClick={logTopup}><CheckCircle size={15}/> Save Top-up</Btn>
-          </div>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-// ── TUTOR VIEW ────────────────────────────────────────────────────────────────
-function TutorView({ data, setData, tutorRef }) {
-  const tutor = data.tutors.find(t=>t.id===tutorRef);
-  const profile = data.tutorProfiles?.find(p=>p.tutorId===tutorRef);
-  const [editingProfile, setEditingProfile] = useState(!tutor);
-  const [form, setForm] = useState({
-    firstName:tutor?.firstName||"", lastName:tutor?.lastName||"",
-    email:tutor?.email||"", phone:tutor?.phone||"",
-    emergencyName:profile?.emergencyName||"", emergencyPhone:profile?.emergencyPhone||"",
-    syllabi:profile?.syllabi||[], levels:profile?.levels||[],
-    subjectIds:tutor?.subjectIds||[], bio:profile?.bio||"",
-  });
-  const [tab, setTab] = useState("students"); // students | chat | resources | invoices
-  const [viewTutorInv, setViewTutorInv] = useState(null);
-  const [selStudentId, setSelStudentId] = useState(null);
-  const [chatMsg, setChatMsg] = useState("");
-  const [resModal, setResModal] = useState(null); // studentId
-  const [resForm, setResForm] = useState({ name:"", url:"" });
-  const [schedModal, setSchedModal] = useState(null); // studentId
-  const [logModal, setLogModal] = useState(null); // studentId
-  const [selStudentTab, setSelStudentTab] = useState("logbook");
-  const [schedForm, setSchedForm] = useState({ date:"", time:"", duration:"60", platform:"", meetingLink:"", note:"", subjectId:"", fixed:false });
-
-  const set = (k,v) => setForm(f=>({...f,[k]:v}));
-  const toggle = (arr,val) => arr.includes(val)?arr.filter(x=>x!==val):[...arr,val];
-
-  if (!tutor && !editingProfile) return null;
-
-  const assignedLinks = tutor ? data.links.filter(l=>l.tutorId===tutor.id) : [];
-  const assignedStudentIds = [...new Set(assignedLinks.map(l=>l.studentId))];
-  const assignedStudents = assignedStudentIds.map(id=>data.students.find(s=>s.id===id)).filter(Boolean);
-  const parentNotes = data.parentTutorNotes?.filter(n=>n.tutorId===tutorRef)||[];
-
-  const saveProfile = () => {
-    if (!form.firstName||!form.email) return;
-    setData(d=>{
-      const updTutors = d.tutors.find(t=>t.id===tutorRef)
-        ? d.tutors.map(t=>t.id===tutorRef?{...t,firstName:form.firstName,lastName:form.lastName,email:form.email,phone:form.phone,subjectIds:form.subjectIds}:t)
-        : d.tutors;
-      const profExists = d.tutorProfiles?.find(p=>p.tutorId===tutorRef);
-      const updProfiles = profExists
-        ? (d.tutorProfiles||[]).map(p=>p.tutorId===tutorRef?{...p,emergencyName:form.emergencyName,emergencyPhone:form.emergencyPhone,syllabi:form.syllabi,levels:form.levels,bio:form.bio}:p)
-        : [...(d.tutorProfiles||[]),{tutorId:tutorRef,emergencyName:form.emergencyName,emergencyPhone:form.emergencyPhone,ratePerLesson:0,syllabi:form.syllabi,levels:form.levels,bio:form.bio}];
-      return {...d,tutors:updTutors,tutorProfiles:updProfiles};
-    });
-    setEditingProfile(false);
-  };
-
-  if (editingProfile) return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Your Profile</h1>
-      <Section title="Personal Details">
-        <div className="grid grid-cols-2 gap-4">
-          <Inp label="First Name" value={form.firstName} onChange={e=>set("firstName",e.target.value)}/>
-          <Inp label="Last Name" value={form.lastName} onChange={e=>set("lastName",e.target.value)}/>
-          <Inp label="Email" type="email" value={form.email} onChange={e=>set("email",e.target.value)}/>
-          <Inp label="Phone" value={form.phone} onChange={e=>set("phone",e.target.value)}/>
-        </div>
-      </Section>
-      <Section title="Emergency Contact">
-        <div className="grid grid-cols-2 gap-4">
-          <Inp label="Name" value={form.emergencyName} onChange={e=>set("emergencyName",e.target.value)}/>
-          <Inp label="Phone" value={form.emergencyPhone} onChange={e=>set("emergencyPhone",e.target.value)}/>
-        </div>
-      </Section>
-      <Section title="Subjects, Syllabi & Levels">
-        {[
-          ["Subjects",data.subjects.map(s=>({id:s.id,label:s.name})),"subjectIds",B.teal],
-          ["Syllabi",[{id:"IEB",label:"IEB"},{id:"CAPS",label:"CAPS"},{id:"Cambridge",label:"Cambridge"}],"syllabi",B.coral],
-          ["Levels",["Grade 8","Grade 9","Grade 10","Grade 11","Grade 12","IGCSE","AS Level","A Level"].map(l=>({id:l,label:l})),"levels",B.tealDark],
-        ].map(([title,items,field,color])=>(
-          <div key={field} className="mb-4">
-            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#9ca3af"}}>{title}</p>
-            <div className="flex flex-wrap gap-2">
-              {items.map(item=>(
-                <button key={item.id} onClick={()=>set(field,toggle(form[field],item.id))}
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold" style={{transition:"background 150ms ease, color 150ms ease"}}
-                  style={form[field].includes(item.id)?{background:color,color:"white"}:{background:"#f8faf9",color:"#374151",border:"1px solid #e5e7eb"}}>
-                  {item.label}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+              <div className="relative">
+                <input
+                  type={showPw ? "text" : "password"}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 bg-white"
+                  value={password} onChange={e => { setPassword(e.target.value); setError(""); }}
+                  placeholder="••••••••••••" autoComplete="current-password" />
+                <button type="button" onClick={() => setShowPw(p => !p)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs">
+                  {showPw ? "Hide" : "Show"}
                 </button>
-              ))}
-            </div>
-          </div>
-        ))}
-      </Section>
-      <div className="flex justify-end gap-2">
-        {tutor&&<Btn variant="secondary" onClick={()=>setEditingProfile(false)}>Cancel</Btn>}
-        <Btn onClick={saveProfile}><CheckCircle size={15}/> Save Profile</Btn>
-      </div>
-    </div>
-  );
-
-  const sendChat = (studentId) => {
-    if (!chatMsg.trim()) return;
-    const now = new Date();
-    setData(d=>({...d, chatMessages:[...(d.chatMessages||[]),{
-      id:"cm"+uid(), tutorId:tutor.id, studentId,
-      fromRole:"tutor", message:chatMsg.trim(),
-      date:today(), time:now.toTimeString().slice(0,5),
-    }]}));
-    setChatMsg("");
-  };
-
-  const shareResource = () => {
-    if (!resForm.name||!resForm.url) return;
-    setData(d=>({...d, resources:[...(d.resources||[]),{
-      id:"res"+uid(), fromTutorId:tutor.id, toStudentId:resModal,
-      name:resForm.name, url:resForm.url, type:"pdf", date:today(),
-    }]}));
-    setResForm({name:"",url:""}); setResModal(null);
-  };
-
-  const shareLesson = () => {
-    if (!schedForm.date||!schedForm.time) return;
-    setData(d=>({...d, scheduledLessons:[...(d.scheduledLessons||[]),{
-      id:"sl"+uid(), studentId:schedModal, tutorId:tutor.id,
-      subjectId:schedForm.subjectId, date:schedForm.date, time:schedForm.time,
-      duration:parseInt(schedForm.duration)||60,
-      meetingLink:schedForm.meetingLink, platform:schedForm.platform,
-      fixed:schedForm.fixed, note:schedForm.note,
-    }]}));
-    setSchedForm({date:"",time:"",duration:"60",platform:"",meetingLink:"",note:"",subjectId:"",fixed:false});
-    setSchedModal(null);
-  };
-
-  const tabStyle = (id) => tab===id
-    ? {background:B.teal,color:"white"}
-    : {background:"white",color:"#374151",border:"1px solid #e5e7eb"};
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Welcome, {tutor.firstName}</h1>
-          <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>Your students and teaching hub</p>
-        </div>
-        <Btn variant="secondary" size="sm" onClick={()=>setEditingProfile(true)}><Edit2 size={14}/> Edit Profile</Btn>
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <KPI title="Students Assigned" value={assignedStudentIds.length} icon={Users} color="teal"/>
-        <KPI title="Active Subjects" value={assignedLinks.length} icon={BookMarked} color="coral"/>
-        <KPI title="Syllabi" value={(profile?.syllabi||[]).join(", ")||"—"} icon={GraduationCap} color="indigo"/>
-      </div>
-
-      {parentNotes.length>0 && (
-        <Section title="Parent Feedback">
-          {parentNotes.map(n=>{
-            const par=data.parents?.find(p=>p.id===n.parentId);
-            return (
-              <div key={n.id} className="p-3 rounded-xl mb-2" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-                <div className="flex gap-2 mb-1">
-                  <Badge color="teal">Parent Note</Badge>
-                  <span className="text-xs" style={{color:"#9ca3af"}}>{par?`${par.firstName} ${par.lastName}`:"Parent"} · {fmtDate(n.date)}</span>
-                </div>
-                <p className="text-sm" style={{color:"#374151"}}>{n.note}</p>
-              </div>
-            );
-          })}
-        </Section>
-      )}
-
-      {/* Tabs */}
-      <div className="flex gap-2">
-        {[["students","My Students"],["chat","Messages"],["resources","Resources"],["schedule","Schedule"],["logbook","Logbook"],["invoices","My Invoices"]].map(([id,label])=>(
-          <button key={id} onClick={()=>setTab(id)} className="px-4 py-2 rounded-xl text-sm font-semibold" style={{...tabStyle(id), transition:"background 150ms ease, color 150ms ease, box-shadow 150ms ease"}}>{label}</button>
-        ))}
-      </div>
-
-      {tab==="students" && (
-        <Section title="My Students">
-          {assignedStudents.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No students assigned yet.</p>:(
-            <div className="space-y-2">
-              {assignedStudents.map(s=>{
-                const sLinks=assignedLinks.filter(l=>l.studentId===s.id);
-                const subjs=sLinks.map(l=>data.subjects.find(sub=>sub.id===l.subjectId)?.name).filter(Boolean);
-                const open=selStudentId===s.id;
-                const purchases=data.purchases.filter(p=>p.studentId===s.id);
-                const totalBought=purchases.reduce((t,p)=>t+p.quantity,0);
-                const siblings=data.siblings.filter(sb=>sb.studentId1===s.id||sb.studentId2===s.id)
-                  .map(sb=>data.students.find(st=>st.id===(sb.studentId1===s.id?sb.studentId2:sb.studentId1))).filter(Boolean);
-                return (
-                  <div key={s.id}>
-                    <div className="flex items-center justify-between p-3 rounded-xl cursor-pointer"
-                      style={{background:open?B.tealLight:"#f8faf9",border:`1px solid ${open?B.teal:"#eef2f1"}`,transition:"background 150ms ease, border-color 150ms ease"}}
-                      onClick={()=>setSelStudentId(open?null:s.id)}>
-                      <div>
-                        <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{s.firstName} {s.lastName}</p>
-                        <p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{s.curriculum} · {s.grade} · {subjs.join(", ")}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();setLogModal(s.id);}}><BookMarked size={13}/> Log Lesson</Btn>
-                      <Btn size="sm" variant="secondary" onClick={e=>{e.stopPropagation();setResModal(s.id);setResForm({name:"",url:""});}}>Share Resource</Btn>
-                        <Btn size="sm" onClick={e=>{e.stopPropagation();setSchedModal(s.id);setSchedForm({date:"",time:"",duration:"60",platform:"",meetingLink:"",note:"",subjectId:sLinks[0]?.subjectId||"",fixed:false});}}><CalendarDays size={13}/> Share Lesson Link</Btn>
-                        <ChevronRight size={16} style={{color:"#9ca3af",transform:open?"rotate(90deg)":"none",transition:"transform 0.2s"}}/>
-                      </div>
-                    </div>
-                    {open && (
-                      <div className="mx-3 mt-1 p-4 rounded-xl" style={{background:"white",border:"1px solid #eef2f1"}}>
-                        <div className="grid grid-cols-3 gap-4 text-sm mb-3">
-                          {[["Curriculum",s.curriculum],["Grade",s.grade],["Total Lessons Bought",String(totalBought)]].map(([k,v])=>(
-                            <div key={k}><p className="text-xs font-bold uppercase tracking-wider" style={{color:"#9ca3af"}}>{k}</p><p className="mt-0.5" style={{color:"#0d1e2a"}}>{v}</p></div>
-                          ))}
-                          {siblings.length>0&&<div className="col-span-3"><p className="text-xs font-bold uppercase tracking-wider" style={{color:"#9ca3af"}}>Siblings</p><p className="mt-0.5" style={{color:"#0d1e2a"}}>{siblings.map(s=>`${s.firstName} ${s.lastName}`).join(", ")}</p></div>}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Section>
-      )}
-
-      {tab==="chat" && (
-        <div className="space-y-4">
-          {assignedStudents.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No students assigned.</p>:
-          assignedStudents.map(s=>{
-            const msgs=(data.chatMessages||[]).filter(m=>m.tutorId===tutor.id&&m.studentId===s.id).sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
-            return (
-              <Section key={s.id} title={`Chat with ${s.firstName} ${s.lastName}`}>
-                <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
-                  {msgs.length===0?<p className="text-sm text-center py-4" style={{color:"#9ca3af"}}>No messages yet. Start the conversation.</p>:
-                  msgs.map(m=>(
-                    <div key={m.id} className={`flex ${m.fromRole==="tutor"?"justify-end":"justify-start"}`}>
-                      <div className="max-w-xs px-4 py-2.5 rounded-2xl text-sm"
-                        style={m.fromRole==="tutor"?{background:B.teal,color:"white"}:{background:"#f8faf9",color:"#374151",border:"1px solid #eef2f1"}}>
-                        <p>{m.message}</p>
-                        <p className="text-xs mt-1 opacity-60">{m.time} · {fmtDate(m.date)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input className="flex-1 border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
-                    placeholder="Type a message…" value={selStudentId===s.id?chatMsg:""} 
-                    onChange={e=>{setSelStudentId(s.id);setChatMsg(e.target.value);}}
-                    onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat(s.id);} }}/>
-                  <Btn onClick={()=>sendChat(s.id)}>Send</Btn>
-                </div>
-              </Section>
-            );
-          })}
-        </div>
-      )}
-
-      {tab==="resources" && (
-        <div className="space-y-4">
-          {assignedStudents.map(s=>{
-            const res=(data.resources||[]).filter(r=>r.fromTutorId===tutor.id&&r.toStudentId===s.id);
-            return (
-              <Section key={s.id} title={`Resources for ${s.firstName} ${s.lastName}`}
-                action={<Btn size="sm" onClick={()=>{setResModal(s.id);setResForm({name:"",url:""});}}><Plus size={13}/> Share</Btn>}>
-                {res.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No resources shared yet.</p>:(
-                  <div className="space-y-2">
-                    {res.map(r=>(
-                      <div key={r.id} className="flex items-center gap-3 p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{background:B.coralLight}}>
-                          <FileText size={15} style={{color:B.coral}}/>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate" style={{color:"#0d1e2a"}}>{r.name}</p>
-                          <p className="text-xs" style={{color:"#9ca3af"}}>{fmtDate(r.date)}</p>
-                        </div>
-                        <a href={r.url} target="_blank" rel="noopener noreferrer">
-                          <Btn size="sm" variant="secondary">Open</Btn>
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </Section>
-            );
-          })}
-        </div>
-      )}
-
-      {tab==="schedule" && (
-        <div className="space-y-4">
-          {assignedStudents.map(s=>{
-            const lessons=(data.scheduledLessons||[]).filter(l=>l.tutorId===tutor.id&&l.studentId===s.id).sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
-            return (
-              <Section key={s.id} title={`Scheduled Lessons — ${s.firstName} ${s.lastName}`}
-                action={<Btn size="sm" onClick={()=>{
-                  const sLinks=assignedLinks.filter(l=>l.studentId===s.id);
-                  setSchedModal(s.id);
-                  setSchedForm({date:"",time:"",duration:"60",platform:"",meetingLink:"",note:"",subjectId:sLinks[0]?.subjectId||"",fixed:false});
-                }}><Plus size={13}/> Add Lesson</Btn>}>
-                {lessons.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No lessons scheduled.</p>:(
-                  <div className="space-y-2">
-                    {lessons.map(l=>{
-                      const subj=data.subjects.find(sub=>sub.id===l.subjectId);
-                      return (
-                        <div key={l.id} className="flex items-start gap-3 p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-                          <div className="text-center min-w-12">
-                            <p className="text-xs font-bold uppercase" style={{color:"#9ca3af"}}>{new Date(l.date+"T00:00:00").toLocaleString("en-ZA",{month:"short"})}</p>
-                            <p className="text-2xl font-bold leading-none" style={{color:"#0d1e2a"}}>{new Date(l.date+"T00:00:00").getDate()}</p>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{l.time} · {subj?.name||"—"}</p>
-                              {l.fixed&&<Badge color="teal">Fixed</Badge>}
-                              {l.platform&&<Badge color="gray">{l.platform}</Badge>}
-                            </div>
-                            {l.note&&<p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{l.note}</p>}
-                            {l.meetingLink&&<a href={l.meetingLink} target="_blank" rel="noopener noreferrer" className="text-xs mt-1 inline-block font-semibold" style={{color:B.tealDark}}>Join Meeting →</a>}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </Section>
-            );
-          })}
-        </div>
-      )}
-
-      {tab==="logbook" && (
-        <div className="space-y-4">
-          {assignedStudents.map(s=>(
-            <Section key={s.id} title={`Lesson Logbook — ${s.firstName} ${s.lastName}`}>
-              <LogbookView studentId={s.id} data={data} currentTutorId={tutor.id}/>
-            </Section>
-          ))}
-        </div>
-      )}
-
-      {tab==="invoices" && (
-        <div className="space-y-4">
-          <Section title="My Pay Invoices">
-            <div className="rounded-xl overflow-hidden" style={{border:"1px solid #e5e7eb"}}>
-              <div className="p-3 text-xs font-bold uppercase tracking-wider" style={{background:"#f1f5f9",color:"#64748b",borderBottom:"2px solid #e5e7eb",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr"}}>
-                <span>Billing Period</span><span className="text-center">Lessons</span><span className="text-right">Total</span><span className="text-center">Status</span><span className="text-center">Action</span>
-              </div>
-              {(data.tutorInvoices||[]).filter(inv=>inv.tutorId===tutor.id).length===0 ? (
-                <div className="py-10 text-center text-sm" style={{color:"#9ca3af"}}>No invoices yet. Your invoices are generated by admin at the end of each billing period.</div>
-              ) : (data.tutorInvoices||[]).filter(inv=>inv.tutorId===tutor.id).map(inv=>{
-                const statusColor = inv.status==="paid"?{background:"#dcfce7",color:"#15803d"}:inv.status==="approved"?{background:"#dbeafe",color:"#1d4ed8"}:{background:"#fef9c3",color:"#a16207"};
-                return (
-                  <div key={inv.id} className="p-3 transition-all hover:bg-gray-50" style={{borderBottom:"1px solid #f1f5f9",display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr 1fr",alignItems:"center"}}>
-                    <div>
-                      <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{inv.periodStart} → {inv.periodEnd}</p>
-                      {inv.paidDate&&<p className="text-xs mt-0.5" style={{color:"#9ca3af"}}>Paid {fmtDate(inv.paidDate)}</p>}
-                    </div>
-                    <p className="text-sm text-center" style={{color:"#374151"}}>{inv.lineItems?.length||0}</p>
-                    <p className="text-sm text-right font-semibold" style={{color:"#0d1e2a"}}>{fmtZAR(inv.total)}</p>
-                    <div className="flex justify-center">
-                      <span className="px-2 py-0.5 rounded-full text-xs font-semibold capitalize" style={statusColor}>{inv.status}</span>
-                    </div>
-                    <div className="flex justify-center">
-                      <Btn size="sm" variant="ghost" onClick={()=>setViewTutorInv(inv)}><Eye size={13}/> View</Btn>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-4 p-4 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-              <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:"#64748b"}}>Your Pay Rates</p>
-              <div className="grid grid-cols-3 gap-3 text-sm">
-                {[["Standard Lesson","R235","Private student"],["Centre Lesson","R275","Centre student (incl. R40 data)"],["Academy Lesson","R225","LMS/Academy student"]].map(([t,r,d])=>(
-                  <div key={t} className="p-3 rounded-lg" style={{background:"white",border:"1px solid #e5e7eb"}}>
-                    <p className="font-bold text-base" style={{color:"#0d1e2a"}}>{r}</p>
-                    <p className="font-semibold text-xs mt-0.5" style={{color:"#374151"}}>{t}</p>
-                    <p className="text-xs mt-0.5" style={{color:"#9ca3af"}}>{d}</p>
-                  </div>
-                ))}
               </div>
             </div>
-          </Section>
-          {viewTutorInv&&<TutorInvoiceModal inv={viewTutorInv} onClose={()=>setViewTutorInv(null)} isAdmin={false} onUpdate={()=>{}}/>}
-        </div>
-      )}
-
-      {/* Log lesson modal */}
-      {logModal&&(
-        <LogLessonModal studentId={logModal} tutorId={tutor.id} data={data} setData={setData} onClose={()=>setLogModal(null)}/>
-      )}
-
-      {/* Share resource modal */}
-      {resModal&&(
-        <Modal title={`Share Resource — ${data.students.find(s=>s.id===resModal)?.firstName}`} onClose={()=>setResModal(null)}>
-          <Inp label="File / Resource Name" value={resForm.name} onChange={e=>setResForm(f=>({...f,name:e.target.value}))} placeholder="e.g. Algebra Notes Term 2.pdf"/>
-          <Inp label="Link / URL" value={resForm.url} onChange={e=>setResForm(f=>({...f,url:e.target.value}))} placeholder="https://drive.google.com/..."/>
-          <div className="flex gap-2 justify-end">
-            <Btn variant="secondary" onClick={()=>setResModal(null)}>Cancel</Btn>
-            <Btn onClick={shareResource}><Plus size={15}/> Share</Btn>
-          </div>
-        </Modal>
-      )}
-
-      {/* Share lesson link modal */}
-      {schedModal&&(()=>{
-        const sLinks=assignedLinks.filter(l=>l.studentId===schedModal);
-        const s=data.students.find(s=>s.id===schedModal);
-        return (
-          <Modal title={`Share Lesson — ${s?.firstName}`} onClose={()=>setSchedModal(null)}>
-            <Sel label="Subject" value={schedForm.subjectId} onChange={e=>setSchedForm(f=>({...f,subjectId:e.target.value}))}
-              options={sLinks.map(l=>({value:l.subjectId,label:data.subjects.find(sub=>sub.id===l.subjectId)?.name||l.subjectId}))}
-              placeholder="Select subject"/>
-            <div className="grid grid-cols-2 gap-4">
-              <Inp label="Date" type="date" value={schedForm.date} onChange={e=>setSchedForm(f=>({...f,date:e.target.value}))}/>
-              <Inp label="Time" type="time" value={schedForm.time} onChange={e=>setSchedForm(f=>({...f,time:e.target.value}))}/>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <Inp label="Duration (min)" type="number" value={schedForm.duration} onChange={e=>setSchedForm(f=>({...f,duration:e.target.value}))}/>
-              <Inp label="Platform (e.g. Zoom, Teams, Meet)" value={schedForm.platform} onChange={e=>setSchedForm(f=>({...f,platform:e.target.value}))}/>
-            </div>
-            <Inp label="Meeting Link" value={schedForm.meetingLink} onChange={e=>setSchedForm(f=>({...f,meetingLink:e.target.value}))} placeholder="https://..."/>
-            <Inp label="Note (optional)" value={schedForm.note} onChange={e=>setSchedForm(f=>({...f,note:e.target.value}))}/>
-            <Field label="">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={schedForm.fixed} onChange={e=>setSchedForm(f=>({...f,fixed:e.target.checked}))} className="w-4 h-4 rounded"/>
-                <span className="text-sm" style={{color:"#374151"}}>Fixed / recurring lesson slot</span>
-              </label>
-            </Field>
-            <div className="flex gap-2 justify-end">
-              <Btn variant="secondary" onClick={()=>setSchedModal(null)}>Cancel</Btn>
-              <Btn onClick={shareLesson}><CalendarDays size={15}/> Share</Btn>
-            </div>
-          </Modal>
-        );
-      })()}
-    </div>
-  );
-}
-
-// ── STUDENT VIEW ──────────────────────────────────────────────────────────────
-function StudentView({ data, setData, studentRef }) {
-  const student = data.students.find(s=>s.id===studentRef);
-  if (!student) return <div className="p-8 text-center" style={{color:"#9ca3af"}}>Student not found.</div>;
-
-  const isAcademy = ACADEMY_STUDENT_IDS.includes(studentRef);
-  const [tab, setTab] = useState("schedule");
-  const [chatMsg, setChatMsg] = useState("");
-  const [chatTutor, setChatTutor] = useState(null);
-  const [schedModal, setSchedModal] = useState(false);
-  const [schedForm, setSchedForm] = useState({ tutorId:"", subjectId:"", date:"", time:"", duration:"60", platform:"", meetingLink:"", note:"", fixed:false });
-
-  const myLinks = data.links.filter(l=>l.studentId===studentRef);
-  const myTutors = [...new Set(myLinks.map(l=>l.tutorId))].map(id=>data.tutors.find(t=>t.id===id)).filter(Boolean);
-  const myResources = (data.resources||[]).filter(r=>r.toStudentId===studentRef);
-  const mySchedule = (data.scheduledLessons||[]).filter(l=>l.studentId===studentRef).sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
-
-  const sendMsg = (tutorId) => {
-    if (!chatMsg.trim()) return;
-    const now = new Date();
-    setData(d=>({...d, chatMessages:[...(d.chatMessages||[]),{
-      id:"cm"+uid(), tutorId, studentId:studentRef,
-      fromRole:"student", message:chatMsg.trim(),
-      date:today(), time:now.toTimeString().slice(0,5),
-    }]}));
-    setChatMsg("");
-  };
-
-  const addSelfLesson = () => {
-    if (!schedForm.date||!schedForm.time) return;
-    setData(d=>({...d, scheduledLessons:[...(d.scheduledLessons||[]),{
-      id:"sl"+uid(), studentId:studentRef,
-      tutorId:schedForm.tutorId||"", subjectId:schedForm.subjectId,
-      date:schedForm.date, time:schedForm.time,
-      duration:parseInt(schedForm.duration)||60,
-      meetingLink:schedForm.meetingLink, platform:schedForm.platform,
-      fixed:schedForm.fixed, note:schedForm.note,
-    }]}));
-    setSchedForm({tutorId:"",subjectId:"",date:"",time:"",duration:"60",platform:"",meetingLink:"",note:"",fixed:false});
-    setSchedModal(false);
-  };
-
-  const tabStyle = (id) => tab===id
-    ?{background:B.teal,color:"white"}
-    :{background:"white",color:"#374151",border:"1px solid #e5e7eb"};
-
-  if (!isAcademy) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Hi, {student.firstName}</h1>
-          <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>{student.curriculum} · {student.grade}</p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {[["schedule","My Schedule"],["chat","Chat"],["resources","Resources"]].map(([id,label])=>(
-            <button key={id} onClick={()=>setTab(id)} className="px-4 py-2 rounded-xl text-sm font-semibold" style={{...tabStyle(id), transition:"background 150ms ease, color 150ms ease, box-shadow 150ms ease"}}>{label}</button>
-          ))}
-        </div>
-        {tab==="schedule" && (
-          <Section title="My Lesson Schedule"
-            action={<Btn size="sm" onClick={()=>setSchedModal(true)}><Plus size={13}/> Add Lesson</Btn>}>
-            {mySchedule.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No lessons scheduled yet. Add your own or wait for your tutor to share a link.</p>:(
-              <div className="space-y-2">
-                {mySchedule.map(l=>{
-                  const tutor=data.tutors.find(t=>t.id===l.tutorId);
-                  const subj=data.subjects.find(s=>s.id===l.subjectId);
-                  return (
-                    <div key={l.id} className="flex items-start gap-3 p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-                      <div className="text-center min-w-12">
-                        <p className="text-xs font-bold uppercase" style={{color:"#9ca3af"}}>{new Date(l.date+"T00:00:00").toLocaleString("en-ZA",{month:"short"})}</p>
-                        <p className="text-2xl font-bold leading-none" style={{color:"#0d1e2a"}}>{new Date(l.date+"T00:00:00").getDate()}</p>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{l.time} {subj?`· ${subj.name}`:""}</p>
-                          {tutor&&<span className="text-xs" style={{color:"#6b7280"}}>with {tutor.firstName}</span>}
-                          {l.fixed&&<Badge color="teal">Fixed</Badge>}
-                          {l.platform&&<Badge color="gray">{l.platform}</Badge>}
-                        </div>
-                        {l.note&&<p className="text-xs mt-0.5" style={{color:"#6b7280"}}>{l.note}</p>}
-                        {l.meetingLink&&<a href={l.meetingLink} target="_blank" rel="noopener noreferrer" className="text-xs mt-1 inline-block font-semibold" style={{color:B.tealDark}}>Join Meeting →</a>}
-                      </div>
-                    </div>
-                  );
-                })}
+            {error && (
+              <div className="flex items-center gap-2 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                <X size={14} className="shrink-0" />{error}
               </div>
             )}
-          </Section>
-        )}
-        {tab==="chat" && (
-          <div className="space-y-4">
-            {myTutors.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No tutors assigned yet.</p>:
-            myTutors.map(t=>{
-              const msgs=(data.chatMessages||[]).filter(m=>m.tutorId===t.id&&m.studentId===studentRef).sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
-              return (
-                <Section key={t.id} title={`Chat with ${t.firstName} ${t.lastName}`}>
-                  <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
-                    {msgs.length===0?<p className="text-sm text-center py-4" style={{color:"#9ca3af"}}>No messages yet.</p>:
-                    msgs.map(m=>(
-                      <div key={m.id} className={`flex ${m.fromRole==="student"?"justify-end":"justify-start"}`}>
-                        <div className="max-w-xs px-4 py-2.5 rounded-2xl text-sm"
-                          style={m.fromRole==="student"?{background:B.teal,color:"white"}:{background:"#f8faf9",color:"#374151",border:"1px solid #eef2f1"}}>
-                          <p>{m.message}</p>
-                          <p className="text-xs mt-1 opacity-60">{m.time} · {fmtDate(m.date)}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <input className="flex-1 border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
-                      placeholder="Type a message…" value={chatTutor===t.id?chatMsg:""}
-                      onChange={e=>{setChatTutor(t.id);setChatMsg(e.target.value);}}
-                      onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg(t.id);}}}/>
-                    <Btn onClick={()=>sendMsg(t.id)}>Send</Btn>
-                  </div>
-                </Section>
-              );
-            })}
-          </div>
-        )}
-        {tab==="resources" && (
-          <Section title="Resources from My Tutors">
-            {myResources.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No resources shared yet.</p>:(
-              <div className="space-y-2">
-                {myResources.map(r=>{
-                  const tutor=data.tutors.find(t=>t.id===r.fromTutorId);
-                  return (
-                    <div key={r.id} className="flex items-center gap-3 p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{background:B.coralLight}}>
-                        <FileText size={15} style={{color:B.coral}}/>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate" style={{color:"#0d1e2a"}}>{r.name}</p>
-                        <p className="text-xs" style={{color:"#9ca3af"}}>From {tutor?.firstName} {tutor?.lastName} · {fmtDate(r.date)}</p>
-                      </div>
-                      <a href={r.url} target="_blank" rel="noopener noreferrer">
-                        <Btn size="sm" variant="secondary">Open</Btn>
-                      </a>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </Section>
-        )}
-        {schedModal&&(
-          <Modal title="Add Lesson to My Schedule" onClose={()=>setSchedModal(false)}>
-            <p className="text-sm mb-4" style={{color:"#6b7280"}}>Add a lesson for your own reference. This won't affect anything else.</p>
-            <Sel label="Tutor" value={schedForm.tutorId} onChange={e=>setSchedForm(f=>({...f,tutorId:e.target.value}))}
-              options={myTutors.map(t=>({value:t.id,label:`${t.firstName} ${t.lastName}`}))} placeholder="Select tutor (optional)"/>
-            <Sel label="Subject" value={schedForm.subjectId} onChange={e=>setSchedForm(f=>({...f,subjectId:e.target.value}))}
-              options={myLinks.map(l=>({value:l.subjectId,label:data.subjects.find(s=>s.id===l.subjectId)?.name||l.subjectId}))} placeholder="Select subject"/>
-            <div className="grid grid-cols-2 gap-4">
-              <Inp label="Date" type="date" value={schedForm.date} onChange={e=>setSchedForm(f=>({...f,date:e.target.value}))}/>
-              <Inp label="Time" type="time" value={schedForm.time} onChange={e=>setSchedForm(f=>({...f,time:e.target.value}))}/>
-            </div>
-            <Inp label="Platform (e.g. Zoom, Teams, Meet)" value={schedForm.platform} onChange={e=>setSchedForm(f=>({...f,platform:e.target.value}))}/>
-            <Inp label="Meeting Link (optional)" value={schedForm.meetingLink} onChange={e=>setSchedForm(f=>({...f,meetingLink:e.target.value}))} placeholder="https://..."/>
-            <Inp label="Note (optional)" value={schedForm.note} onChange={e=>setSchedForm(f=>({...f,note:e.target.value}))}/>
-            <Field label="">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={schedForm.fixed} onChange={e=>setSchedForm(f=>({...f,fixed:e.target.checked}))} className="w-4 h-4 rounded"/>
-                <span className="text-sm" style={{color:"#374151"}}>Fixed / recurring slot</span>
-              </label>
-            </Field>
-            <div className="flex gap-2 justify-end">
-              <Btn variant="secondary" onClick={()=>setSchedModal(false)}>Cancel</Btn>
-              <Btn onClick={addSelfLesson}><CalendarDays size={15}/> Add to Schedule</Btn>
-            </div>
-          </Modal>
-        )}
+            <button type="submit"
+              className="w-full py-2.5 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90 mt-2"
+              style={{ background: `linear-gradient(135deg, ${B.tealDark} 0%, ${B.coral} 100%)` }}>
+              Sign In
+            </button>
+          </form>
+        </div>
+        <p className="text-center text-xs text-gray-400">© {new Date().getFullYear()} Learn to Link. All rights reserved.</p>
       </div>
-    );
-  }
-
-  // Academy student — same tabs + academy
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Hi, {student.firstName}</h1>
-        <p className="text-sm mt-0.5" style={{color:"#6b7280"}}>{student.curriculum} · {student.grade}</p>
-      </div>
-      <div className="flex gap-2 flex-wrap">
-        {[["schedule","My Schedule"],["chat","Chat"],["resources","Resources"],["academy","Academy"]].map(([id,label])=>(
-          <button key={id} onClick={()=>setTab(id)} className="px-4 py-2 rounded-xl text-sm font-semibold" style={{...tabStyle(id), transition:"background 150ms ease, color 150ms ease, box-shadow 150ms ease"}}>{label}</button>
-        ))}
-      </div>
-      {tab==="academy"&&<AcademyPage data={data} setData={setData} studentId={studentRef}/>}
-      {tab==="schedule"&&(
-        <Section title="My Lesson Schedule" action={<Btn size="sm" onClick={()=>setSchedModal(true)}><Plus size={13}/> Add</Btn>}>
-          {mySchedule.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No lessons scheduled yet.</p>:(
-            <div className="space-y-2">{mySchedule.map(l=>{
-              const tutor=data.tutors.find(t=>t.id===l.tutorId);
-              const subj=data.subjects.find(s=>s.id===l.subjectId);
-              return (
-                <div key={l.id} className="flex items-start gap-3 p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-                  <div className="text-center min-w-12">
-                    <p className="text-xs font-bold uppercase" style={{color:"#9ca3af"}}>{new Date(l.date+"T00:00:00").toLocaleString("en-ZA",{month:"short"})}</p>
-                    <p className="text-2xl font-bold leading-none" style={{color:"#0d1e2a"}}>{new Date(l.date+"T00:00:00").getDate()}</p>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-semibold" style={{color:"#0d1e2a"}}>{l.time} {subj?`· ${subj.name}`:""}</p>
-                      {tutor&&<span className="text-xs" style={{color:"#6b7280"}}>with {tutor.firstName}</span>}
-                      {l.fixed&&<Badge color="teal">Fixed</Badge>}
-                      {l.platform&&<Badge color="gray">{l.platform}</Badge>}
-                    </div>
-                    {l.meetingLink&&<a href={l.meetingLink} target="_blank" rel="noopener noreferrer" className="text-xs mt-1 inline-block font-semibold" style={{color:B.tealDark}}>Join Meeting →</a>}
-                  </div>
-                </div>
-              );
-            })}</div>
-          )}
-        </Section>
-      )}
-      {tab==="chat"&&(
-        <div className="space-y-4">{myTutors.map(t=>{
-          const msgs=(data.chatMessages||[]).filter(m=>m.tutorId===t.id&&m.studentId===studentRef).sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
-          return (
-            <Section key={t.id} title={`Chat with ${t.firstName} ${t.lastName}`}>
-              <div className="space-y-2 mb-4 max-h-64 overflow-y-auto">
-                {msgs.length===0?<p className="text-sm text-center py-4" style={{color:"#9ca3af"}}>No messages yet.</p>:
-                msgs.map(m=>(
-                  <div key={m.id} className={`flex ${m.fromRole==="student"?"justify-end":"justify-start"}`}>
-                    <div className="max-w-xs px-4 py-2.5 rounded-2xl text-sm"
-                      style={m.fromRole==="student"?{background:B.teal,color:"white"}:{background:"#f8faf9",color:"#374151",border:"1px solid #eef2f1"}}>
-                      <p>{m.message}</p>
-                      <p className="text-xs mt-1 opacity-60">{m.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <input className="flex-1 border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none" style={{borderColor:"#e5e7eb"}}
-                  placeholder="Type a message…" value={chatTutor===t.id?chatMsg:""}
-                  onChange={e=>{setChatTutor(t.id);setChatMsg(e.target.value);}}
-                  onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMsg(t.id);}}}/>
-                <Btn onClick={()=>sendMsg(t.id)}>Send</Btn>
-              </div>
-            </Section>
-          );
-        })}</div>
-      )}
-      {tab==="resources"&&(
-        <Section title="Resources from My Tutors">
-          {myResources.length===0?<p className="text-sm" style={{color:"#9ca3af"}}>No resources shared yet.</p>:(
-            <div className="space-y-2">{myResources.map(r=>{
-              const tutor=data.tutors.find(t=>t.id===r.fromTutorId);
-              return (
-                <div key={r.id} className="flex items-center gap-3 p-3 rounded-xl" style={{background:"#f8faf9",border:"1px solid #eef2f1"}}>
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{background:B.coralLight}}>
-                    <FileText size={15} style={{color:B.coral}}/>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{color:"#0d1e2a"}}>{r.name}</p>
-                    <p className="text-xs" style={{color:"#9ca3af"}}>From {tutor?.firstName} · {fmtDate(r.date)}</p>
-                  </div>
-                  <a href={r.url} target="_blank" rel="noopener noreferrer"><Btn size="sm" variant="secondary">Open</Btn></a>
-                </div>
-              );
-            })}</div>
-          )}
-        </Section>
-      )}
-      {schedModal&&(
-        <Modal title="Add Lesson to Schedule" onClose={()=>setSchedModal(false)}>
-          <Sel label="Tutor" value={schedForm.tutorId} onChange={e=>setSchedForm(f=>({...f,tutorId:e.target.value}))}
-            options={myTutors.map(t=>({value:t.id,label:`${t.firstName} ${t.lastName}`}))} placeholder="Select tutor"/>
-          <Sel label="Subject" value={schedForm.subjectId} onChange={e=>setSchedForm(f=>({...f,subjectId:e.target.value}))}
-            options={myLinks.map(l=>({value:l.subjectId,label:data.subjects.find(s=>s.id===l.subjectId)?.name||l.subjectId}))} placeholder="Select subject"/>
-          <div className="grid grid-cols-2 gap-4">
-            <Inp label="Date" type="date" value={schedForm.date} onChange={e=>setSchedForm(f=>({...f,date:e.target.value}))}/>
-            <Inp label="Time" type="time" value={schedForm.time} onChange={e=>setSchedForm(f=>({...f,time:e.target.value}))}/>
-          </div>
-          <Inp label="Platform" value={schedForm.platform} onChange={e=>setSchedForm(f=>({...f,platform:e.target.value}))} placeholder="Zoom / Teams / Google Meet / other"/>
-          <Inp label="Meeting Link (optional)" value={schedForm.meetingLink} onChange={e=>setSchedForm(f=>({...f,meetingLink:e.target.value}))} placeholder="https://..."/>
-          <div className="flex gap-2 justify-end mt-2">
-            <Btn variant="secondary" onClick={()=>setSchedModal(false)}>Cancel</Btn>
-            <Btn onClick={addSelfLesson}><CalendarDays size={15}/> Add</Btn>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }
-
-// ── OWNER PAYROLL PAGE ────────────────────────────────────────────────────────
-function TutorInvoiceModal({ inv, onClose, isAdmin, onUpdate }) {
-  const [notes, setNotes] = useState(inv.notes || "");
-  const [status, setStatus] = useState(inv.status);
-  const typeLabel = { standard:"Standard", centre:"Centre (+R40)", academy:"Academy" };
-  const typeBadge = { standard:"teal", centre:"purple", academy:"indigo" };
-
-  const save = () => {
-    onUpdate({ ...inv, notes, status, paidDate: status === "paid" ? (inv.paidDate || new Date().toISOString().slice(0,10)) : inv.paidDate });
-    onClose();
-  };
-
-  return (
-    <Modal title={`Tutor Invoice — ${inv.tutorName}`} onClose={onClose} wide>
-      <div className="flex flex-wrap gap-3 mb-5">
-        <div className="rounded-xl px-4 py-3 flex-1 min-w-[140px]" style={{background:"#f8fafc",border:"1px solid #e2e8f0"}}>
-          <p className="text-xs font-semibold" style={{color:"#64748b"}}>Period</p>
-          <p className="text-sm font-bold mt-0.5" style={{color:"#0d1e2a"}}>{fmtDate(inv.periodStart)} – {fmtDate(inv.periodEnd)}</p>
-        </div>
-        <div className="rounded-xl px-4 py-3 flex-1 min-w-[120px]" style={{background:"#f0fdfa",border:"1px solid #99f6e4"}}>
-          <p className="text-xs font-semibold" style={{color:"#0d9488"}}>Total Earnings</p>
-          <p className="text-2xl font-extrabold mt-0.5" style={{color:"#0d1e2a"}}>{fmtZAR(inv.total)}</p>
-        </div>
-        <div className="rounded-xl px-4 py-3 flex-1 min-w-[120px]" style={{background:"#f8fafc",border:"1px solid #e2e8f0"}}>
-          <p className="text-xs font-semibold" style={{color:"#64748b"}}>Lessons</p>
-          <p className="text-2xl font-extrabold mt-0.5" style={{color:"#0d1e2a"}}>{inv.lineItems.length}</p>
-        </div>
-      </div>
-
-      {/* Line items — visible to all */}
-      <div className="rounded-xl overflow-hidden mb-5" style={{border:"1px solid #e2e8f0"}}>
-        <table className="w-full text-sm">
-          <thead>
-            <tr style={{background:"#f1f5f9"}}>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider" style={{color:"#64748b"}}>Date</th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider" style={{color:"#64748b"}}>Student</th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider" style={{color:"#64748b"}}>Subject</th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider" style={{color:"#64748b"}}>Type</th>
-              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider" style={{color:"#64748b"}}>Rate</th>
-            </tr>
-          </thead>
-          <tbody>
-            {inv.lineItems.map((li, i) => (
-              <tr key={li.id} style={{borderTop:"1px solid #f1f5f9",background:i%2===0?"white":"#fafbfc"}}>
-                <td className="px-4 py-3 text-xs" style={{color:"#475569"}}>{fmtDate(li.date)}</td>
-                <td className="px-4 py-3 text-sm font-medium" style={{color:"#0d1e2a"}}>{li.studentName}</td>
-                <td className="px-4 py-3 text-xs" style={{color:"#475569"}}>{li.subjectName}</td>
-                <td className="px-4 py-3"><Badge color={typeBadge[li.type]||"gray"}>{typeLabel[li.type]||li.type}</Badge></td>
-                <td className="px-4 py-3 text-right font-semibold text-sm" style={{color:"#0d9488"}}>{fmtZAR(li.rate)}</td>
-              </tr>
-            ))}
-            {inv.lineItems.length === 0 && (
-              <tr><td colSpan={5} className="px-4 py-6 text-center text-sm" style={{color:"#94a3b8"}}>No completed lessons in this period.</td></tr>
-            )}
-          </tbody>
-          <tfoot>
-            <tr style={{background:"#f0fdfa",borderTop:"2px solid #99f6e4"}}>
-              <td colSpan={4} className="px-4 py-3 text-sm font-bold text-right" style={{color:"#0d9488"}}>Total</td>
-              <td className="px-4 py-3 text-right text-base font-extrabold" style={{color:"#0d1e2a"}}>{fmtZAR(inv.total)}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-
-      {isAdmin && (
-        <>
-          <Sel label="Status" value={status} onChange={e=>setStatus(e.target.value)}
-            options={[{value:"draft",label:"Draft"},{value:"approved",label:"Approved"},{value:"paid",label:"Paid"}]}/>
-          <Txt label="Notes" value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Internal notes…"/>
-          <div className="flex justify-end gap-2 mt-2">
-            <Btn variant="secondary" onClick={onClose}>Cancel</Btn>
-            <Btn onClick={save}><CheckCircle size={14}/> Save Changes</Btn>
-          </div>
-        </>
-      )}
-      {!isAdmin && (
-        <div className="flex justify-end">
-          <Btn variant="secondary" onClick={onClose}>Close</Btn>
-        </div>
-      )}
-    </Modal>
-  );
-}
-
-function OwnerPayrollPage({ data, setData }) {
-  const periods = getBillingPeriods(6);
-  const [selectedPeriod, setSelectedPeriod] = useState(0); // index into periods
-  const [viewInv, setViewInv] = useState(null);
-
-  const period = periods[selectedPeriod];
-
-  const tutorInvoices = (data.tutorInvoices || []).filter(
-    ti => ti.periodStart === period.start && ti.periodEnd === period.end
-  );
-
-  const activeTutors = data.tutors.filter(t => t.status === "Active");
-
-  // Check which tutors already have an invoice for this period
-  const invoicedTutorIds = new Set(tutorInvoices.map(ti => ti.tutorId));
-
-  const generateAll = () => {
-    const newInvoices = activeTutors
-      .filter(t => !invoicedTutorIds.has(t.id))
-      .map(t => buildTutorInvoice(t.id, period.start, period.end, data))
-      .filter(inv => inv.lineItems.length > 0); // only if they have lessons
-    if (newInvoices.length === 0) return;
-    setData(d => ({ ...d, tutorInvoices: [...(d.tutorInvoices||[]), ...newInvoices] }));
-  };
-
-  const updateInvoice = (updated) => {
-    setData(d => ({
-      ...d,
-      tutorInvoices: (d.tutorInvoices||[]).map(ti => ti.id === updated.id ? updated : ti),
-    }));
-  };
-
-  const statusColor = { draft:"gray", approved:"indigo", paid:"green" };
-  const totalPaid = tutorInvoices.filter(ti=>ti.status==="paid").reduce((s,ti)=>s+ti.total,0);
-  const totalOwing = tutorInvoices.filter(ti=>ti.status!=="paid").reduce((s,ti)=>s+ti.total,0);
-
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold" style={{color:"#0d1e2a"}}>Tutor Payroll</h1>
-          <p className="text-sm mt-0.5" style={{color:"#64748b"}}>Invoices generated from completed lesson logs · 16th–25th billing cycle</p>
-        </div>
-        <Btn onClick={generateAll}><Plus size={14}/> Generate Invoices</Btn>
-      </div>
-
-      {/* Period selector */}
-      <div className="flex flex-wrap gap-2">
-        {periods.map((p,i) => (
-          <button key={p.start} onClick={()=>setSelectedPeriod(i)}
-            className="px-4 py-2 rounded-xl text-xs font-bold" style={{transition:"background 150ms ease, color 150ms ease"}}
-            style={i===selectedPeriod
-              ? {background:B.tealDark,color:"white",boxShadow:"0 2px 8px rgba(90,159,166,0.4)"}
-              : {background:"white",color:"#475569",border:"1px solid #e2e8f0"}}>
-            {p.label}
-          </button>
-        ))}
-      </div>
-
-      {/* KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-        <KPI title="Invoiced Tutors"  value={tutorInvoices.length}  sub={`of ${activeTutors.length} active`} icon={GraduationCap} color="teal"/>
-        <KPI title="Total Owing"      value={fmtZAR(totalOwing)}    sub="unpaid invoices"                    icon={DollarSign}    color="coral"/>
-        <KPI title="Total Paid"       value={fmtZAR(totalPaid)}     sub="this period"                        icon={CheckCircle}   color="green"/>
-      </div>
-
-      {/* Invoice table — shows only total per tutor, not line items */}
-      <Section title={`Tutor Invoices — ${period.label}`}>
-        {tutorInvoices.length === 0 ? (
-          <div className="text-center py-12" style={{color:"#94a3b8"}}>
-            <GraduationCap size={36} className="mx-auto mb-3 opacity-30"/>
-            <p className="text-sm font-medium">No invoices generated for this period.</p>
-            <p className="text-xs mt-1">Click "Generate Invoices" to create invoices from completed lesson logs.</p>
-          </div>
-        ) : (
-          <TableWrap>
-            <thead><tr>
-              <TH>Tutor</TH>
-              <TH className="text-center">Lessons</TH>
-              <TH className="text-center">Standard</TH>
-              <TH className="text-center">Centre</TH>
-              <TH className="text-center">Academy</TH>
-              <TH className="text-right">Total</TH>
-              <TH>Status</TH>
-              <TH></TH>
-            </tr></thead>
-            <tbody>
-              {tutorInvoices.map(inv => {
-                const stdCount  = inv.lineItems.filter(l=>l.type==="standard").length;
-                const ctrCount  = inv.lineItems.filter(l=>l.type==="centre").length;
-                const acaCount  = inv.lineItems.filter(l=>l.type==="academy").length;
-                return (
-                  <TR key={inv.id} onClick={()=>setViewInv(inv)}>
-                    <TD><span className="font-semibold">{inv.tutorName}</span></TD>
-                    <TD className="text-center">{inv.lineItems.length}</TD>
-                    <TD className="text-center">{stdCount||"—"}</TD>
-                    <TD className="text-center">{ctrCount||"—"}</TD>
-                    <TD className="text-center">{acaCount||"—"}</TD>
-                    <TD className="text-right font-bold" style={{color:"#0d9488"}}>{fmtZAR(inv.total)}</TD>
-                    <TD><Badge color={statusColor[inv.status]||"gray"}>{inv.status.charAt(0).toUpperCase()+inv.status.slice(1)}</Badge></TD>
-                    <TD>
-                      <div className="flex gap-1">
-                        <Btn size="sm" variant="ghost" onClick={e=>{e.stopPropagation();setViewInv(inv);}}>View</Btn>
-                        {inv.status !== "paid" && (
-                          <Btn size="sm" variant="success" onClick={e=>{e.stopPropagation();updateInvoice({...inv,status:"paid",paidDate:new Date().toISOString().slice(0,10)});}}>
-                            Mark Paid
-                          </Btn>
-                        )}
-                      </div>
-                    </TD>
-                  </TR>
-                );
-              })}
-            </tbody>
-          </TableWrap>
-        )}
-      </Section>
-
-      {/* Rate reference card */}
-      <Section title="Pay Rate Reference">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { type:"Standard (private)", rate:235, desc:"1-hour private lesson", color:"teal" },
-            { type:"Centre student",     rate:275, desc:"R235 + R40 data charge", color:"purple" },
-            { type:"Academy student",    rate:225, desc:"LMS-enrolled student",   color:"indigo" },
-          ].map(r => (
-            <div key={r.type} className="rounded-xl p-4" style={{background:"#f8fafc",border:"1px solid #e2e8f0"}}>
-              <Badge color={r.color}>{r.type}</Badge>
-              <p className="text-2xl font-extrabold mt-2" style={{color:"#0d1e2a"}}>{fmtZAR(r.rate)}</p>
-              <p className="text-xs mt-1" style={{color:"#64748b"}}>{r.desc}</p>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {viewInv && (
-        <TutorInvoiceModal
-          inv={viewInv}
-          isAdmin={true}
-          onClose={()=>setViewInv(null)}
-          onUpdate={updated=>{updateInvoice(updated);setViewInv(updated);}}
-        />
-      )}
-    </div>
-  );
-}
-
-// ─── MEMO WRAPPERS (prevent unnecessary re-renders) ────────────────────────────
-const DashboardMemo = memo(Dashboard);
-const StudentsPageMemo = memo(StudentsPage);
-const TutorsPageMemo = memo(TutorsPage);
-const AccountingPageMemo = memo(AccountingPage);
-const SettingsPageMemo = memo(SettingsPage);
-const CentresPageMemo = memo(CentresPage);
-const InvoicingPageMemo = memo(InvoicingPage);
-const ParentViewMemo = memo(ParentView);
-const CentreOwnerViewMemo = memo(CentreOwnerView);
-const TutorViewMemo = memo(TutorView);
-const StudentViewMemo = memo(StudentView);
-const OwnerPayrollPageMemo = memo(OwnerPayrollPage);
-
 
 // ─── APP ──────────────────────────────────────────────────────────────────────
 
-const NAV_ADMIN = [
-  { id:"dashboard",  label:"Dashboard",  icon:LayoutDashboard },
-  { id:"students",   label:"Students",   icon:Users           },
-  { id:"tutors",     label:"Tutors",     icon:GraduationCap   },
-  { id:"links",      label:"Links",      icon:LinkIcon        },
-  { id:"invoicing",  label:"Invoicing",  icon:FileText        },
-  { id:"centres",    label:"Centres",    icon:Building2       },
-  { id:"accounting", label:"Accounting", icon:DollarSign      },
-  { id:"stats",      label:"Stats",      icon:BarChart2       },
-  { id:"reports",    label:"Reports",    icon:FileText        },
-  { id:"settings",   label:"Settings",   icon:SettingsIcon    },
-  { id:"academy",    label:"Academy",    icon:BookOpen, divider:true },
-];
-const NAV_OWNER   = [...NAV_ADMIN, { id:"payroll", label:"Payroll", icon:DollarSign }];
-const NAV_CO      = [{ id:"co_home", label:"Centre Overview", icon:Building2 }];
-const NAV_TUTOR   = [{ id:"tutor_home", label:"My Dashboard", icon:LayoutDashboard }];
-const NAV_PARENT  = [{ id:"parent_home", label:"My Children", icon:Users }];
-const NAV_STUDENT = [{ id:"student_home", label:"My Space", icon:BookOpen }];
-
 export default function App() {
-  const [activeAccount, setActiveAccount] = useState("admin1");
+  const [user, setUser]   = useState(null);
   const [page, setPage] = useState("dashboard");
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [data, setData] = useState({
-    students:           INIT_STUDENTS,
-    tutors:             INIT_TUTORS,
-    subjects:           INIT_SUBJECTS,
-    links:              INIT_LINKS,
-    siblings:           INIT_SIBLINGS,
-    tutorNotes:         INIT_TUTOR_NOTES,
-    centres:            INIT_CENTRES,
-    centreNotes:        INIT_CENTRE_NOTES,
-    purchases:          INIT_PURCHASES,
-    financials:         INIT_FINANCIALS,
-    courses:            INIT_COURSES,
-    modules:            INIT_MODULES,
-    lessons:            INIT_LESSONS,
-    quizzes:            INIT_QUIZZES,
-    enrolments:         INIT_ENROLMENTS,
-    progress:           INIT_PROGRESS,
-    announcements:      INIT_ANNOUNCEMENTS,
-    parents:            INIT_PARENTS,
-    tutorProfiles:      INIT_TUTOR_PROFILES,
-    parentTutorNotes:   INIT_PARENT_TUTOR_NOTES,
-    tutorPayments:      INIT_TUTOR_PAYMENTS,
-    expenses:           INIT_EXPENSES,
-    centrePools:        INIT_CENTRE_POOLS,
-    centreLessonUsage:  INIT_CENTRE_LESSON_USAGE,
-    centreOwners:       INIT_CENTRE_OWNERS,
-    resources:          INIT_RESOURCES,
-    chatMessages:       INIT_CHAT_MESSAGES,
-    scheduledLessons:   INIT_SCHEDULED_LESSONS,
-    invoices:           INIT_INVOICES,
-    lessonLogs:         INIT_LESSON_LOGS,
-    studentReports:     INIT_STUDENT_REPORTS,
-    tutorInvoices:      INIT_TUTOR_INVOICES,
-    invoiceAlerts:      {},
+    students:      INIT_STUDENTS,
+    tutors:        INIT_TUTORS,
+    subjects:      INIT_SUBJECTS,
+    links:         INIT_LINKS,
+    siblings:      INIT_SIBLINGS,
+    tutorNotes:    INIT_TUTOR_NOTES,
+    centres:       INIT_CENTRES,
+    centreNotes:   INIT_CENTRE_NOTES,
+    purchases:     INIT_PURCHASES,
+    financials:    INIT_FINANCIALS,
+    courses:       INIT_COURSES,
+    modules:       INIT_MODULES,
+    lessons:       INIT_LESSONS,
+    quizzes:       INIT_QUIZZES,
+    enrolments:    INIT_ENROLMENTS,
+    progress:      INIT_PROGRESS,
+    announcements: INIT_ANNOUNCEMENTS,
   });
 
-  const account = ROLE_ACCOUNTS.find(a=>a.id===activeAccount)||ROLE_ACCOUNTS[0];
-  const { role, ref:roleRef } = account;
+  const unassigned = useMemo(
+    () => data.students.filter(s => !data.links.some(l => l.studentId === s.id)).length,
+    [data.students, data.links]
+  );
 
-  const switchAccount = (id) => {
-    const acc = ROLE_ACCOUNTS.find(a=>a.id===id);
-    if (!acc) return;
-    setActiveAccount(id);
-    const defaults = { admin:"dashboard", owner:"dashboard", centreOwner:"co_home", tutor:"tutor_home", parent:"parent_home", student:"student_home" };
-    setPage(defaults[acc.role]||"dashboard");
+  const pages = {
+    dashboard:  <Dashboard    data={data} onNav={setPage} />,
+    students:   <StudentsPage data={data} setData={setData} />,
+    tutors:     <TutorsPage   data={data} setData={setData} />,
+    links:      <LinksPage    data={data} setData={setData} />,
+    centres:    <CentresPage  data={data} setData={setData} />,
+    accounting: <AccountingPage data={data} setData={setData} />,
+    stats:      <StatsPage    data={data} />,
+    reports:    <ReportsPage  data={data} />,
+    settings:   <SettingsPage data={data} setData={setData} />,
+    academy:    <AcademyPage  data={data} setData={setData} />,
   };
 
-  const unassigned = useMemo(()=>data.students.filter(s=>!data.links.some(l=>l.studentId===s.id)).length,[data.students,data.links]);
-
-  const navItems = role==="owner"?NAV_OWNER:role==="centreOwner"?NAV_CO:role==="tutor"?NAV_TUTOR:role==="parent"?NAV_PARENT:role==="student"?NAV_STUDENT:NAV_ADMIN;
-  const validPages = navItems.map(n=>n.id);
-  const effectivePage = validPages.includes(page)?page:validPages[0];
-
-  const adminPages = {
-    dashboard:<DashboardMemo data={data} setData={setData} onNav={setPage}/>,
-    students:<StudentsPageMemo data={data} setData={setData}/>,
-    tutors:<TutorsPageMemo data={data} setData={setData}/>,
-    links:<LinksPage data={data} setData={setData}/>,
-    invoicing:<InvoicingPageMemo data={data} setData={setData}/>,
-    centres:<CentresPageMemo data={data} setData={setData}/>,
-    accounting:<AccountingPageMemo data={data} setData={setData}/>,
-    stats:<StatsPage data={data}/>,
-    reports:<ReportsPage data={data}/>,
-    settings:<SettingsPageMemo data={data} setData={setData}/>,
-    academy:<AcademyPage data={data} setData={setData}/>,
-    payroll:<OwnerPayrollPageMemo data={data} setData={setData}/>,
-  };
-
-  const renderContent = () => {
-    if (role==="admin"||role==="owner") return adminPages[effectivePage]||null;
-    if (role==="centreOwner") return <CentreOwnerViewMemo data={data} setData={setData} ownerRef={roleRef}/>;
-    if (role==="tutor")  return <TutorViewMemo  data={data} setData={setData} tutorRef={roleRef}/>;
-    if (role==="parent") return <ParentViewMemo data={data} setData={setData} parentRef={roleRef}/>;
-    if (role==="student") return <StudentViewMemo data={data} setData={setData} studentRef={roleRef}/>;
-    return null;
-  };
-
-  const roleColors = { admin:B.teal, owner:B.gold, centreOwner:"#8b5cf6", tutor:B.coral, parent:"#ec4899", student:"#10b981" };
-  const roleColor = roleColors[role]||B.teal;
+  if (!user) return <LoginPage onLogin={setUser} />;
 
   return (
-    <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
-        .to-root,.to-root*{font-family:'Outfit',system-ui,sans-serif;box-sizing:border-box;letter-spacing:-0.01em;}
-        .to-root .recharts-cartesian-axis-tick-value tspan,.to-root .recharts-legend-item-text{font-family:'Outfit',sans-serif!important;font-size:11px;}
-        .to-nav-item{transition:background 150ms ease, color 150ms ease;}
-        .to-nav-item:hover{background:rgba(255,255,255,0.06)!important;color:rgba(255,255,255,0.95)!important;letter-spacing:-0.01em;}
-        ::-webkit-scrollbar{width:5px;height:5px;}
-        ::-webkit-scrollbar-track{background:transparent;}
-        ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px;}
-        ::-webkit-scrollbar-thumb:hover{background:#94a3b8;}
-        .sidebar-drawer{transition:transform 0.26s cubic-bezier(0.32,0.72,0,1);}
-        @keyframes modal-in{from{opacity:0;transform:scale(0.96) translateY(4px);}to{opacity:1;transform:scale(1) translateY(0);}}
-        @keyframes backdrop-in{from{opacity:0;}to{opacity:1;}}
-        .modal-panel{animation:modal-in 220ms cubic-bezier(0.23,1,0.32,1) both;}
-        .modal-backdrop{animation:backdrop-in 180ms ease both;}
-        @media(hover:hover)and(pointer:fine){.card-hover:hover{box-shadow:0 4px 16px rgba(0,0,0,0.10),0 1px 4px rgba(0,0,0,0.06)!important;transform:translateY(-1px);}  }
-        .card-hover{transition:box-shadow 200ms ease, transform 200ms cubic-bezier(0.23,1,0.32,1), border-color 200ms ease;}.card-hover:hover{border-color:#d1d5db!important;}
-        @media(prefers-reduced-motion:reduce){.modal-panel,.modal-backdrop,.sidebar-drawer,.to-nav-item,.card-hover{animation:none!important;transition:opacity 150ms ease!important;transform:none!important;}}
-      `}</style>
-      <div className="to-root flex h-screen overflow-hidden" style={{background:"#f5f6f8"}}>
+    <div className="flex h-screen bg-gray-50 font-sans">
+      <aside className="w-56 bg-white border-r border-gray-200 flex flex-col shrink-0">
+        <div className="px-4 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <LogoMark size={38} />
+            <div>
+              <p className="text-xs font-bold tracking-widest uppercase leading-none" style={{ color: B.tealDark }}>LEARN TO LINK</p>
+              <p className="text-xs text-gray-400 mt-0.5 tracking-wide">CRM + Academy</p>
+            </div>
+          </div>
+        </div>
 
-        {/* ── Mobile overlay backdrop ── */}
-        {mobileNavOpen && (
-          <div className="fixed inset-0 z-40 md:hidden" style={{background:"rgba(5,12,20,0.6)",backdropFilter:"blur(2px)"}}
-            onClick={()=>setMobileNavOpen(false)}/>
-        )}
-
-        {/* ── Sidebar (desktop: always visible | mobile: drawer) ── */}
-        <aside className={`sidebar-drawer fixed md:relative inset-y-0 left-0 z-50 w-72 md:w-64 flex flex-col shrink-0 overflow-hidden ${mobileNavOpen?"translate-x-0":"-translate-x-full"} md:translate-x-0`}
-          style={{background:"linear-gradient(180deg,#0c1b27 0%,#08151e 100%)",borderRight:"1px solid rgba(255,255,255,0.06)",boxShadow:"2px 0 20px rgba(0,0,0,0.18)"}}>
-
-          {/* Logo */}
-          <div className="px-5 py-5 shrink-0" style={{borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                style={{background:"linear-gradient(135deg,rgba(148,203,209,0.25),rgba(90,159,166,0.15))",border:"1px solid rgba(148,203,209,0.35)",boxShadow:"0 2px 8px rgba(148,203,209,0.15)"}}>
-                <LogoMark size={22}/>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-extrabold tracking-[0.16em] uppercase leading-none" style={{color:B.teal}}>LEARN TO LINK</p>
-                <p className="text-xs mt-1 font-medium tracking-wide" style={{color:"rgba(255,255,255,0.22)"}}>TutorOps · CRM+LMS</p>
-              </div>
-              {/* Close button on mobile */}
-              <button className="md:hidden w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                style={{color:"rgba(255,255,255,0.4)",background:"rgba(255,255,255,0.06)"}}
-                onClick={()=>setMobileNavOpen(false)}>
-                <X size={16}/>
+        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+          {NAV.map(n => (
+            <div key={n.id}>
+              {n.divider && (
+                <div className="my-2 pt-1">
+                  <div className="border-t border-gray-100" />
+                </div>
+              )}
+              <button onClick={() => setPage(n.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${page === n.id ? "" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}
+                style={page === n.id ? { background: n.id === "academy" ? B.coralLight : B.tealLight, color: n.id === "academy" ? B.coral : B.tealDark } : undefined}>
+                <n.icon size={17} />
+                {n.label}
+                {n.id === "links" && unassigned > 0 && (
+                  <span className="ml-auto bg-gray-300 text-gray-700 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{unassigned}</span>
+                )}
               </button>
             </div>
-          </div>
+          ))}
+        </nav>
 
-          {/* Role switcher */}
-          <div className="px-4 py-3 shrink-0" style={{borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
-            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{color:"rgba(255,255,255,0.2)"}}>Viewing as</p>
-            <select value={activeAccount} onChange={e=>{switchAccount(e.target.value);setMobileNavOpen(false);}}
-              className="w-full rounded-xl text-xs font-semibold py-2 px-3 focus:outline-none"
-              style={{background:"rgba(255,255,255,0.07)",color:roleColor,border:`1px solid ${roleColor}55`}}>
-              {["Admin & Owner","",].map(()=>null)}
-              <optgroup label="Admin & Owner" style={{background:"#0d1e2a"}}>
-                {ROLE_ACCOUNTS.filter(a=>["admin","owner"].includes(a.role)).map(a=>(
-                  <option key={a.id} value={a.id} style={{background:"#0d1e2a",color:"white"}}>{a.label}</option>
-                ))}
-              </optgroup>
-              <optgroup label="Centre Owners" style={{background:"#0d1e2a"}}>
-                {ROLE_ACCOUNTS.filter(a=>a.role==="centreOwner").map(a=>(
-                  <option key={a.id} value={a.id} style={{background:"#0d1e2a",color:"white"}}>{a.label}</option>
-                ))}
-              </optgroup>
-              <optgroup label="Tutors" style={{background:"#0d1e2a"}}>
-                {ROLE_ACCOUNTS.filter(a=>a.role==="tutor").map(a=>(
-                  <option key={a.id} value={a.id} style={{background:"#0d1e2a",color:"white"}}>{a.label}</option>
-                ))}
-              </optgroup>
-              <optgroup label="Parents" style={{background:"#0d1e2a"}}>
-                {ROLE_ACCOUNTS.filter(a=>a.role==="parent").map(a=>(
-                  <option key={a.id} value={a.id} style={{background:"#0d1e2a",color:"white"}}>{a.label}</option>
-                ))}
-              </optgroup>
-              <optgroup label="Students" style={{background:"#0d1e2a"}}>
-                {ROLE_ACCOUNTS.filter(a=>a.role==="student").map(a=>(
-                  <option key={a.id} value={a.id} style={{background:"#0d1e2a",color:"white"}}>{a.label}</option>
-                ))}
-              </optgroup>
-            </select>
-          </div>
-
-          {/* Nav */}
-          <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
-            {navItems.map(n=>{
-              const active=effectivePage===n.id;
-              const isAc=n.id==="academy";
-              const activeColor=isAc?B.coral:roleColor;
-              return (
-                <div key={n.id}>
-                  {n.divider&&(
-                    <div className="my-4 px-2 flex items-center gap-2">
-                      <div className="flex-1 h-px" style={{background:"rgba(255,255,255,0.06)"}}/>
-                      <span className="text-xs font-bold uppercase tracking-widest" style={{color:"rgba(255,255,255,0.15)"}}>Academy</span>
-                      <div className="flex-1 h-px" style={{background:"rgba(255,255,255,0.06)"}}/>
-                    </div>
-                  )}
-                  <button onClick={()=>{setPage(n.id);setMobileNavOpen(false);}}
-                    className="to-nav-item w-full flex items-center gap-3 px-3 py-3 md:py-2.5 rounded-xl text-xs font-semibold text-left"
-                    style={active
-                      ? {background:`${activeColor}18`,color:activeColor,boxShadow:`inset 2px 0 0 ${activeColor}, 0 1px 4px rgba(0,0,0,0.12)`}
-                      : {color:"rgba(255,255,255,0.4)"}}>
-                    <n.icon size={16} style={{flexShrink:0}}/>
-                    <span className="tracking-wide">{n.label}</span>
-                    {n.id==="links"&&unassigned>0&&(
-                      <span className="ml-auto text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
-                        style={{background:B.coral,color:"white",fontSize:"10px"}}>{unassigned}</span>
-                    )}
-                  </button>
-                </div>
-              );
-            })}
-          </nav>
-
-          {/* Footer */}
-          <div className="px-4 py-4 shrink-0" style={{borderTop:"1px solid rgba(255,255,255,0.06)"}}>
-            <div className="flex items-center gap-3 p-2 rounded-xl" style={{background:"rgba(255,255,255,0.04)"}}>
-              <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 uppercase"
-                style={{background:`linear-gradient(135deg,${roleColor}33,${roleColor}18)`,color:roleColor,border:`1px solid ${roleColor}44`}}>
-                {account.label.slice(0,2)}
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold truncate" style={{color:"rgba(255,255,255,0.8)"}}>{account.label}</p>
-                <p className="text-xs truncate capitalize font-medium" style={{color:roleColor}}>{role==="centreOwner"?"Centre Owner":role}</p>
-              </div>
+        <div className="px-4 py-4 border-t border-gray-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0"
+              style={{ background: B.teal }}>
+              {user.displayName.split(" ").map(n => n[0]).join("").slice(0,2).toUpperCase()}
             </div>
-          </div>
-        </aside>
-
-        {/* ── Main area ── */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-
-          {/* Mobile top bar */}
-          <header className="md:hidden flex items-center justify-between px-4 py-3 shrink-0"
-            style={{background:"#0d1e2a",borderBottom:"1px solid rgba(255,255,255,0.06)",boxShadow:"0 2px 12px rgba(0,0,0,0.2)"}}>
-            <button onClick={()=>setMobileNavOpen(true)}
-              className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{background:"rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.7)"}}>
-              <Menu size={18}/>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-gray-800 truncate">{user.displayName}</p>
+              <p className="text-xs text-gray-400">{user.role}</p>
+            </div>
+            <button onClick={() => setUser(null)} title="Sign out"
+              className="text-gray-400 hover:text-gray-600 shrink-0 transition-colors">
+              <X size={15} />
             </button>
-            <div className="flex items-center gap-2">
-              <LogoMark size={18}/>
-              <p className="text-xs font-extrabold tracking-[0.14em] uppercase" style={{color:B.teal}}>LEARN TO LINK</p>
-            </div>
-            <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs uppercase"
-              style={{background:`${roleColor}22`,color:roleColor,border:`1px solid ${roleColor}44`}}>
-              {account.label.slice(0,2)}
-            </div>
-          </header>
-
-          <main className="flex-1 overflow-y-auto">
-            <div className="max-w-5xl mx-auto px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8">{renderContent()}</div>
-          </main>
+          </div>
         </div>
-      </div>
-    </>
+      </aside>
+
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-5xl mx-auto px-6 py-6">
+          {pages[page]}
+        </div>
+      </main>
+    </div>
   );
 }
-
