@@ -285,6 +285,56 @@ const buildTutorInvoice = (tutorId, month, data) => {
   return { lessonLines, allClaims, approvedClaims, lessonTotal, claimsTotal, grandTotal, statusRec, locked, isApproved, isPaid };
 };
 
+// Build print-ready HTML for a single tutor's invoice
+const buildTutorInvoiceHTML = (tutor, inv, month) => {
+  const status = inv.isPaid ? "PAID" : inv.isApproved ? (inv.locked && !inv.statusRec?.tutorApproved ? "AUTO-LOCKED" : "APPROVED") : "PENDING";
+  const [yr, mo] = month.split("-");
+  const monthLabel = new Date(Number(yr), Number(mo) - 1, 1).toLocaleString("en-ZA", { month: "long", year: "numeric" });
+  const lessonRows = inv.lessonLines.map(l =>
+    `<tr><td>${fmtDate(l.date)}</td><td>${l.studentName}</td><td>${l.subjectLabel}</td><td>${(l.hours).toFixed(2)}h</td><td style="text-transform:capitalize">${l.lessonType}</td><td style="text-align:right">R${l.baseRate}/hr</td>${l.wifiAmt > 0 ? `<td style="text-align:right">R${l.wifiAmt} wifi</td>` : `<td>—</td>`}<td style="text-align:right"><b>R${l.lineTotal.toFixed(2)}</b></td></tr>`
+  ).join("") || `<tr><td colspan="8" style="color:#aaa;text-align:center;padding:12px">No attended lessons this month</td></tr>`;
+  const claimRows = inv.approvedClaims.map(c =>
+    `<tr><td>${fmtDate(c.date)}</td><td>${c.type}</td><td colspan="5">${c.studentNames || "—"}</td><td style="text-align:right"><b>R${Number(c.amount).toFixed(2)}</b></td></tr>`
+  ).join("");
+  return `
+    <div style="page-break-after:always;padding:36px 40px;font-family:Arial,sans-serif;font-size:12px;max-width:800px;margin:auto">
+      <table width="100%" style="border-collapse:collapse;margin-bottom:20px">
+        <tr>
+          <td><h2 style="margin:0;color:#2a7f85;font-size:18px">LEARN TO LINK</h2><p style="margin:2px 0 0;color:#888;font-size:11px">Tutor Invoice</p></td>
+          <td style="text-align:right"><p style="margin:0;font-size:13px;font-weight:bold;color:#2a7f85">${monthLabel}</p><p style="margin:2px 0 0;color:#888;font-size:11px">Generated: ${fmtDate(today())}</p></td>
+        </tr>
+      </table>
+      <table width="100%" style="border-collapse:collapse;background:#f8fafb;border-radius:8px;margin-bottom:20px">
+        <tr><td style="padding:12px 16px"><b>${tutor.firstName} ${tutor.lastName}</b><br/><span style="color:#666;font-size:11px">${tutor.email}${tutor.phone ? " · " + tutor.phone : ""}</span></td>
+        <td style="padding:12px 16px;text-align:right"><span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:bold;background:${status==="PAID"?"#dcfce7":status==="APPROVED"?"#e8f5f6":status==="AUTO-LOCKED"?"#fef3c7":"#f3f4f6"};color:${status==="PAID"?"#166534":status==="APPROVED"?"#2a7f85":status==="AUTO-LOCKED"?"#92400e":"#6b7280"}">${status}</span>${inv.isPaid && inv.statusRec?.paidDate ? `<br/><span style="color:#888;font-size:10px">Paid: ${fmtDate(inv.statusRec.paidDate)}</span>` : ""}</td></tr>
+      </table>
+      <h3 style="color:#333;border-bottom:2px solid #e8f5f6;padding-bottom:6px;margin-bottom:8px">Lessons</h3>
+      <table width="100%" border="0" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:11px">
+        <thead><tr style="background:#e8f5f6"><th style="text-align:left">Date</th><th style="text-align:left">Student</th><th style="text-align:left">Subject</th><th>Duration</th><th>Type</th><th style="text-align:right">Rate</th><th style="text-align:right">WiFi</th><th style="text-align:right">Total</th></tr></thead>
+        <tbody>${lessonRows}</tbody>
+      </table>
+      <p style="text-align:right;margin:6px 0 0;font-size:12px"><b>Lesson Total: R${inv.lessonTotal.toFixed(2)}</b></p>
+      ${inv.approvedClaims.length > 0 ? `
+      <h3 style="color:#333;border-bottom:2px solid #e8f5f6;padding-bottom:6px;margin:20px 0 8px">Approved Claims</h3>
+      <table width="100%" border="0" cellpadding="5" cellspacing="0" style="border-collapse:collapse;font-size:11px">
+        <thead><tr style="background:#e8f5f6"><th style="text-align:left">Date</th><th style="text-align:left">Type</th><th colspan="5" style="text-align:left">Details / Students</th><th style="text-align:right">Amount</th></tr></thead>
+        <tbody>${claimRows}</tbody>
+      </table>
+      <p style="text-align:right;margin:6px 0 0;font-size:12px"><b>Claims Total: R${inv.claimsTotal.toFixed(2)}</b></p>` : ""}
+      <div style="border-top:2px solid #2a7f85;margin-top:20px;padding-top:14px;display:flex;justify-content:space-between;align-items:center">
+        <span style="color:#888;font-size:10px">${inv.statusRec?.tutorApproved ? `Approved by tutor: ${fmtDate(inv.statusRec.tutorApprovedDate)}` : inv.locked ? "Auto-approved (26th)" : "Awaiting tutor approval"}</span>
+        <span style="font-size:16px;font-weight:bold;color:#2a7f85">Grand Total: R${inv.grandTotal.toFixed(2)}</span>
+      </div>
+    </div>`;
+};
+
+// Open a print window with invoice HTML (wrap in full document)
+const printInvoiceWindow = (bodyContent, title) => {
+  const html = `<!DOCTYPE html><html><head><title>${title}</title><style>body{margin:0}table th,table td{border:1px solid #e8e8e8;padding:4px 8px}@media print{.no-print{display:none}}</style></head><body>${bodyContent}</body></html>`;
+  const win = window.open("", "_blank");
+  if (win) { win.document.write(html); win.document.close(); win.print(); }
+};
+
 // Returns last N month keys as "YYYY-MM"
 const lastNMonths = (n) => {
   const months = [];
@@ -3750,11 +3800,15 @@ function TutorPortal({ tutor, data, setData }) {
         return (
           <div className="space-y-5">
             {/* Month selector */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <label className="text-sm font-medium text-gray-700">Month:</label>
               <input type="month" value={earnMonth} onChange={e=>setEarnMonth(e.target.value)}
                 className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none" />
               <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={statusStyle}>{statusLabel}</span>
+              <button onClick={()=>printInvoiceWindow(buildTutorInvoiceHTML(tutor, inv, earnMonth), `Invoice ${tutor.firstName} ${tutor.lastName} ${earnMonth}`)}
+                className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-gray-200 text-gray-600 hover:border-teal-400 hover:text-teal-700 transition-colors">
+                <Printer size={13}/> Download Invoice
+              </button>
             </div>
 
             {locked && (
@@ -3859,6 +3913,48 @@ function TutorPortal({ tutor, data, setData }) {
                 </div>
               )}
             </div>
+
+            {/* Invoice History */}
+            {(()=>{
+              const histMonths = [...new Set([
+                ...(data.logbook||[]).filter(l=>l.tutorId===tutor.id&&l.attended).map(l=>l.date.slice(0,7)),
+                ...(data.tutorClaims||[]).filter(c=>c.tutorId===tutor.id).map(c=>c.month),
+              ])].sort().reverse().filter(m=>m!==earnMonth);
+              if (histMonths.length===0) return null;
+              return (
+                <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                  <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Invoice History</p>
+                  </div>
+                  <div className="divide-y divide-gray-50">
+                    {histMonths.map(m=>{
+                      const hInv = buildTutorInvoice(tutor.id, m, data);
+                      const [yr,mo] = m.split("-");
+                      const mLabel = new Date(Number(yr),Number(mo)-1,1).toLocaleString("en-ZA",{month:"long",year:"numeric"});
+                      const hStatus = hInv.isPaid?"Paid":hInv.isApproved?(hInv.locked&&!hInv.statusRec?.tutorApproved?"Auto-locked":"Approved"):"Pending";
+                      const hStyle = hInv.isPaid?{background:"#dcfce7",color:"#166534"}:hInv.isApproved?{background:B.tealLight,color:B.tealDark}:{background:"#f3f4f6",color:"#6b7280"};
+                      return (
+                        <div key={m} className="flex items-center justify-between px-4 py-3">
+                          <div>
+                            <p className="text-sm font-medium text-gray-700">{mLabel}</p>
+                            <p className="text-xs text-gray-400">{hInv.lessonLines.length} lesson{hInv.lessonLines.length!==1?"s":""} · {fmtZAR(hInv.grandTotal)}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={hStyle}>{hStatus}</span>
+                            <button onClick={()=>{setEarnMonth(m);}}
+                              className="text-xs text-gray-400 hover:text-teal-600 transition-colors px-2 py-1 rounded">View</button>
+                            <button onClick={()=>printInvoiceWindow(buildTutorInvoiceHTML(tutor, hInv, m), `Invoice ${tutor.firstName} ${tutor.lastName} ${m}`)}
+                              className="flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-lg border border-gray-200 text-gray-600 hover:border-teal-400 hover:text-teal-700 transition-colors">
+                              <Printer size={11}/> PDF
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         );
       })()}
@@ -4237,42 +4333,11 @@ function PayrollPage({ data, setData }) {
   });
 
   const generatePDF = () => {
-    const tutorSections = activeTutors.map(t => {
-      const inv = buildTutorInvoice(t.id, month, data);
-      const lessonRows = inv.lessonLines.map(l =>
-        `<tr><td>${fmtDate(l.date)}</td><td>${l.studentName}</td><td>${l.subjectLabel}</td><td>${l.hours.toFixed(2)}h</td><td>${l.lessonType}</td><td style="text-align:right">R${l.baseRate}</td><td style="text-align:right">R${l.wifiAmt > 0 ? `+${l.wifiAmt} wifi` : ""}</td><td style="text-align:right"><b>R${l.lineTotal.toFixed(2)}</b></td></tr>`
-      ).join("");
-      const claimRows = inv.approvedClaims.map(c =>
-        `<tr><td>${fmtDate(c.date)}</td><td>${c.type}</td><td colspan="5">${c.studentNames}</td><td style="text-align:right"><b>R${Number(c.amount).toFixed(2)}</b></td></tr>`
-      ).join("");
-      const status = inv.isPaid ? "PAID" : inv.isApproved ? "APPROVED" : locked ? "AUTO-LOCKED" : "PENDING";
-      return `
-        <div style="page-break-after:always;padding:32px;font-family:Arial,sans-serif;font-size:12px">
-          <h2 style="color:#5a9fa6;margin-bottom:4px">${t.firstName} ${t.lastName}</h2>
-          <p style="color:#888;margin:0">${t.email} &bull; Invoice: ${month}</p>
-          <p style="color:#888;margin:4px 0 16px">Status: <b>${status}</b>${inv.isPaid && inv.statusRec?.paidDate ? ` &bull; Paid: ${fmtDate(inv.statusRec.paidDate)}` : ""}</p>
-          <h3 style="border-bottom:1px solid #eee;padding-bottom:4px">Lessons</h3>
-          <table width="100%" border="0" cellpadding="4" cellspacing="0" style="border-collapse:collapse">
-            <thead style="background:#f5f5f5"><tr><th>Date</th><th>Student</th><th>Subject</th><th>Duration</th><th>Type</th><th>Rate</th><th>Wifi</th><th>Total</th></tr></thead>
-            <tbody>${lessonRows || '<tr><td colspan="8" style="color:#aaa">No lessons</td></tr>'}</tbody>
-          </table>
-          <p style="text-align:right;margin-top:4px"><b>Lesson Total: R${inv.lessonTotal.toFixed(2)}</b></p>
-          ${inv.approvedClaims.length > 0 ? `
-          <h3 style="border-bottom:1px solid #eee;padding-bottom:4px;margin-top:16px">Approved Claims</h3>
-          <table width="100%" border="0" cellpadding="4" cellspacing="0" style="border-collapse:collapse">
-            <thead style="background:#f5f5f5"><tr><th>Date</th><th>Type</th><th colspan="5">Details</th><th>Amount</th></tr></thead>
-            <tbody>${claimRows}</tbody>
-          </table>
-          <p style="text-align:right;margin-top:4px"><b>Claims Total: R${inv.claimsTotal.toFixed(2)}</b></p>` : ""}
-          <div style="border-top:2px solid #5a9fa6;margin-top:16px;padding-top:12px;text-align:right">
-            <span style="font-size:16px;font-weight:bold;color:#5a9fa6">Grand Total: R${inv.grandTotal.toFixed(2)}</span>
-          </div>
-        </div>`;
-    }).join("");
-
-    const html = `<!DOCTYPE html><html><head><title>Payroll ${month}</title><style>body{margin:0}table th,table td{border:1px solid #e0e0e0;padding:4px 8px}table{font-size:11px}</style></head><body>${tutorSections}</body></html>`;
-    const win = window.open("", "_blank");
-    if (win) { win.document.write(html); win.document.close(); win.print(); }
+    const pages = activeTutors.map(t => buildTutorInvoiceHTML(t, buildTutorInvoice(t.id, month, data), month)).join("");
+    printInvoiceWindow(pages, `Payroll ${month}`);
+  };
+  const downloadOneTutorPDF = (t) => {
+    printInvoiceWindow(buildTutorInvoiceHTML(t, buildTutorInvoice(t.id, month, data), month), `Invoice ${t.firstName} ${t.lastName} ${month}`);
   };
 
   const inputCls = "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none";
@@ -4383,6 +4448,9 @@ function PayrollPage({ data, setData }) {
                       {inv.isApproved && !inv.isPaid && (
                         <Btn size="sm" onClick={() => markPaid(tutor.id, inv.grandTotal)}>
                           <Banknote size={13} /> Mark Paid ({fmtZAR(inv.grandTotal)})
+                        </Btn>
+                        <Btn size="sm" variant="secondary" onClick={() => downloadOneTutorPDF(tutor)}>
+                          <Printer size={13} /> Download Invoice
                         </Btn>
                       )}
                       {inv.isPaid && (
