@@ -3009,7 +3009,7 @@ function TutorPortal({ tutor, data, setData }) {
   const studentSched= selStudentId ? (data.scheduledLessons||[]).filter(s=>s.tutorId===tutor.id&&s.studentId===selStudentId).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)) : [];
   const studentRpts = selStudentId ? (data.studentReports||[]).filter(r=>r.tutorId===tutor.id&&r.studentId===selStudentId).sort((a,b)=>b.date.localeCompare(a.date)) : [];
   const upcomingAll = (data.scheduledLessons||[]).filter(sl=>sl.tutorId===tutor.id&&sl.date>=today()).sort((a,b)=>a.date.localeCompare(b.date)||a.time.localeCompare(b.time)).slice(0,5);
-  const myNotes     = (data.tutorNotes||[]).filter(n=>n.tutorId===tutor.id&&n.source!=="parent");
+  const myNotes     = (data.tutorNotes||[]).filter(n=>n.tutorId===tutor.id&&n.source==="admin"&&n.type!=="complaint");
 
   const addLog = () => {
     if (!lbForm.subjectId||!lbForm.topicsCovered.trim()) return;
@@ -3117,7 +3117,7 @@ function TutorPortal({ tutor, data, setData }) {
 
           {myNotes.length>0 && (
             <div className="bg-white rounded-xl border border-gray-100 p-5">
-              <h2 className="text-sm font-semibold text-gray-700 mb-3">Feedback from Learn to Link</h2>
+              <h2 className="text-sm font-semibold text-gray-700 mb-3">Compliments from Learn to Link</h2>
               <div className="space-y-2">
                 {myNotes.map(n=>(
                   <div key={n.id} className="rounded-xl p-4 border" style={{background:n.type==="compliment"?B.tealLight:B.coralLight,borderColor:n.type==="compliment"?B.teal:B.coral}}>
@@ -3951,7 +3951,7 @@ export default function App() {
         students:           data.students.filter(s => myStudentIds.includes(s.id)),
         links:              myLinks,
         tutors:             data.tutors.filter(t => t.id === id),
-        tutorNotes:         data.tutorNotes.filter(n => n.tutorId === id && n.source !== "parent"),
+        tutorNotes:         data.tutorNotes.filter(n => n.tutorId === id && n.source === "admin" && n.type !== "complaint"),
         purchases:          data.purchases.filter(p => myStudentIds.includes(p.studentId)),
         enrolments:         data.enrolments.filter(e => myStudentIds.includes(e.studentId)),
         progress:           data.progress.filter(p => myStudentIds.includes(p.studentId)),
