@@ -222,6 +222,9 @@ const INIT_TUTOR_CLAIMS = [];
 // Invoice approval/payment status — one record per tutor per month
 const INIT_INVOICE_STATUS = [];
 
+// Claim types — admin-configurable list of services/products tutors can claim
+const INIT_CLAIM_TYPES = ["Workshop", "Marking", "Travel Allowance", "Materials", "Other"];
+
 // ─── UTILITIES ────────────────────────────────────────────────────────────────
 
 const uid     = () => Math.random().toString(36).slice(2, 9);
@@ -3103,7 +3106,7 @@ function TutorPortal({ tutor, data, setData }) {
   const [rptForm, setRptForm] = useState({ subjectId:"", period:"", periodType:"monthly", lessonsAttended:"", lessonsScheduled:"", topicsCovered:"", strengths:"", areasForImprovement:"", overallComments:"", rating:"Good" });
   const [rptSaved,   setRptSaved]   = useState(false);
   const [earnMonth,  setEarnMonth]  = useState(today().slice(0, 7));
-  const [claimForm,  setClaimForm]  = useState({ type: "Workshop", studentNames: "", amount: "", date: today() });
+  const [claimForm,  setClaimForm]  = useState({ type: (data.claimTypes||["Workshop"])[0], studentNames: "", amount: "", date: today() });
   const [claimSaved, setClaimSaved] = useState(false);
 
   const myLinks      = (data.links||[]).filter(l => l.tutorId === tutor.id);
@@ -3164,7 +3167,7 @@ function TutorPortal({ tutor, data, setData }) {
   const submitClaim = () => {
     if (!claimForm.amount || isNaN(Number(claimForm.amount))) return;
     setData(d => ({ ...d, tutorClaims: [...(d.tutorClaims||[]), { id:"cl"+uid(), tutorId:tutor.id, month:earnMonth, type:claimForm.type, studentNames:claimForm.studentNames, amount:Number(claimForm.amount), date:claimForm.date, status:"pending" }] }));
-    setClaimForm({ type:"Workshop", studentNames:"", amount:"", date:today() });
+    setClaimForm({ type:(data.claimTypes||["Workshop"])[0], studentNames:"", amount:"", date:today() });
     setClaimSaved(true); setTimeout(()=>setClaimSaved(false),4000);
   };
 
@@ -3835,9 +3838,7 @@ function TutorPortal({ tutor, data, setData }) {
                     <div>
                       <label className="block text-xs text-gray-500 mb-1">Type</label>
                       <select className={inputCls} value={claimForm.type} onChange={e=>setClaimForm(f=>({...f,type:e.target.value}))}>
-                        <option>Workshop</option>
-                        <option>Marking</option>
-                        <option>Other</option>
+                        {(data.claimTypes||["Workshop","Marking","Other"]).map(ct=><option key={ct}>{ct}</option>)}
                       </select>
                     </div>
                     <div>
@@ -4533,6 +4534,51 @@ function PayrollPage({ data, setData }) {
             </TableWrap>
           </Section>
 
+          {/* Claim types */}
+          <Section title="Claimable Services & Products">
+            <p className="text-xs text-gray-500 mb-3">These are the options tutors see when submitting a claim. Add any service, product, or allowance type you want tutors to be able to claim for.</p>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {(data.claimTypes||[]).map(ct => (
+                <span key={ct} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border"
+                  style={{background:B.tealLight, color:B.tealDark, borderColor:B.teal}}>
+                  {ct}
+                  <button onClick={() => setData(d=>({...d, claimTypes:(d.claimTypes||[]).filter(t=>t!==ct)}))}
+                    className="hover:text-red-500 transition-colors ml-0.5" title="Remove">
+                    <X size={11}/>
+                  </button>
+                </span>
+              ))}
+              {(data.claimTypes||[]).length === 0 && <p className="text-sm text-gray-400">No claim types defined. Add one below.</p>}
+            </div>
+            <div className="flex gap-2">
+              <input id="newClaimType" placeholder="e.g. Assessment, Admin Fee, Printing…"
+                className={inputCls} style={{maxWidth:"320px"}}
+                onKeyDown={e=>{
+                  if(e.key==="Enter"){
+                    const v=e.target.value.trim();
+                    if(v&&!(data.claimTypes||[]).includes(v)){
+                      setData(d=>({...d,claimTypes:[...(d.claimTypes||[]),v]}));
+                    }
+                    e.target.value="";
+                  }
+                }}/>
+              <button
+                onClick={()=>{
+                  const el=document.getElementById("newClaimType");
+                  const v=el?.value?.trim();
+                  if(v&&!(data.claimTypes||[]).includes(v)){
+                    setData(d=>({...d,claimTypes:[...(d.claimTypes||[]),v]}));
+                    el.value="";
+                  }
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5"
+                style={{background:B.tealDark}}>
+                <Plus size={13}/> Add Type
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 mt-2">Press Enter or click Add. Removing a type only affects future claims — existing claims keep their type.</p>
+          </Section>
+
           {/* Add new rate */}
           <Section title="Add New Year Rate">
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
@@ -4636,6 +4682,7 @@ export default function App() {
     tutorRates:          INIT_TUTOR_RATES,
     tutorClaims:         INIT_TUTOR_CLAIMS,
     invoiceStatus:       INIT_INVOICE_STATUS,
+    claimTypes:          INIT_CLAIM_TYPES,
   });
 
   const roleOptions = useMemo(() => buildRoleOptions(data), [data]);
@@ -4668,6 +4715,7 @@ export default function App() {
         tutorRates:         data.tutorRates,
         tutorClaims:        (data.tutorClaims || []).filter(c => c.tutorId === id),
         invoiceStatus:      (data.invoiceStatus || []).filter(s => s.tutorId === id),
+        claimTypes:         data.claimTypes || INIT_CLAIM_TYPES,
       };
     }
 
