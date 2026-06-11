@@ -293,18 +293,6 @@ const buildTutorInvoice = (tutorId, month, data) => {
     .filter(l => l.tutorId === tutorId && l.date.startsWith(month) && l.attended)
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  // Build ordinal position map: for each student+subject, list ALL attended lesson IDs this month
-  // (across all tutors) sorted by date — so the 2-lesson limit is per-student, not per-tutor
-  const allMonthLogs = (data.logbook || [])
-    .filter(l => l.date.startsWith(month) && l.attended)
-    .sort((a, b) => a.date.localeCompare(b.date));
-  const positionMap = {};
-  allMonthLogs.forEach(l => {
-    const key = `${l.studentId}|${l.subjectId || ""}`;
-    if (!positionMap[key]) positionMap[key] = [];
-    positionMap[key].push(l.id);
-  });
-
   // Cache top-up pools (computed once per student+subject)
   const topupCache = {};
   const getPool = (studentId, subjectId) => {
@@ -313,31 +301,49 @@ const buildTutorInvoice = (tutorId, month, data) => {
     return topupCache[key];
   };
 
+  // Pre-compute effective lesson type for EVERY attended lesson this month, keyed by lesson ID.
+  // We process all lessons in chronological order so the "2 included" counter increments correctly
+  // regardless of which tutor logged each lesson.
+  const effectiveTypeMap = {}; // lessonId → { type, slot }
+  const allMonthLogs = (data.logbook || [])
+    .filter(l => l.date.startsWith(month) && l.attended)
+    .sort((a, b) => a.date.localeCompare(b.date) || String(a.id).localeCompare(String(b.id)));
+
+  // Group by student+subject and walk in date order
+  const acGroupMap = {};
+  allMonthLogs.forEach(l => {
+    const baseType = getStudentLessonType(l.studentId, data);
+    if (baseType !== "academy") return; // centre/regular don't need position tracking
+    const key = `${l.studentId}|${l.subjectId || ""}`;
+    if (!acGroupMap[key]) acGroupMap[key] = [];
+    acGroupMap[key].push(l);
+  });
+  Object.entries(acGroupMap).forEach(([key, lessons]) => {
+    const parts = key.split("|");
+    const studentId = parts[0];
+    const subjectId = parts.slice(1).join("|"); // re-join in case subjectId contained "|"
+    const pool = getPool(studentId, subjectId);
+    lessons.forEach((l, idx) => {
+      const pos = idx + 1; // 1-indexed, already in chronological order
+      if (pos <= ACADEMY_INCLUDED_PER_MONTH) {
+        effectiveTypeMap[l.id] = { type: "academy", slot: "included" };
+      } else if (pos - ACADEMY_INCLUDED_PER_MONTH <= pool) {
+        effectiveTypeMap[l.id] = { type: "academy", slot: "topup" };
+      } else {
+        effectiveTypeMap[l.id] = { type: "regular", slot: "overflow" };
+      }
+    });
+  });
+
   const lessonLines = lessonLogs.map(lb => {
     const st   = (data.students || []).find(s => s.id === lb.studentId);
     const sub  = (data.subjects || []).find(s => s.id === lb.subjectId);
     const baseType = getStudentLessonType(lb.studentId, data);
 
-    let effectiveType = baseType;
-    let academySlot = null; // "included" | "topup" | null
-
-    if (baseType === "academy") {
-      const key     = `${lb.studentId}|${lb.subjectId || ""}`;
-      const posArr  = positionMap[key] || [];
-      const pos     = posArr.indexOf(lb.id) + 1; // 1-indexed ordinal across all tutors this month
-      const pool    = getPool(lb.studentId, lb.subjectId || "");
-
-      if (pos <= ACADEMY_INCLUDED_PER_MONTH) {
-        effectiveType = "academy";
-        academySlot   = "included";
-      } else if (pos - ACADEMY_INCLUDED_PER_MONTH <= pool) {
-        effectiveType = "academy";
-        academySlot   = "topup";
-      } else {
-        effectiveType = "regular"; // Overflow — charged at regular rate
-        academySlot   = "overflow";
-      }
-    }
+    // Use pre-computed type if available (academy lessons); otherwise keep base type
+    const mapped      = effectiveTypeMap[lb.id];
+    const effectiveType = mapped ? mapped.type : baseType;
+    const academySlot   = mapped ? mapped.slot : null; // "included" | "topup" | "overflow" | null
 
     const year     = parseInt(lb.date.slice(0, 4));
     const rate     = getRateForYear(year, data.tutorRates);
