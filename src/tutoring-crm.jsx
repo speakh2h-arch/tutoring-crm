@@ -88,8 +88,8 @@ const INIT_SIBLINGS = [
 ];
 
 const INIT_TUTOR_NOTES = [
-  { id: "tn1", tutorId: "t1", type: "compliment", note: "Parent of Siyanda said Ayanda is excellent — very patient and clear.", date: "2025-04-15" },
-  { id: "tn2", tutorId: "t2", type: "complaint",  note: "Ruan was 15 minutes late to session on 3 May without notice.",        date: "2025-05-03" },
+  { id: "tn1", tutorId: "t1", type: "compliment", note: "Parent of Siyanda said Ayanda is excellent — very patient and clear.", date: "2025-04-15", source: "admin" },
+  { id: "tn2", tutorId: "t2", type: "complaint",  note: "Ruan was 15 minutes late to session on 3 May without notice.",        date: "2025-05-03", source: "admin" },
 ];
 
 const INIT_CENTRE_NOTES = [
@@ -216,7 +216,7 @@ const openReport = (title, html) => {
 const badge = (text, cls) => `<span class="badge ${cls}">${text}</span>`;
 const infoGrid = (items) => `<div class="info-grid">${items.map(([l,v]) => v ? `<div><div class="label">${l}</div><div class="value">${v}</div></div>` : "").join("")}</div>`;
 const notesList = (notes) => notes.length === 0 ? "<p>No notes yet.</p>" : [...notes].sort((a,b) => b.date.localeCompare(a.date)).map(n =>
-  `<div class="ni ${n.type}"><strong>${n.type.charAt(0).toUpperCase()+n.type.slice(1)}</strong> · ${fmtDate(n.date)}<div>${n.note}</div></div>`
+  `<div class="ni ${n.type}">${n.source === "parent" ? '<span style="background:#fef3c7;color:#92400e;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;margin-right:6px;">🔒 From Parent — Admin Only</span>' : ""}<strong>${n.type.charAt(0).toUpperCase()+n.type.slice(1)}</strong> · ${fmtDate(n.date)}<div>${n.note}</div></div>`
 ).join("");
 
 const buildStudentReport = (student, data) => {
@@ -1052,7 +1052,7 @@ function TutorDetailModal({ tutor, data, setData, onClose, onEdit }) {
 
   const addNote = () => {
     if (!noteForm.note) return;
-    setData(d => ({ ...d, tutorNotes: [...d.tutorNotes, { ...noteForm, id: "tn" + uid(), tutorId: tutor.id }] }));
+    setData(d => ({ ...d, tutorNotes: [...d.tutorNotes, { ...noteForm, id: "tn" + uid(), tutorId: tutor.id, source: "admin" }] }));
     setNoteForm({ type: "compliment", note: "", date: today() });
   };
   const removeNote = (id) => setData(d => ({ ...d, tutorNotes: d.tutorNotes.filter(n => n.id !== id) }));
@@ -1119,11 +1119,14 @@ function TutorDetailModal({ tutor, data, setData, onClose, onEdit }) {
         <div className="space-y-2 max-h-56 overflow-y-auto">
           {notes.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No notes yet.</p>}
           {[...notes].sort((a, b) => b.date.localeCompare(a.date)).map(n => (
-            <div key={n.id} className="flex items-start gap-3 p-3 border border-gray-200 rounded-xl">
+            <div key={n.id} className={`flex items-start gap-3 p-3 border rounded-xl ${n.source === "parent" ? "border-amber-200 bg-amber-50" : "border-gray-200"}`}>
               <div className="mt-0.5">{noteIcon[n.type]}</div>
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <Badge color={noteColor[n.type]}>{n.type}</Badge>
+                  {n.source === "parent" && (
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">🔒 From Parent — Admin Only</span>
+                  )}
                   <span className="text-xs text-gray-400">{fmtDate(n.date)}</span>
                 </div>
                 <p className="text-sm text-gray-700">{n.note}</p>
@@ -2857,7 +2860,7 @@ function StudentPortal({ student, data }) {
 
 function TutorPortal({ tutor, data }) {
   const myLinks    = data.links.filter(l => l.tutorId === tutor.id);
-  const myNotes    = data.tutorNotes.filter(n => n.tutorId === tutor.id);
+  const myNotes    = data.tutorNotes.filter(n => n.tutorId === tutor.id && n.source !== "parent");
   const mySubjects = data.subjects.filter(s => tutor.subjectIds.includes(s.id));
 
   return (
@@ -2929,7 +2932,7 @@ function TutorPortal({ tutor, data }) {
   );
 }
 
-function ParentPortal({ student, data }) {
+function ParentPortal({ student, data, setData }) {
   const myLinks      = data.links.filter(l => l.studentId === student.id);
   const myPurchases  = data.purchases.filter(p => p.studentId === student.id);
   const totalLessons = myPurchases.reduce((s, p) => s + p.quantity, 0);
@@ -2938,6 +2941,33 @@ function ParentPortal({ student, data }) {
   const siblingLinks = data.siblings.filter(s => s.studentId1 === student.id || s.studentId2 === student.id);
   const siblingIds   = siblingLinks.flatMap(s => [s.studentId1, s.studentId2]).filter(id => id !== student.id);
   const siblings     = data.students.filter(s => siblingIds.includes(s.id));
+
+  // Feedback form state
+  const [fbTutorId, setFbTutorId]   = useState("");
+  const [fbType, setFbType]         = useState("compliment");
+  const [fbNote, setFbNote]         = useState("");
+  const [fbSent, setFbSent]         = useState(false);
+
+  const myTutorIds = [...new Set(myLinks.map(l => l.tutorId))];
+  const myTutors   = myTutorIds.map(tid => data.tutors.find(t => t.id === tid)).filter(Boolean);
+
+  const submitFeedback = () => {
+    if (!fbTutorId || !fbNote.trim()) return;
+    setData(d => ({
+      ...d,
+      tutorNotes: [...d.tutorNotes, {
+        id:        "tn" + uid(),
+        tutorId:   fbTutorId,
+        studentId: student.id,
+        type:      fbType,
+        note:      fbNote.trim(),
+        date:      today(),
+        source:    "parent",
+      }],
+    }));
+    setFbNote(""); setFbTutorId(""); setFbSent(true);
+    setTimeout(() => setFbSent(false), 4000);
+  };
 
   return (
     <div className="space-y-6">
@@ -3012,6 +3042,58 @@ function ParentPortal({ student, data }) {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Tutor feedback — sent privately to admin only, never shown to tutor */}
+      {myTutors.length > 0 && setData && (
+        <div className="bg-white rounded-xl border border-gray-100 p-5">
+          <h2 className="text-base font-semibold text-gray-800 mb-1">Leave Feedback about a Tutor</h2>
+          <p className="text-xs text-gray-400 mb-4">Your feedback is sent privately to the Learn to Link team. Tutors cannot see this.</p>
+
+          {fbSent && (
+            <div className="mb-4 px-4 py-3 rounded-xl text-sm font-medium" style={{ background: B.tealLight, color: B.tealDark }}>
+              ✓ Thank you — your feedback has been received by the Learn to Link team.
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Tutor</label>
+              <select value={fbTutorId} onChange={e => setFbTutorId(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:outline-none">
+                <option value="">— select tutor —</option>
+                {myTutors.map(t => <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Feedback type</label>
+              <div className="flex gap-2">
+                {["compliment","complaint"].map(type => (
+                  <button key={type} onClick={() => setFbType(type)}
+                    className="flex-1 py-2 rounded-xl text-xs font-semibold capitalize border-2 transition-colors"
+                    style={{
+                      borderColor: fbType === type ? (type === "compliment" ? B.teal : B.coral) : "#e5e7eb",
+                      background:  fbType === type ? (type === "compliment" ? B.tealLight : B.coralLight) : "white",
+                      color:       fbType === type ? (type === "compliment" ? B.tealDark : B.coralDark) : "#6b7280",
+                    }}>
+                    {type === "compliment" ? "👍 Compliment" : "⚠ Complaint"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">Your message</label>
+              <textarea rows={3} value={fbNote} onChange={e => setFbNote(e.target.value)}
+                placeholder="Describe your experience…"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:outline-none resize-none" />
+            </div>
+            <button onClick={submitFeedback} disabled={!fbTutorId || !fbNote.trim()}
+              className="w-full py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
+              style={{ background: `linear-gradient(135deg, ${B.tealDark} 0%, ${B.coral} 100%)` }}>
+              Send Feedback Privately
+            </button>
           </div>
         </div>
       )}
@@ -3193,7 +3275,7 @@ export default function App() {
         students:   data.students.filter(s => myStudentIds.includes(s.id)),
         links:      myLinks,
         tutors:     data.tutors.filter(t => t.id === id),
-        tutorNotes: data.tutorNotes.filter(n => n.tutorId === id),
+        tutorNotes: data.tutorNotes.filter(n => n.tutorId === id && n.source !== "parent"),
         purchases:  data.purchases.filter(p => myStudentIds.includes(p.studentId)),
         enrolments: data.enrolments.filter(e => myStudentIds.includes(e.studentId)),
         progress:   data.progress.filter(p => myStudentIds.includes(p.studentId)),
@@ -3259,10 +3341,10 @@ export default function App() {
     const { role, id } = activeOpt;
     if (role === "tutor")   { const t = data.tutors.find(x => x.id === id);   return t ? <TutorPortal   tutor={t}    data={filteredData} /> : null; }
     if (role === "student") { const s = data.students.find(x => x.id === id); return s ? <StudentPortal student={s} data={filteredData} /> : null; }
-    if (role === "parent")  { const s = data.students.find(x => x.id === id); return s ? <ParentPortal  student={s} data={filteredData} /> : null; }
+    if (role === "parent")  { const s = data.students.find(x => x.id === id); return s ? <ParentPortal  student={s} data={filteredData} setData={setData} /> : null; }
     if (role === "centre")  { const c = data.centres.find(x => x.id === id);  return c ? <CentrePortal  centre={c}  data={filteredData} /> : null; }
     return null;
-  }, [activeOpt, filteredData, data]);
+  }, [activeOpt, filteredData, data, setData]);
 
   // All pages use filteredData so each role only sees their own data
   const pages = {
