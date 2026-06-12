@@ -228,6 +228,7 @@ const INIT_CLAIM_TYPES = ["Workshop", "Marking", "Travel Allowance", "Materials"
 // Academy top-up purchases — non-expiring extra lesson slots per student per subject
 // Each record: { id, studentId, subjectId, quantity, purchasedDate, note }
 const INIT_ACADEMY_TOPUPS = [];
+const INIT_CANCELLATION_QUERIES = []; // { id, logId, studentId, parentNote, date, adminResponse, resolved }
 
 // Number of included academy lessons per subject per month (admin-configurable in future)
 const ACADEMY_INCLUDED_PER_MONTH = 2;
@@ -316,7 +317,7 @@ const buildTutorInvoice = (tutorId, month, data) => {
   // Invoice period: 26th of previous calendar month → 25th of invoice month
   const { start, end } = invoicePeriod(month);
   const lessonLogs = (data.logbook || [])
-    .filter(l => l.tutorId === tutorId && l.date >= start && l.date <= end && l.attended)
+    .filter(l => l.tutorId === tutorId && l.date >= start && l.date <= end && (l.attended || l.status === "cancelled_charged"))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   // Cache top-up pools (computed once per student+subject)
@@ -333,7 +334,7 @@ const buildTutorInvoice = (tutorId, month, data) => {
   const effectiveTypeMap = {}; // lessonId → { type, slot }
   // Load ALL attended lessons in the invoice period (across all tutors) for accurate position counts
   const allPeriodLogs = (data.logbook || [])
-    .filter(l => l.date >= start && l.date <= end && l.attended)
+    .filter(l => l.date >= start && l.date <= end && (l.attended || l.status === "cancelled_charged"))
     .sort((a, b) => a.date.localeCompare(b.date) || String(a.id).localeCompare(String(b.id)));
 
   // Group by student + subject + CALENDAR MONTH — the 2-lesson limit resets each calendar month
@@ -416,9 +417,10 @@ const buildTutorInvoiceHTML = (tutor, inv, month) => {
 
   // One row per student+subject+rate-type combination
   const studentRows = studentGroups.map((g, i) => {
-    const typeLabel = g.lessonType === "academy"
+    const baseTypeLabel = g.lessonType === "academy"
       ? (g.academySlot === "topup" ? "Academy · Top-up" : "Academy · Included")
       : g.lessonType === "centre" ? "Centre" : "Regular";
+    const typeLabel = g.isCancelled ? `${baseTypeLabel} (Cancelled)` : baseTypeLabel;
     const rateLabel = `R${(g.baseRate||0).toFixed(0)}/hr`;
     return `<tr style="background:${i%2===0?"#fff":"#f9fafb"}">
       <td style="padding:7px 8px">
@@ -510,8 +512,9 @@ const printInvoiceWindow = (bodyContent, title) => {
 const groupLessonsByStudent = (lessonLines) => {
   const map = {};
   lessonLines.forEach(l => {
-    // Key on studentId + subjectId + lessonType so different rates split into separate rows
-    const key = `${l.studentId}|${l.subjectId||""}|${l.lessonType}`;
+    // Key on studentId + subjectId + lessonType; cancelled_charged split to own row
+    const cancelSuffix = l.status === "cancelled_charged" ? "|cancelled" : "";
+    const key = `${l.studentId}|${l.subjectId||""}|${l.lessonType}${cancelSuffix}`;
     if (!map[key]) map[key] = {
       studentId:    l.studentId,
       studentName:  l.studentName,
@@ -519,6 +522,7 @@ const groupLessonsByStudent = (lessonLines) => {
       subjectLabel: l.subjectLabel || "—",
       lessonType:   l.lessonType,
       academySlot:  l.academySlot,
+      isCancelled:  l.status === "cancelled_charged",
       lines: [],
     };
     map[key].lines.push(l);
@@ -3243,6 +3247,160 @@ function ReportsPage({ data }) {
   );
 }
 
+// ─── PAGE: CANCELLATION QUERIES ───────────────────────────────────────────────
+
+function CancellationQueriesPage({ data, setData }) {
+  const [responseText, setResponseText] = useState({});
+  const [filter, setFilter]             = useState("open"); // "open" | "resolved" | "all"
+
+  const queries = (data.cancellationQueries || []).slice().sort((a, b) => b.date.localeCompare(a.date));
+  const openCount     = queries.filter(q => !q.resolved).length;
+  const resolvedCount = queries.filter(q => q.resolved).length;
+
+  const visible = queries.filter(q =>
+    filter === "all"      ? true :
+    filter === "open"     ? !q.resolved :
+                            q.resolved
+  );
+
+  const submitResponse = (qId) => {
+    const resp = (responseText[qId] || "").trim();
+    if (!resp) return;
+    setData(d => ({
+      ...d,
+      cancellationQueries: (d.cancellationQueries || []).map(q =>
+        q.id === qId ? { ...q, adminResponse: resp, resolved: true } : q
+      ),
+    }));
+    setResponseText(t => ({ ...t, [qId]: "" }));
+  };
+
+  const reopenQuery = (qId) => {
+    setData(d => ({
+      ...d,
+      cancellationQueries: (d.cancellationQueries || []).map(q =>
+        q.id === qId ? { ...q, resolved: false } : q
+      ),
+    }));
+  };
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Cancellation Queries</h1>
+        <p className="text-sm text-gray-500 mt-0.5">
+          {openCount} open · {resolvedCount} resolved
+        </p>
+      </div>
+
+      {/* Policy reminder */}
+      <div className="p-4 rounded-xl border border-amber-200 bg-amber-50">
+        <p className="text-sm font-semibold text-amber-800">Cancellation Policy</p>
+        <p className="text-xs text-amber-700 mt-1">
+          <strong>24 hours notice</strong> is required for any planned missed lesson. Tutors may charge for late cancellations at their discretion. Review parent queries below and respond with your decision.
+        </p>
+      </div>
+
+      {/* Filter */}
+      <div className="flex gap-2">
+        {[["open","Open"],["resolved","Resolved"],["all","All"]].map(([val, label]) => (
+          <button key={val} onClick={() => setFilter(val)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${filter === val ? "border-indigo-300 bg-indigo-50 text-indigo-700" : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"}`}>
+            {label}
+            {val === "open" && openCount > 0 && (
+              <span className="ml-1.5 bg-amber-500 text-white text-xs rounded-full px-1.5 py-0.5">{openCount}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {visible.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400 text-sm">
+          {filter === "open" ? "No open queries — you're all caught up! 🎉" : "No queries to show."}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {visible.map(q => {
+            const log     = (data.logbook || []).find(l => l.id === q.logId);
+            const student = data.students.find(s => s.id === q.studentId);
+            const tutor   = log ? data.tutors.find(t => t.id === log.tutorId) : null;
+            const subject = log ? data.subjects.find(s => s.id === log.subjectId) : null;
+            return (
+              <div key={q.id} className={`bg-white rounded-xl border overflow-hidden ${q.resolved ? "border-gray-100" : "border-amber-200"}`}>
+                {/* Header */}
+                <div className={`px-5 py-3 border-b flex items-center justify-between gap-3 ${q.resolved ? "bg-gray-50 border-gray-100" : "bg-amber-50 border-amber-100"}`}>
+                  <div className="flex items-center gap-3 flex-wrap min-w-0">
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${q.resolved ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
+                      {q.resolved ? "✓ Resolved" : "Open"}
+                    </span>
+                    <span className="text-sm font-semibold text-gray-800 truncate">
+                      {student ? `${student.firstName} ${student.lastName}` : "Unknown student"}
+                    </span>
+                    {log && <span className="text-xs text-gray-500">Lesson on {fmtDate(log.date)}</span>}
+                    {subject && <span className="text-xs text-gray-400">{subject.name}</span>}
+                    {tutor && <span className="text-xs text-gray-400">with {tutor.firstName} {tutor.lastName}</span>}
+                  </div>
+                  <span className="text-xs text-gray-400 shrink-0">Query raised {fmtDate(q.date)}</span>
+                </div>
+
+                <div className="px-5 py-4 space-y-3">
+                  {/* Lesson cancellation reason */}
+                  {log?.cancellationReason && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 mb-0.5">Tutor's cancellation reason:</p>
+                      <p className="text-sm text-gray-700 italic">"{log.cancellationReason}"</p>
+                    </div>
+                  )}
+
+                  {/* Parent's query */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 mb-0.5">Parent's query:</p>
+                    <p className="text-sm text-gray-700">{q.parentNote}</p>
+                  </div>
+
+                  {/* Existing admin response */}
+                  {q.adminResponse && (
+                    <div className="p-3 rounded-lg bg-teal-50 border border-teal-100">
+                      <p className="text-xs font-semibold text-teal-700 mb-0.5">Your response:</p>
+                      <p className="text-sm text-teal-800">{q.adminResponse}</p>
+                    </div>
+                  )}
+
+                  {/* Response form (only if open) */}
+                  {!q.resolved && (
+                    <div className="pt-1">
+                      <textarea rows={3}
+                        value={responseText[q.id] || ""}
+                        onChange={e => setResponseText(t => ({ ...t, [q.id]: e.target.value }))}
+                        placeholder="Type your response to the parent… (e.g. 'After reviewing the logs, the charge has been waived.' or 'The cancellation policy applies in this case.')"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:outline-none resize-none mb-2"
+                      />
+                      <button onClick={() => submitResponse(q.id)}
+                        disabled={!(responseText[q.id] || "").trim()}
+                        className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
+                        style={{ background: `linear-gradient(135deg, ${B.tealDark} 0%, ${B.coral} 100%)` }}>
+                        Send Response & Resolve
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Reopen option */}
+                  {q.resolved && (
+                    <button onClick={() => reopenQuery(q.id)}
+                      className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors">
+                      Reopen query
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── APP ──────────────────────────────────────────────────────────────────────
 
 const NAV = [
@@ -3256,7 +3414,8 @@ const NAV = [
   { id: "stats",      label: "Stats",       icon: BarChart2       },
   { id: "reports",    label: "Reports",     icon: FileText        },
   { id: "settings",   label: "Settings",    icon: SettingsIcon    },
-  { id: "academy",    label: "Academy",     icon: BookOpen, divider: true },
+  { id: "academy",      label: "Academy",            icon: BookOpen,     divider: true },
+  { id: "cancellations", label: "Cancellation Queries", icon: AlertCircle },
 ];
 
 // ─── USERS ────────────────────────────────────────────────────────────────────
@@ -3350,7 +3509,7 @@ function StudentPortal({ student, data, setData }) {
   // Academy lessons are separate from the regular lesson pack — only regular-tagged
   // lessons (or all lessons for non-academy students) count against purchased credits.
   const totalUsed    = (data.logbook||[]).filter(l =>
-    l.studentId===student.id && l.attended &&
+    l.studentId===student.id && (l.attended || l.status === "cancelled_charged") &&
     (!isAcademySt || l.lessonCategory === "regular")
   ).length;
   const totalLessons = Math.max(0, totalBought - totalUsed);
@@ -3523,7 +3682,7 @@ function TutorPortal({ tutor, data, setData }) {
   const [tutorPage,    setTutorPage]    = useState("dashboard");
   const [selStudentId, setSelStudentId] = useState(null);
   const [studentTab,   setStudentTab]   = useState("info");
-  const [lbForm,  setLbForm]  = useState({ subjectId:"", duration:60, topicsCovered:"", homework:"", notes:"", attended:true, lessonCategory:"" });
+  const [lbForm,  setLbForm]  = useState({ subjectId:"", duration:60, topicsCovered:"", homework:"", notes:"", attended:true, lessonCategory:"", status:"attended", cancellationReason:"" });
   const [academyLimitError, setAcademyLimitError] = useState(null);
   const [slForm,  setSlForm]  = useState({ subjectId:"", date:today(), time:"14:00", link:"", notes:"" });
   const [qsForm,  setQsForm]  = useState({ studentId:"", subjectId:"", date:today(), time:"14:00", link:"", notes:"" });
@@ -3550,7 +3709,7 @@ function TutorPortal({ tutor, data, setData }) {
     // Only lessons explicitly logged as "regular" count against purchased pack credits.
     // Legacy entries (no lessonCategory) for academy students are treated as academy lessons.
     const used = (data.logbook||[]).filter(l =>
-      l.studentId===sid && l.attended &&
+      l.studentId===sid && (l.attended || l.status === "cancelled_charged") &&
       (!isAcademySt || l.lessonCategory === "regular")
     ).length;
     return Math.max(0, bought - used);
@@ -3568,15 +3727,24 @@ function TutorPortal({ tutor, data, setData }) {
   const myNotes     = (data.tutorNotes||[]).filter(n=>n.tutorId===tutor.id&&n.source==="admin"&&n.type!=="complaint");
 
   const addLog = () => {
-    if (!lbForm.subjectId||!lbForm.topicsCovered.trim()) return;
-    // Academy restriction: only applies when tutor is an academy tutor AND explicitly chose "Academy"
-    if (lbForm.attended && tutor.isAcademyTutor && lbForm.lessonCategory === "academy") {
+    if (!lbForm.subjectId) return;
+    const isCancelled = lbForm.status === "cancelled_charged" || lbForm.status === "cancelled_free";
+    // Topics required for attended lessons; reason required for cancellations
+    if (!isCancelled && !lbForm.topicsCovered.trim()) return;
+    if (isCancelled && !lbForm.cancellationReason.trim()) return;
+
+    // Derive the legacy `attended` boolean from status for backward compatibility
+    const attended = lbForm.status === "attended";
+
+    // Academy quota check: attended academy lessons AND charged cancellations count against quota
+    const countsAgainstAcademy = (attended || lbForm.status === "cancelled_charged") && tutor.isAcademyTutor && lbForm.lessonCategory === "academy";
+    if (countsAgainstAcademy) {
       const calMonth = today().slice(0, 7);
-      // Only count other academy-tagged logs against the quota (not regular lessons)
       const alreadyThisMonth = (data.logbook || []).filter(
         l => l.studentId === selStudentId && l.subjectId === lbForm.subjectId &&
-             l.attended && l.date.slice(0, 7) === calMonth &&
-             (l.lessonCategory === "academy" || !l.lessonCategory) // legacy entries without tag count as academy
+             l.date.slice(0, 7) === calMonth &&
+             (l.attended || l.status === "cancelled_charged") &&
+             (l.lessonCategory === "academy" || !l.lessonCategory)
       ).length;
       const pool = getTopupPoolAtMonth(selStudentId, lbForm.subjectId, calMonth, data);
       const quota = ACADEMY_INCLUDED_PER_MONTH + pool;
@@ -3593,11 +3761,11 @@ function TutorPortal({ tutor, data, setData }) {
     const sType = getStudentLessonType(selStudentId, data);
     setData(d=>({...d, logbook:[...(d.logbook||[]),{
       ...lbForm, id:"lb"+uid(), tutorId:tutor.id, studentId:selStudentId,
-      date:today(), duration:Number(lbForm.duration),
+      date:today(), duration:Number(lbForm.duration), attended,
     }]}));
-    // Keep the same lesson category default for next log (tutor likely logging same type again)
     setLbForm({subjectId:"",duration:60,topicsCovered:"",homework:"",notes:"",attended:true,
-      lessonCategory: sType==="academy" ? lbForm.lessonCategory : ""});
+      lessonCategory: sType==="academy" ? lbForm.lessonCategory : "",
+      status:"attended", cancellationReason:""});
   };
   const sendMsg = () => {
     if (!msgText.trim()) return;
@@ -3978,6 +4146,31 @@ function TutorPortal({ tutor, data, setData }) {
                           </div>
                         </div>
                       )}
+                      {/* Session status — replaces the old Attended checkbox */}
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1.5 font-medium">Session Status</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { val:"attended",           label:"✅ Attended",            desc:"Lesson took place",                   bg:"bg-green-50",  border:"border-green-400",  text:"text-green-700" },
+                            { val:"cancelled_charged",  label:"⚠️ Cancelled (Charged)", desc:"Late cancellation — tutor charges",    bg:"bg-amber-50",  border:"border-amber-400",  text:"text-amber-700" },
+                            { val:"cancelled_free",     label:"🙌 Cancelled (Free)",    desc:"Legitimate reason — no charge",        bg:"bg-gray-50",   border:"border-gray-400",   text:"text-gray-700" },
+                          ].map(opt=>(
+                            <button key={opt.val}
+                              onClick={()=>setLbForm(f=>({...f, status:opt.val, cancellationReason:"", topicsCovered: opt.val!=="attended" ? "" : f.topicsCovered}))}
+                              className={`px-2 py-2 rounded-lg border-2 text-left transition-all ${lbForm.status===opt.val ? `${opt.border} ${opt.bg}` : "border-gray-200 bg-white hover:border-gray-300"}`}>
+                              <p className={`text-xs font-semibold ${lbForm.status===opt.val ? opt.text : "text-gray-600"}`}>{opt.label}</p>
+                              <p className="text-xs text-gray-400 mt-0.5 leading-tight">{opt.desc}</p>
+                            </button>
+                          ))}
+                        </div>
+                        {/* Cancellation policy reminder */}
+                        {(lbForm.status==="cancelled_charged"||lbForm.status==="cancelled_free") && (
+                          <div className="mt-2 flex items-start gap-2 px-3 py-2 bg-blue-50 border border-blue-100 rounded-lg">
+                            <span className="text-blue-500 text-xs mt-0.5">ℹ️</span>
+                            <p className="text-xs text-blue-600"><strong>Cancellation policy:</strong> 24 hours notice is required to cancel a planned lesson without charge. Late cancellations (under 24 hrs) are charged at the full lesson rate.</p>
+                          </div>
+                        )}
+                      </div>
                       <div className="flex gap-2 flex-wrap">
                         <select value={lbForm.subjectId} onChange={e=>{setLbForm(f=>({...f,subjectId:e.target.value}));setAcademyLimitError(null);}}
                           className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none bg-white">
@@ -3986,17 +4179,22 @@ function TutorPortal({ tutor, data, setData }) {
                         </select>
                         <input type="number" value={lbForm.duration} onChange={e=>setLbForm(f=>({...f,duration:e.target.value}))}
                           className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none w-24" min="15" step="15" placeholder="Mins"/>
-                        <label className="flex items-center gap-1.5 text-xs text-gray-600 cursor-pointer ml-auto">
-                          <input type="checkbox" checked={lbForm.attended} onChange={e=>setLbForm(f=>({...f,attended:e.target.checked}))} className="rounded"/>
-                          Attended
-                        </label>
                       </div>
-                      <textarea rows={2} value={lbForm.topicsCovered} onChange={e=>setLbForm(f=>({...f,topicsCovered:e.target.value}))}
-                        placeholder="Topics covered in this session *" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"/>
-                      <input value={lbForm.homework} onChange={e=>setLbForm(f=>({...f,homework:e.target.value}))}
-                        placeholder="Homework / tasks set for next session" className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none"/>
-                      <textarea rows={2} value={lbForm.notes} onChange={e=>setLbForm(f=>({...f,notes:e.target.value}))}
-                        placeholder="Private tutor notes / observations…" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"/>
+                      {/* Cancellation reason — required for any cancelled status */}
+                      {(lbForm.status==="cancelled_charged"||lbForm.status==="cancelled_free") && (
+                        <textarea rows={2} value={lbForm.cancellationReason} onChange={e=>setLbForm(f=>({...f,cancellationReason:e.target.value}))}
+                          placeholder={lbForm.status==="cancelled_charged" ? "Reason for late cancellation (required) — e.g. 'Student cancelled 2 hrs before session'" : "Reason for cancellation (required) — e.g. 'Student was ill with doctor's note'"}
+                          className="w-full border border-amber-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none bg-amber-50"/>
+                      )}
+                      {/* Topics / homework / notes — only for attended lessons */}
+                      {lbForm.status==="attended" && (<>
+                        <textarea rows={2} value={lbForm.topicsCovered} onChange={e=>setLbForm(f=>({...f,topicsCovered:e.target.value}))}
+                          placeholder="Topics covered in this session *" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"/>
+                        <input value={lbForm.homework} onChange={e=>setLbForm(f=>({...f,homework:e.target.value}))}
+                          placeholder="Homework / tasks set for next session" className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none"/>
+                        <textarea rows={2} value={lbForm.notes} onChange={e=>setLbForm(f=>({...f,notes:e.target.value}))}
+                          placeholder="Private tutor notes / observations…" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"/>
+                      </>)}
                       {/* Academy quota status indicator — only when logging an academy lesson as an academy tutor */}
                       {(() => {
                         if (!lbForm.subjectId || !selStudentId) return null;
@@ -4033,10 +4231,15 @@ function TutorPortal({ tutor, data, setData }) {
                           <button onClick={()=>setAcademyLimitError(null)} className="text-red-400 hover:text-red-600 text-xs font-bold">✕</button>
                         </div>
                       )}
-                      <button onClick={addLog} disabled={!lbForm.subjectId||!lbForm.topicsCovered.trim()}
+                      <button onClick={addLog}
+                        disabled={
+                          !lbForm.subjectId ||
+                          (lbForm.status==="attended" && !lbForm.topicsCovered.trim()) ||
+                          ((lbForm.status==="cancelled_charged"||lbForm.status==="cancelled_free") && !lbForm.cancellationReason.trim())
+                        }
                         className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold text-white disabled:opacity-40"
-                        style={{background:B.tealDark}}>
-                        <Plus size={14}/> Add to Logbook
+                        style={{background: lbForm.status==="cancelled_charged"?"#d97706": lbForm.status==="cancelled_free"?"#6b7280":B.tealDark}}>
+                        <Plus size={14}/> {lbForm.status==="attended" ? "Add to Logbook" : "Log Cancellation"}
                       </button>
                     </div>
                   </div>
@@ -4050,26 +4253,38 @@ function TutorPortal({ tutor, data, setData }) {
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Session Log ({studentLog.length})</p>
                       </div>
                       <div className="divide-y divide-gray-50">
-                        {studentLog.map(lb=>(
-                          <div key={lb.id} className="flex items-start gap-3 px-4 py-3">
+                        {studentLog.map(lb=>{
+                          const isCancelCharged = lb.status==="cancelled_charged";
+                          const isCancelFree    = lb.status==="cancelled_free";
+                          const isCancelled     = isCancelCharged || isCancelFree;
+                          const iconBg = isCancelCharged?"#fef3c7": isCancelFree?"#f3f4f6": lb.attended?B.tealLight:"#fee2e2";
+                          const iconColor = isCancelCharged?"#d97706": isCancelFree?"#6b7280": lb.attended?B.tealDark:"#dc2626";
+                          return (
+                          <div key={lb.id} className={`flex items-start gap-3 px-4 py-3 ${isCancelled?"bg-gray-50":""}`}>
                             <div className="mt-0.5 w-7 h-7 rounded-full flex items-center justify-center shrink-0"
-                              style={{background:lb.attended?B.tealLight:"#fee2e2"}}>
-                              <BookMarked size={13} style={{color:lb.attended?B.tealDark:"#dc2626"}}/>
+                              style={{background:iconBg}}>
+                              <BookMarked size={13} style={{color:iconColor}}/>
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
                                   style={{background:B.tealLight,color:B.tealDark}}>{subjectName(lb.subjectId)}</span>
-                                {!lb.attended && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600">Absent</span>}
+                                {isCancelCharged && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700">Cancelled — Charged</span>}
+                                {isCancelFree    && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Cancelled — Not Charged</span>}
+                                {!isCancelled && !lb.attended && <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600">Absent</span>}
                                 {lb.tutorId!==tutor.id && <span className="text-xs text-gray-400">· {tutorName(lb.tutorId)}</span>}
                                 <span className="text-xs text-gray-400 ml-auto">{fmtDate(lb.date)} · {lb.duration} min</span>
                               </div>
-                              <p className="text-sm text-gray-700">{lb.topicsCovered}</p>
+                              {isCancelled && lb.cancellationReason && (
+                                <p className="text-xs text-gray-500 italic">📋 Reason: {lb.cancellationReason}</p>
+                              )}
+                              {!isCancelled && lb.topicsCovered && <p className="text-sm text-gray-700">{lb.topicsCovered}</p>}
                               {lb.homework && <p className="text-xs text-gray-500 mt-1">📚 Homework: {lb.homework}</p>}
                               {lb.notes && <p className="text-xs text-gray-400 italic mt-0.5">{lb.notes}</p>}
                             </div>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -4456,9 +4671,10 @@ function TutorPortal({ tutor, data, setData }) {
                     )}
                     {groups.map((g, gi) => {
                       const isOverflow = g.lessonType === "regular" && g.academySlot === "overflow";
-                      const typeLabel = g.lessonType === "academy"
+                      const baseTypeLabel2 = g.lessonType === "academy"
                         ? (g.academySlot === "topup" ? "Academy · Top-up" : "Academy · Included")
                         : g.lessonType === "centre" ? "Centre" : isOverflow ? "Regular (Top-Up)" : "Regular";
+                      const typeLabel = g.isCancelled ? `${baseTypeLabel2} (Cancelled)` : baseTypeLabel2;
                       const dotStyle = isOverflow
                         ? { background: "#fef3c7" } : g.lessonType === "academy"
                         ? { background: B.coralLight } : { background: B.tealLight };
@@ -4637,6 +4853,11 @@ function ParentPortal({ student, data, setData }) {
   const [fbNote, setFbNote]         = useState("");
   const [fbSent, setFbSent]         = useState(false);
 
+  // Cancellation query state
+  const [cqLogId, setCqLogId]       = useState(null); // null = no modal open
+  const [cqNote, setCqNote]         = useState("");
+  const [cqSent, setCqSent]         = useState(null); // logId of last sent query
+
   const myTutorIds = [...new Set(myLinks.map(l => l.tutorId))];
   const myTutors   = myTutorIds.map(tid => data.tutors.find(t => t.id === tid)).filter(Boolean);
 
@@ -4812,6 +5033,130 @@ function ParentPortal({ student, data, setData }) {
                 </div>
               ))}
             </div>
+          </div>
+        );
+      })()}
+
+      {/* Cancellation Policy Notice + Charged Cancellations */}
+      {(()=>{
+        const chargedCancels = (data.logbook||[])
+          .filter(l => l.studentId === student.id && l.status === "cancelled_charged")
+          .sort((a,b) => b.date.localeCompare(a.date));
+
+        const submitQuery = () => {
+          if (!cqNote.trim() || !cqLogId) return;
+          setData(d => ({
+            ...d,
+            cancellationQueries: [...(d.cancellationQueries||[]), {
+              id:          "cq" + uid(),
+              logId:       cqLogId,
+              studentId:   student.id,
+              parentNote:  cqNote.trim(),
+              date:        today(),
+              adminResponse: null,
+              resolved:    false,
+            }],
+          }));
+          setCqSent(cqLogId);
+          setCqLogId(null);
+          setCqNote("");
+          setTimeout(() => setCqSent(null), 5000);
+        };
+
+        const myQueries = (data.cancellationQueries||[]).filter(q => q.studentId === student.id);
+
+        return (
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 bg-amber-50">
+              <h2 className="text-base font-semibold text-amber-800">Cancellation Policy 📋</h2>
+              <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                <strong>24 hours notice</strong> is required for any planned missed lesson. Cancellations made with less than 24 hours' notice may be charged at the tutor's discretion. If you believe a charged cancellation was applied unfairly, you can raise a query with our admin team below.
+              </p>
+            </div>
+
+            {chargedCancels.length === 0 ? (
+              <div className="px-5 py-4 text-sm text-gray-400">No charged cancellations on record.</div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {chargedCancels.map(l => {
+                  const tutor   = data.tutors.find(t => t.id === l.tutorId);
+                  const subject = data.subjects.find(s => s.id === l.subjectId);
+                  const existingQuery = myQueries.find(q => q.logId === l.id);
+                  const justSent = cqSent === l.id;
+                  return (
+                    <div key={l.id} className="px-5 py-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-semibold text-gray-800">{fmtDate(l.date)}</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Charged</span>
+                            {subject && <span className="text-xs text-gray-500">{subject.name}</span>}
+                            {tutor && <span className="text-xs text-gray-400">with {tutor.firstName} {tutor.lastName}</span>}
+                          </div>
+                          {l.cancellationReason && (
+                            <p className="text-xs text-gray-500 mt-1">Reason logged: <em>{l.cancellationReason}</em></p>
+                          )}
+                          {existingQuery && (
+                            <div className="mt-2 p-2.5 rounded-lg bg-gray-50 border border-gray-200">
+                              <p className="text-xs font-semibold text-gray-600">Your query:</p>
+                              <p className="text-xs text-gray-600 mt-0.5">{existingQuery.parentNote}</p>
+                              {existingQuery.adminResponse ? (
+                                <>
+                                  <p className="text-xs font-semibold text-teal-700 mt-2">Admin response:</p>
+                                  <p className="text-xs text-teal-700 mt-0.5">{existingQuery.adminResponse}</p>
+                                  {existingQuery.resolved && (
+                                    <span className="text-xs text-green-600 font-medium mt-1 block">✓ Resolved</span>
+                                  )}
+                                </>
+                              ) : (
+                                <p className="text-xs text-gray-400 mt-1.5 italic">Awaiting admin response…</p>
+                              )}
+                            </div>
+                          )}
+                          {justSent && !existingQuery && (
+                            <p className="text-xs text-teal-600 font-medium mt-1.5">✓ Query submitted — admin will review shortly.</p>
+                          )}
+                        </div>
+                        {!existingQuery && !justSent && setData && (
+                          <button onClick={() => { setCqLogId(l.id); setCqNote(""); }}
+                            className="shrink-0 text-xs px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors font-medium">
+                            Query this
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Query modal */}
+            {cqLogId && (()=>{
+              const l = chargedCancels.find(x => x.id === cqLogId);
+              if (!l) return null;
+              return (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+                  <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+                    <h3 className="text-base font-bold text-gray-800 mb-1">Query Charged Cancellation</h3>
+                    <p className="text-xs text-gray-400 mb-4">Lesson on <strong>{fmtDate(l.date)}</strong>. Describe why you believe this charge is incorrect — admin will review and respond.</p>
+                    <textarea rows={4} value={cqNote} onChange={e => setCqNote(e.target.value)}
+                      placeholder="e.g. I gave more than 24 hours notice via WhatsApp on the morning of the 10th…"
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:outline-none resize-none mb-4"/>
+                    <div className="flex gap-3">
+                      <button onClick={() => { setCqLogId(null); setCqNote(""); }}
+                        className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                        Cancel
+                      </button>
+                      <button onClick={submitQuery} disabled={!cqNote.trim()}
+                        className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
+                        style={{ background: `linear-gradient(135deg, ${B.tealDark} 0%, ${B.coral} 100%)` }}>
+                        Submit Query
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         );
       })()}
@@ -5175,10 +5520,11 @@ function PayrollPage({ data, setData }) {
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                   {groups.map((g, i) => {
-                                    const typeLabel = g.lessonType === "academy"
+                                    const isOverflow = g.lessonType === "regular" && g.academySlot === "overflow";
+                                    const baseTypeLabel3 = g.lessonType === "academy"
                                       ? (g.academySlot === "topup" ? "Academy · Top-up" : "Academy · Included")
                                       : g.lessonType === "centre" ? "Centre" : "Regular";
-                                    const isOverflow = g.lessonType === "regular" && g.academySlot === "overflow";
+                                    const typeLabel = g.isCancelled ? `${baseTypeLabel3} (Cancelled)` : baseTypeLabel3;
                                     const typeBg = g.lessonType === "academy"
                                       ? { background: B.coralLight, color: B.coralDark }
                                       : g.lessonType === "centre"
@@ -5459,7 +5805,8 @@ export default function App() {
     tutorClaims:         INIT_TUTOR_CLAIMS,
     invoiceStatus:       INIT_INVOICE_STATUS,
     claimTypes:          INIT_CLAIM_TYPES,
-    academyTopups:       INIT_ACADEMY_TOPUPS,
+    academyTopups:            INIT_ACADEMY_TOPUPS,
+    cancellationQueries:      INIT_CANCELLATION_QUERIES,
   });
 
   const roleOptions = useMemo(() => buildRoleOptions(data), [data]);
@@ -5494,6 +5841,7 @@ export default function App() {
         invoiceStatus:      (data.invoiceStatus || []).filter(s => s.tutorId === id),
         claimTypes:         data.claimTypes || INIT_CLAIM_TYPES,
         academyTopups:      data.academyTopups || [],
+        cancellationQueries: (data.cancellationQueries || []).filter(q => myStudentIds.includes(q.studentId)),
       };
     }
 
@@ -5531,7 +5879,8 @@ export default function App() {
         // Tutor-to-parent notes: parents CAN see these, students cannot
         tutorStudentNotes: data.tutorStudentNotes.filter(n => n.studentId === id),
         studentReports:    data.studentReports.filter(r => r.studentId === id),
-        academyTopups:     (data.academyTopups || []).filter(t => t.studentId === id),
+        academyTopups:          (data.academyTopups || []).filter(t => t.studentId === id),
+        cancellationQueries:    (data.cancellationQueries || []).filter(q => q.studentId === id),
       };
     }
 
@@ -5561,6 +5910,11 @@ export default function App() {
     [filteredData]
   );
 
+  const openCancellationQueries = useMemo(
+    () => (filteredData.cancellationQueries || []).filter(q => !q.resolved).length,
+    [filteredData]
+  );
+
   // Portal home page for non-admin roles
   const portalHome = useMemo(() => {
     const { role, id } = activeOpt;
@@ -5584,7 +5938,8 @@ export default function App() {
     stats:      <StatsPage     data={filteredData} />,
     reports:    <ReportsPage   data={filteredData} />,
     settings:   <SettingsPage  data={filteredData} setData={setData} />,
-    academy:    <AcademyPage   data={filteredData} setData={setData} />,
+    academy:        <AcademyPage             data={filteredData} setData={setData} />,
+    cancellations:  <CancellationQueriesPage data={filteredData} setData={setData} />,
   };
 
   // Nav items for the current role
@@ -5642,6 +5997,9 @@ export default function App() {
                 {n.label}
                 {n.id === "links" && unassigned > 0 && (
                   <span className="ml-auto bg-gray-300 text-gray-700 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{unassigned}</span>
+                )}
+                {n.id === "cancellations" && openCancellationQueries > 0 && (
+                  <span className="ml-auto bg-amber-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{openCancellationQueries}</span>
                 )}
               </button>
             </div>
