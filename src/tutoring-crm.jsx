@@ -3808,6 +3808,29 @@ function TutorPortal({ tutor, data, setData }) {
               {studentTab==="info" && (
                 <div className="bg-white rounded-xl border border-gray-100 p-5 space-y-4">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Student Details — View Only</p>
+                  {/* Academy / Regular badge */}
+                  {(() => {
+                    const sType = getStudentLessonType(selStudentId, data);
+                    const isAcademy = sType === "academy";
+                    const isCentre  = sType === "centre";
+                    return (
+                      <div className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border ${isAcademy ? "bg-indigo-50 border-indigo-200" : isCentre ? "bg-amber-50 border-amber-200" : "bg-gray-50 border-gray-200"}`}>
+                        <span className="text-lg">{isAcademy ? "🎓" : isCentre ? "🏫" : "📘"}</span>
+                        <div>
+                          <p className={`text-sm font-semibold ${isAcademy ? "text-indigo-700" : isCentre ? "text-amber-700" : "text-gray-700"}`}>
+                            {isAcademy ? "Academy Student" : isCentre ? "Centre Student" : "Regular Student"}
+                          </p>
+                          <p className={`text-xs mt-0.5 ${isAcademy ? "text-indigo-500" : isCentre ? "text-amber-500" : "text-gray-400"}`}>
+                            {isAcademy
+                              ? "Receives 2 included academy lessons per subject per month"
+                              : isCentre
+                              ? "Lessons billed at the centre rate"
+                              : "Lessons billed at the regular rate"}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     {[
                       ["Full Name",  `${selStudent.firstName} ${selStudent.lastName}`],
