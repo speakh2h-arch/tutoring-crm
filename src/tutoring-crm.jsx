@@ -228,7 +228,8 @@ const INIT_CLAIM_TYPES = ["Workshop", "Marking", "Travel Allowance", "Materials"
 // Academy top-up purchases — non-expiring extra lesson slots per student per subject
 // Each record: { id, studentId, subjectId, quantity, purchasedDate, note }
 const INIT_ACADEMY_TOPUPS = [];
-const INIT_CANCELLATION_QUERIES = []; // { id, logId, studentId, parentNote, date, adminResponse, resolved }
+const INIT_CANCELLATION_QUERIES = []; // { id, logId, studentId, parentNote, date, adminResponse, outcome: "reversed"|"upheld", resolved }
+const INIT_TUTOR_ALERTS = [];        // { id, tutorId, studentId, logId, queryId, outcome: "reversed"|"upheld", adminNote, studentName, subjectName, lessonDate, date, read }
 
 // Number of included academy lessons per subject per month (admin-configurable in future)
 const ACADEMY_INCLUDED_PER_MONTH = 2;
@@ -3253,25 +3254,75 @@ function CancellationQueriesPage({ data, setData }) {
   const [responseText, setResponseText] = useState({});
   const [filter, setFilter]             = useState("open"); // "open" | "resolved" | "all"
 
-  const queries = (data.cancellationQueries || []).slice().sort((a, b) => b.date.localeCompare(a.date));
-  const openCount     = queries.filter(q => !q.resolved).length;
+  const queries     = (data.cancellationQueries || []).slice().sort((a, b) => b.date.localeCompare(a.date));
+  const openCount   = queries.filter(q => !q.resolved).length;
   const resolvedCount = queries.filter(q => q.resolved).length;
 
   const visible = queries.filter(q =>
-    filter === "all"      ? true :
-    filter === "open"     ? !q.resolved :
-                            q.resolved
+    filter === "all"  ? true :
+    filter === "open" ? !q.resolved : q.resolved
   );
 
-  const submitResponse = (qId) => {
-    const resp = (responseText[qId] || "").trim();
-    if (!resp) return;
-    setData(d => ({
-      ...d,
-      cancellationQueries: (d.cancellationQueries || []).map(q =>
-        q.id === qId ? { ...q, adminResponse: resp, resolved: true } : q
-      ),
-    }));
+  // Resolve a query — outcome: "reversed" | "upheld"
+  // "reversed" → flip the logbook entry back to cancelled_free (credit restored)
+  // Both → generate a tutor alert with a full outcome summary
+  const resolveQuery = (qId, outcome) => {
+    const adminNote = (responseText[qId] || "").trim();
+    if (!adminNote) return;
+
+    const query   = queries.find(q => q.id === qId);
+    if (!query) return;
+    const log     = (data.logbook || []).find(l => l.id === query.logId);
+    const student = data.students.find(s => s.id === query.studentId);
+    const tutor   = log ? data.tutors.find(t => t.id === log.tutorId) : null;
+    const subject = log ? data.subjects.find(s => s.id === log.subjectId) : null;
+
+    const alertMsg = outcome === "reversed"
+      ? `Query resolved — charge REVERSED for ${student?.firstName || "student"} ${student?.lastName || ""}. ` +
+        `Lesson on ${log ? fmtDate(log.date) : "unknown date"} (${subject?.name || "—"}) has been reclassified as not charged. ` +
+        `The lesson credit has been returned to the student's account. Admin note: "${adminNote}"`
+      : `Query resolved — charge UPHELD for ${student?.firstName || "student"} ${student?.lastName || ""}. ` +
+        `Lesson on ${log ? fmtDate(log.date) : "unknown date"} (${subject?.name || "—"}) remains charged. ` +
+        `Admin note: "${adminNote}"`;
+
+    setData(d => {
+      // 1. Update the query: mark resolved + store response + outcome
+      const updatedQueries = (d.cancellationQueries || []).map(q =>
+        q.id === qId ? { ...q, adminResponse: adminNote, outcome, resolved: true } : q
+      );
+
+      // 2. If reversed: flip the logbook entry to cancelled_free
+      const updatedLogbook = outcome === "reversed"
+        ? (d.logbook || []).map(l =>
+            l.id === query.logId ? { ...l, status: "cancelled_free", attended: false } : l
+          )
+        : d.logbook;
+
+      // 3. Create a tutor alert
+      const newAlert = {
+        id:          "ta" + uid(),
+        tutorId:     log?.tutorId || "",
+        studentId:   query.studentId,
+        logId:       query.logId,
+        queryId:     qId,
+        outcome,
+        adminNote,
+        studentName: student ? `${student.firstName} ${student.lastName}` : "Unknown student",
+        subjectName: subject?.name || "—",
+        lessonDate:  log?.date || "",
+        message:     alertMsg,
+        date:        today(),
+        read:        false,
+      };
+
+      return {
+        ...d,
+        cancellationQueries: updatedQueries,
+        logbook:             updatedLogbook,
+        tutorAlerts:         [...(d.tutorAlerts || []), newAlert],
+      };
+    });
+
     setResponseText(t => ({ ...t, [qId]: "" }));
   };
 
@@ -3279,7 +3330,7 @@ function CancellationQueriesPage({ data, setData }) {
     setData(d => ({
       ...d,
       cancellationQueries: (d.cancellationQueries || []).map(q =>
-        q.id === qId ? { ...q, resolved: false } : q
+        q.id === qId ? { ...q, resolved: false, outcome: null } : q
       ),
     }));
   };
@@ -3288,16 +3339,14 @@ function CancellationQueriesPage({ data, setData }) {
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Cancellation Queries</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          {openCount} open · {resolvedCount} resolved
-        </p>
+        <p className="text-sm text-gray-500 mt-0.5">{openCount} open · {resolvedCount} resolved</p>
       </div>
 
       {/* Policy reminder */}
       <div className="p-4 rounded-xl border border-amber-200 bg-amber-50">
         <p className="text-sm font-semibold text-amber-800">Cancellation Policy</p>
         <p className="text-xs text-amber-700 mt-1">
-          <strong>24 hours notice</strong> is required for any planned missed lesson. Tutors may charge for late cancellations at their discretion. Review parent queries below and respond with your decision.
+          <strong>24 hours notice</strong> is required for any planned missed lesson. Tutors may charge for late cancellations at their discretion. Reversing a charge will return the lesson credit to the student and notify the tutor automatically.
         </p>
       </div>
 
@@ -3325,14 +3374,19 @@ function CancellationQueriesPage({ data, setData }) {
             const student = data.students.find(s => s.id === q.studentId);
             const tutor   = log ? data.tutors.find(t => t.id === log.tutorId) : null;
             const subject = log ? data.subjects.find(s => s.id === log.subjectId) : null;
+            const resp    = responseText[q.id] || "";
             return (
               <div key={q.id} className={`bg-white rounded-xl border overflow-hidden ${q.resolved ? "border-gray-100" : "border-amber-200"}`}>
                 {/* Header */}
-                <div className={`px-5 py-3 border-b flex items-center justify-between gap-3 ${q.resolved ? "bg-gray-50 border-gray-100" : "bg-amber-50 border-amber-100"}`}>
+                <div className={`px-5 py-3 border-b flex items-center justify-between gap-3 flex-wrap ${q.resolved ? "bg-gray-50 border-gray-100" : "bg-amber-50 border-amber-100"}`}>
                   <div className="flex items-center gap-3 flex-wrap min-w-0">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${q.resolved ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}`}>
-                      {q.resolved ? "✓ Resolved" : "Open"}
-                    </span>
+                    {q.resolved ? (
+                      q.outcome === "reversed"
+                        ? <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Charge Reversed</span>
+                        : <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">✓ Charge Upheld</span>
+                    ) : (
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Open</span>
+                    )}
                     <span className="text-sm font-semibold text-gray-800 truncate">
                       {student ? `${student.firstName} ${student.lastName}` : "Unknown student"}
                     </span>
@@ -3344,9 +3398,9 @@ function CancellationQueriesPage({ data, setData }) {
                 </div>
 
                 <div className="px-5 py-4 space-y-3">
-                  {/* Lesson cancellation reason */}
+                  {/* Tutor's cancellation reason */}
                   {log?.cancellationReason && (
-                    <div>
+                    <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
                       <p className="text-xs font-semibold text-gray-500 mb-0.5">Tutor's cancellation reason:</p>
                       <p className="text-sm text-gray-700 italic">"{log.cancellationReason}"</p>
                     </div>
@@ -3358,33 +3412,50 @@ function CancellationQueriesPage({ data, setData }) {
                     <p className="text-sm text-gray-700">{q.parentNote}</p>
                   </div>
 
-                  {/* Existing admin response */}
+                  {/* Outcome summary (resolved) */}
                   {q.adminResponse && (
-                    <div className="p-3 rounded-lg bg-teal-50 border border-teal-100">
-                      <p className="text-xs font-semibold text-teal-700 mb-0.5">Your response:</p>
-                      <p className="text-sm text-teal-800">{q.adminResponse}</p>
+                    <div className={`p-3 rounded-lg border ${q.outcome === "reversed" ? "bg-green-50 border-green-200" : "bg-gray-50 border-gray-200"}`}>
+                      <p className={`text-xs font-semibold mb-0.5 ${q.outcome === "reversed" ? "text-green-700" : "text-gray-600"}`}>
+                        {q.outcome === "reversed" ? "✓ Charge reversed — tutor notified" : "✓ Charge upheld — tutor notified"}
+                      </p>
+                      <p className="text-sm text-gray-700">{q.adminResponse}</p>
                     </div>
                   )}
 
-                  {/* Response form (only if open) */}
+                  {/* Resolution form — two action buttons */}
                   {!q.resolved && (
-                    <div className="pt-1">
+                    <div className="pt-1 space-y-2">
+                      <label className="block text-xs font-semibold text-gray-500">
+                        Your decision note <span className="text-red-500">*</span>
+                        <span className="ml-1 font-normal text-gray-400">(sent to parent + tutor)</span>
+                      </label>
                       <textarea rows={3}
-                        value={responseText[q.id] || ""}
+                        value={resp}
                         onChange={e => setResponseText(t => ({ ...t, [q.id]: e.target.value }))}
-                        placeholder="Type your response to the parent… (e.g. 'After reviewing the logs, the charge has been waived.' or 'The cancellation policy applies in this case.')"
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:outline-none resize-none mb-2"
+                        placeholder="Summarise your decision, e.g. 'After reviewing the circumstances, the charge has been waived as sufficient notice was given.' or 'The cancellation was received less than 24 hours before the lesson, so the charge stands per our policy.'"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:outline-none resize-none"
                       />
-                      <button onClick={() => submitResponse(q.id)}
-                        disabled={!(responseText[q.id] || "").trim()}
-                        className="px-4 py-2 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
-                        style={{ background: `linear-gradient(135deg, ${B.tealDark} 0%, ${B.coral} 100%)` }}>
-                        Send Response & Resolve
-                      </button>
+                      <div className="flex gap-3 pt-1">
+                        <button onClick={() => resolveQuery(q.id, "reversed")}
+                          disabled={!resp.trim()}
+                          className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-opacity bg-green-600 hover:bg-green-700">
+                          ✓ Reverse the Charge
+                          <p className="text-xs font-normal mt-0.5 opacity-80">Credit returned · tutor notified</p>
+                        </button>
+                        <button onClick={() => resolveQuery(q.id, "upheld")}
+                          disabled={!resp.trim()}
+                          className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-opacity bg-amber-600 hover:bg-amber-700">
+                          ✗ Uphold the Charge
+                          <p className="text-xs font-normal mt-0.5 opacity-80">Charge kept · tutor notified</p>
+                        </button>
+                      </div>
+                      {!resp.trim() && (
+                        <p className="text-xs text-gray-400">Write a decision note above before resolving — both the parent and tutor will receive it.</p>
+                      )}
                     </div>
                   )}
 
-                  {/* Reopen option */}
+                  {/* Reopen */}
                   {q.resolved && (
                     <button onClick={() => reopenQuery(q.id)}
                       className="text-xs text-gray-400 hover:text-gray-600 underline transition-colors">
@@ -3852,6 +3923,54 @@ function TutorPortal({ tutor, data, setData }) {
             <p className="text-sm text-gray-500 mt-1">Subjects: {(data.subjects||[]).filter(s=>tutor.subjectIds?.includes(s.id)).map(s=>s.name).join(" · ")}</p>
             {tutor.isAcademyTutor && <span className="inline-block mt-2 text-xs px-2.5 py-1 rounded-full font-semibold" style={{background:B.coralLight,color:B.coralDark}}>Academy Tutor</span>}
           </div>
+
+          {/* Cancellation outcome alerts */}
+          {(()=>{
+            const alerts = [...(data.tutorAlerts||[])].sort((a,b)=>b.date.localeCompare(a.date));
+            if (!alerts.length) return null;
+            const unread = alerts.filter(a=>!a.read).length;
+            const markRead = (aid) => setData(d=>({...d, tutorAlerts:(d.tutorAlerts||[]).map(a=>a.id===aid?{...a,read:true}:a)}));
+            const markAllRead = () => setData(d=>({...d, tutorAlerts:(d.tutorAlerts||[]).map(a=>a.tutorId===tutor.id?{...a,read:true}:a)}));
+            return (
+              <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+                <div className={`px-5 py-3 border-b flex items-center justify-between ${unread>0?"bg-amber-50 border-amber-100":"bg-gray-50 border-gray-100"}`}>
+                  <div className="flex items-center gap-2">
+                    <AlertCircle size={15} className={unread>0?"text-amber-500":"text-gray-400"}/>
+                    <p className={`text-sm font-semibold ${unread>0?"text-amber-800":"text-gray-700"}`}>Cancellation Query Outcomes</p>
+                    {unread>0 && <span className="text-xs bg-amber-500 text-white font-bold px-1.5 py-0.5 rounded-full">{unread} new</span>}
+                  </div>
+                  {unread>0 && <button onClick={markAllRead} className="text-xs text-gray-400 hover:text-gray-600 underline">Mark all read</button>}
+                </div>
+                <div className="divide-y divide-gray-50">
+                  {alerts.map(a=>(
+                    <div key={a.id} className={`px-5 py-4 transition-colors ${!a.read?"bg-amber-50/30":""}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            {a.outcome==="reversed"
+                              ? <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">✓ Charge Reversed</span>
+                              : <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">Charge Upheld</span>
+                            }
+                            <span className="text-xs text-gray-500">{a.studentName}</span>
+                            <span className="text-xs text-gray-400">{a.subjectName}</span>
+                            {a.lessonDate && <span className="text-xs text-gray-400">lesson {fmtDate(a.lessonDate)}</span>}
+                            <span className="text-xs text-gray-300">{fmtDate(a.date)}</span>
+                          </div>
+                          <p className="text-sm text-gray-700 leading-relaxed">{a.message}</p>
+                          {a.outcome==="reversed" && (
+                            <p className="text-xs text-green-600 font-medium mt-1">The lesson credit has been returned to the student's account.</p>
+                          )}
+                        </div>
+                        {!a.read && (
+                          <button onClick={()=>markRead(a.id)} className="shrink-0 text-xs text-gray-400 hover:text-gray-600 underline mt-1">Dismiss</button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="grid grid-cols-3 gap-3">
             {[
@@ -5854,6 +5973,7 @@ export default function App() {
     claimTypes:          INIT_CLAIM_TYPES,
     academyTopups:            INIT_ACADEMY_TOPUPS,
     cancellationQueries:      INIT_CANCELLATION_QUERIES,
+    tutorAlerts:              INIT_TUTOR_ALERTS,
   });
 
   const roleOptions = useMemo(() => buildRoleOptions(data), [data]);
@@ -5887,8 +6007,9 @@ export default function App() {
         tutorClaims:        (data.tutorClaims || []).filter(c => c.tutorId === id),
         invoiceStatus:      (data.invoiceStatus || []).filter(s => s.tutorId === id),
         claimTypes:         data.claimTypes || INIT_CLAIM_TYPES,
-        academyTopups:      data.academyTopups || [],
+        academyTopups:       data.academyTopups || [],
         cancellationQueries: (data.cancellationQueries || []).filter(q => myStudentIds.includes(q.studentId)),
+        tutorAlerts:         (data.tutorAlerts || []).filter(a => a.tutorId === id),
       };
     }
 
