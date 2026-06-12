@@ -1427,7 +1427,7 @@ function TutorsPage({ data, setData }) {
     `${t.firstName} ${t.lastName} ${t.email}`.toLowerCase().includes(search.toLowerCase())
   );
 
-  const openAdd  = () => { setForm({ firstName: "", lastName: "", email: "", phone: "", subjectIds: [], status: "Active" }); setModal("add"); };
+  const openAdd  = () => { setForm({ firstName: "", lastName: "", email: "", phone: "", subjectIds: [], status: "Active", isAcademyTutor: false }); setModal("add"); };
   const openEdit = (t, e) => { e?.stopPropagation(); setForm({ ...t }); setModal("edit"); };
   const openView = (t) => { setForm({ ...t }); setModal("view"); };
 
@@ -1537,6 +1537,15 @@ function TutorsPage({ data, setData }) {
               ))}
             </div>
           </Field>
+          <label className="flex items-center gap-3 px-3 py-2.5 rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors mt-1">
+            <input type="checkbox" checked={!!form.isAcademyTutor}
+              onChange={e => setForm(f => ({ ...f, isAcademyTutor: e.target.checked }))}
+              className="rounded w-4 h-4 accent-indigo-600"/>
+            <div>
+              <p className="text-sm font-semibold text-gray-800">Academy Tutor</p>
+              <p className="text-xs text-gray-500">Can log academy lessons and access the academy student quota system</p>
+            </div>
+          </label>
           <div className="flex items-center justify-between mt-4">
             {modal === "edit" && <Btn variant="danger" size="sm" onClick={() => remove(form.id)}><Trash2 size={13} /></Btn>}
             <div className="flex gap-3 ml-auto">
@@ -3547,8 +3556,8 @@ function TutorPortal({ tutor, data, setData }) {
 
   const addLog = () => {
     if (!lbForm.subjectId||!lbForm.topicsCovered.trim()) return;
-    // Academy restriction: only applies when the tutor explicitly chose "Academy" as the lesson type
-    if (lbForm.attended && lbForm.lessonCategory === "academy") {
+    // Academy restriction: only applies when tutor is an academy tutor AND explicitly chose "Academy"
+    if (lbForm.attended && tutor.isAcademyTutor && lbForm.lessonCategory === "academy") {
       const calMonth = today().slice(0, 7);
       // Only count other academy-tagged logs against the quota (not regular lessons)
       const alreadyThisMonth = (data.logbook || []).filter(
@@ -3743,7 +3752,8 @@ function TutorPortal({ tutor, data, setData }) {
                       <div key={st.id} className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md transition-shadow cursor-pointer"
                         onClick={()=>{
                           const sType = getStudentLessonType(st.id, data);
-                          setLbForm(f=>({...f, lessonCategory: sType==="academy" ? "academy" : ""}));
+                          // Only pre-select academy category if BOTH the student is academy AND this tutor is an academy tutor
+                          setLbForm(f=>({...f, lessonCategory: (sType==="academy" && tutor.isAcademyTutor) ? "academy" : ""}));
                           setAcademyLimitError(null);
                           setSelStudentId(st.id); setStudentTab("info");
                         }}>
@@ -3829,8 +3839,8 @@ function TutorPortal({ tutor, data, setData }) {
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Log a Session</p>
                     </div>
                     <div className="p-4 space-y-3">
-                      {/* Lesson type selector — only shown for academy students */}
-                      {getStudentLessonType(selStudentId, data) === "academy" && (
+                      {/* Lesson type selector — only shown when BOTH the student is academy AND the tutor is an academy tutor */}
+                      {tutor.isAcademyTutor && getStudentLessonType(selStudentId, data) === "academy" && (
                         <div>
                           <p className="text-xs text-gray-500 mb-1.5 font-medium">Lesson Type</p>
                           <div className="flex gap-2">
@@ -3867,10 +3877,10 @@ function TutorPortal({ tutor, data, setData }) {
                         placeholder="Homework / tasks set for next session" className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none"/>
                       <textarea rows={2} value={lbForm.notes} onChange={e=>setLbForm(f=>({...f,notes:e.target.value}))}
                         placeholder="Private tutor notes / observations…" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"/>
-                      {/* Academy quota status indicator — only when logging an academy lesson */}
+                      {/* Academy quota status indicator — only when logging an academy lesson as an academy tutor */}
                       {(() => {
                         if (!lbForm.subjectId || !selStudentId) return null;
-                        if (lbForm.lessonCategory !== "academy") return null;
+                        if (!tutor.isAcademyTutor || lbForm.lessonCategory !== "academy") return null;
                         const calMonth = today().slice(0, 7);
                         const used = (data.logbook||[]).filter(
                           l => l.studentId===selStudentId && l.subjectId===lbForm.subjectId &&
