@@ -3346,7 +3346,13 @@ function StudentPortal({ student, data, setData }) {
   const myLinks      = data.links.filter(l => l.studentId === student.id);
   const myPurchases  = data.purchases.filter(p => p.studentId === student.id);
   const totalBought  = myPurchases.reduce((s, p) => s + p.quantity, 0);
-  const totalUsed    = (data.logbook||[]).filter(l => l.studentId===student.id && l.attended).length;
+  const isAcademySt  = getStudentLessonType(student.id, data) === "academy";
+  // Academy lessons are separate from the regular lesson pack — only regular-tagged
+  // lessons (or all lessons for non-academy students) count against purchased credits.
+  const totalUsed    = (data.logbook||[]).filter(l =>
+    l.studentId===student.id && l.attended &&
+    (!isAcademySt || l.lessonCategory === "regular")
+  ).length;
   const totalLessons = Math.max(0, totalBought - totalUsed);
   const myEnrolments = data.enrolments.filter(e => e.studentId === student.id);
   const myProgress   = data.progress.filter(p => p.studentId === student.id);
@@ -3538,8 +3544,15 @@ function TutorPortal({ tutor, data, setData }) {
   const selStudent   = selStudentId ? myStudents.find(s => s.id === selStudentId) : null;
 
   const creditsFor = (sid) => {
+    const isAcademySt = getStudentLessonType(sid, data) === "academy";
     const bought = (data.purchases||[]).filter(p => p.studentId===sid).reduce((a,p) => a+p.quantity, 0);
-    const used   = (data.logbook||[]).filter(l => l.studentId===sid && l.attended).length;
+    // Academy lessons must NEVER deduct from the regular lesson pack.
+    // Only lessons explicitly logged as "regular" count against purchased pack credits.
+    // Legacy entries (no lessonCategory) for academy students are treated as academy lessons.
+    const used = (data.logbook||[]).filter(l =>
+      l.studentId===sid && l.attended &&
+      (!isAcademySt || l.lessonCategory === "regular")
+    ).length;
     return Math.max(0, bought - used);
   };
 
