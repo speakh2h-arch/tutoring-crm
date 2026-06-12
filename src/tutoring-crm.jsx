@@ -3286,9 +3286,9 @@ function CancellationQueriesPage({ data, setData }) {
         `Admin note: "${adminNote}"`;
 
     setData(d => {
-      // 1. Update the query: mark resolved + store response + outcome
+      // 1. Update the query: mark resolved + store response + outcome + flag parent as unread
       const updatedQueries = (d.cancellationQueries || []).map(q =>
-        q.id === qId ? { ...q, adminResponse: adminNote, outcome, resolved: true } : q
+        q.id === qId ? { ...q, adminResponse: adminNote, outcome, resolved: true, parentUnread: true } : q
       );
 
       // 2. If reversed: flip the logbook entry to cancelled_free
@@ -3327,12 +3327,25 @@ function CancellationQueriesPage({ data, setData }) {
   };
 
   const reopenQuery = (qId) => {
-    setData(d => ({
-      ...d,
-      cancellationQueries: (d.cancellationQueries || []).map(q =>
-        q.id === qId ? { ...q, resolved: false, outcome: null } : q
-      ),
-    }));
+    setData(d => {
+      const query = (d.cancellationQueries || []).find(q => q.id === qId);
+      // If the charge was previously reversed, flip the logbook entry back to cancelled_charged
+      // so the lesson is correctly chargeable again while we reconsider
+      const updatedLogbook = query?.outcome === "reversed"
+        ? (d.logbook || []).map(l =>
+            l.id === query.logId ? { ...l, status: "cancelled_charged" } : l
+          )
+        : d.logbook;
+      return {
+        ...d,
+        cancellationQueries: (d.cancellationQueries || []).map(q =>
+          q.id === qId
+            ? { ...q, resolved: false, outcome: null, adminResponse: null, parentUnread: false }
+            : q
+        ),
+        logbook: updatedLogbook,
+      };
+    });
   };
 
   return (
@@ -5254,16 +5267,39 @@ function ParentPortal({ student, data, setData }) {
 
                           {/* Query status for charged cancellations */}
                           {isCharged && existingQuery && (
-                            <div className="mt-2 p-2.5 rounded-lg bg-gray-50 border border-gray-200">
+                            <div className={`mt-2 p-2.5 rounded-lg border ${existingQuery.parentUnread ? "bg-teal-50 border-teal-300" : "bg-gray-50 border-gray-200"}`}>
+                              {/* Unread notification banner */}
+                              {existingQuery.parentUnread && (
+                                <div className="flex items-center justify-between mb-2 pb-2 border-b border-teal-200">
+                                  <span className="text-xs font-bold text-teal-700">⚡ New response from admin</span>
+                                  <button
+                                    onClick={() => setData(d => ({
+                                      ...d,
+                                      cancellationQueries: (d.cancellationQueries||[]).map(q =>
+                                        q.id === existingQuery.id ? { ...q, parentUnread: false } : q
+                                      )
+                                    }))}
+                                    className="text-xs text-teal-600 hover:text-teal-800 underline font-medium">
+                                    Mark as read
+                                  </button>
+                                </div>
+                              )}
                               <p className="text-xs font-semibold text-gray-600">Your query:</p>
                               <p className="text-xs text-gray-600 mt-0.5">{existingQuery.parentNote}</p>
                               {existingQuery.adminResponse ? (
                                 <>
-                                  <p className="text-xs font-semibold text-teal-700 mt-2">Admin response:</p>
-                                  <p className="text-xs text-teal-700 mt-0.5">{existingQuery.adminResponse}</p>
-                                  {existingQuery.resolved && (
-                                    <span className="text-xs text-green-600 font-medium mt-1 block">✓ Resolved</span>
-                                  )}
+                                  <div className="mt-2 pt-2 border-t border-gray-200">
+                                    <p className="text-xs font-semibold text-teal-700">
+                                      Admin decision —
+                                      {existingQuery.outcome === "reversed"
+                                        ? " ✓ Charge has been reversed"
+                                        : " Charge upheld"}
+                                    </p>
+                                    <p className="text-xs text-teal-800 mt-0.5">{existingQuery.adminResponse}</p>
+                                    {existingQuery.outcome === "reversed" && (
+                                      <p className="text-xs text-green-600 font-medium mt-1">The lesson credit has been returned to your child's account.</p>
+                                    )}
+                                  </div>
                                 </>
                               ) : (
                                 <p className="text-xs text-gray-400 mt-1.5 italic">Awaiting admin response…</p>
