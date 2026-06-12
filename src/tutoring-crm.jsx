@@ -342,6 +342,8 @@ const buildTutorInvoice = (tutorId, month, data) => {
   allPeriodLogs.forEach(l => {
     const baseType = getStudentLessonType(l.studentId, data);
     if (baseType !== "academy") return;
+    // Lessons explicitly tagged "regular" by the tutor bypass the academy quota entirely
+    if (l.lessonCategory === "regular") return;
     const calMonth = l.date.slice(0, 7); // e.g. "2026-05" or "2026-06"
     const key = `${l.studentId}|${l.subjectId || ""}|${calMonth}`;
     if (!acGroupMap[key]) acGroupMap[key] = [];
@@ -368,9 +370,10 @@ const buildTutorInvoice = (tutorId, month, data) => {
     const sub  = (data.subjects || []).find(s => s.id === lb.subjectId);
     const baseType = getStudentLessonType(lb.studentId, data);
 
-    // Use pre-computed type if available (academy lessons); otherwise keep base type
-    const mapped      = effectiveTypeMap[lb.id];
-    const effectiveType = mapped ? mapped.type : baseType;
+    // If tutor explicitly tagged this as a regular lesson, treat as regular regardless of enrolment
+    const explicitRegular = lb.lessonCategory === "regular" && baseType === "academy";
+    const mapped      = explicitRegular ? null : effectiveTypeMap[lb.id];
+    const effectiveType = explicitRegular ? "regular" : (mapped ? mapped.type : baseType);
     const academySlot   = mapped ? mapped.slot : null; // "included" | "topup" | "overflow" | null
 
     const year     = parseInt(lb.date.slice(0, 4));
@@ -3505,7 +3508,7 @@ function TutorPortal({ tutor, data, setData }) {
   const [tutorPage,    setTutorPage]    = useState("dashboard");
   const [selStudentId, setSelStudentId] = useState(null);
   const [studentTab,   setStudentTab]   = useState("info");
-  const [lbForm,  setLbForm]  = useState({ subjectId:"", duration:60, topicsCovered:"", homework:"", notes:"", attended:true });
+  const [lbForm,  setLbForm]  = useState({ subjectId:"", duration:60, topicsCovered:"", homework:"", notes:"", attended:true, lessonCategory:"" });
   const [academyLimitError, setAcademyLimitError] = useState(null);
   const [slForm,  setSlForm]  = useState({ subjectId:"", date:today(), time:"14:00", link:"", notes:"" });
   const [qsForm,  setQsForm]  = useState({ studentId:"", subjectId:"", date:today(), time:"14:00", link:"", notes:"" });
@@ -3544,28 +3547,35 @@ function TutorPortal({ tutor, data, setData }) {
 
   const addLog = () => {
     if (!lbForm.subjectId||!lbForm.topicsCovered.trim()) return;
-    // Academy restriction: if this student is an academy student and has attended this lesson,
-    // check if the calendar-month quota (2 included + top-ups) is already full
-    if (lbForm.attended && getStudentLessonType(selStudentId, data) === "academy") {
+    // Academy restriction: only applies when the tutor explicitly chose "Academy" as the lesson type
+    if (lbForm.attended && lbForm.lessonCategory === "academy") {
       const calMonth = today().slice(0, 7);
+      // Only count other academy-tagged logs against the quota (not regular lessons)
       const alreadyThisMonth = (data.logbook || []).filter(
         l => l.studentId === selStudentId && l.subjectId === lbForm.subjectId &&
-             l.attended && l.date.slice(0, 7) === calMonth
+             l.attended && l.date.slice(0, 7) === calMonth &&
+             (l.lessonCategory === "academy" || !l.lessonCategory) // legacy entries without tag count as academy
       ).length;
       const pool = getTopupPoolAtMonth(selStudentId, lbForm.subjectId, calMonth, data);
       const quota = ACADEMY_INCLUDED_PER_MONTH + pool;
       if (alreadyThisMonth >= quota) {
         setAcademyLimitError(
           pool > 0
-            ? `This student has used all ${quota} academy lessons for ${calMonth} (${ACADEMY_INCLUDED_PER_MONTH} included + ${pool} top-up). A top-up is needed to add more.`
-            : `This student has used both included academy lessons for ${calMonth}. A top-up must be purchased before logging additional lessons.`
+            ? `Academy quota full for ${calMonth} (${ACADEMY_INCLUDED_PER_MONTH} included + ${pool} top-up used). Purchase a top-up, or log this as a Regular lesson.`
+            : `Both included academy lessons for ${calMonth} are used. Purchase a top-up, or switch this to a Regular lesson.`
         );
         return;
       }
     }
     setAcademyLimitError(null);
-    setData(d=>({...d, logbook:[...(d.logbook||[]),{...lbForm,id:"lb"+uid(),tutorId:tutor.id,studentId:selStudentId,date:today(),duration:Number(lbForm.duration)}]}));
-    setLbForm({subjectId:"",duration:60,topicsCovered:"",homework:"",notes:"",attended:true});
+    const sType = getStudentLessonType(selStudentId, data);
+    setData(d=>({...d, logbook:[...(d.logbook||[]),{
+      ...lbForm, id:"lb"+uid(), tutorId:tutor.id, studentId:selStudentId,
+      date:today(), duration:Number(lbForm.duration),
+    }]}));
+    // Keep the same lesson category default for next log (tutor likely logging same type again)
+    setLbForm({subjectId:"",duration:60,topicsCovered:"",homework:"",notes:"",attended:true,
+      lessonCategory: sType==="academy" ? lbForm.lessonCategory : ""});
   };
   const sendMsg = () => {
     if (!msgText.trim()) return;
@@ -3731,7 +3741,12 @@ function TutorPortal({ tutor, data, setData }) {
                     const upcoming=(data.scheduledLessons||[]).filter(sl=>sl.tutorId===tutor.id&&sl.studentId===st.id&&sl.date>=today()).length;
                     return (
                       <div key={st.id} className="bg-white rounded-xl border border-gray-100 p-5 hover:shadow-md transition-shadow cursor-pointer"
-                        onClick={()=>{setSelStudentId(st.id);setStudentTab("info");}}>
+                        onClick={()=>{
+                          const sType = getStudentLessonType(st.id, data);
+                          setLbForm(f=>({...f, lessonCategory: sType==="academy" ? "academy" : ""}));
+                          setAcademyLimitError(null);
+                          setSelStudentId(st.id); setStudentTab("info");
+                        }}>
                         <div className="flex items-start justify-between">
                           <div>
                             <p className="font-semibold text-gray-800">{st.firstName} {st.lastName}</p>
@@ -3814,6 +3829,25 @@ function TutorPortal({ tutor, data, setData }) {
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Log a Session</p>
                     </div>
                     <div className="p-4 space-y-3">
+                      {/* Lesson type selector — only shown for academy students */}
+                      {getStudentLessonType(selStudentId, data) === "academy" && (
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1.5 font-medium">Lesson Type</p>
+                          <div className="flex gap-2">
+                            {[
+                              { val:"academy", label:"🎓 Academy", desc:"Counts toward monthly quota" },
+                              { val:"regular", label:"📘 Regular", desc:"Billed at regular rate, no quota" },
+                            ].map(opt=>(
+                              <button key={opt.val}
+                                onClick={()=>{setLbForm(f=>({...f,lessonCategory:opt.val}));setAcademyLimitError(null);}}
+                                className={`flex-1 px-3 py-2 rounded-lg border-2 text-left transition-all ${lbForm.lessonCategory===opt.val ? "border-indigo-500 bg-indigo-50" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+                                <p className={`text-xs font-semibold ${lbForm.lessonCategory===opt.val?"text-indigo-700":"text-gray-700"}`}>{opt.label}</p>
+                                <p className="text-xs text-gray-400 mt-0.5">{opt.desc}</p>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <div className="flex gap-2 flex-wrap">
                         <select value={lbForm.subjectId} onChange={e=>{setLbForm(f=>({...f,subjectId:e.target.value}));setAcademyLimitError(null);}}
                           className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none bg-white">
@@ -3833,14 +3867,15 @@ function TutorPortal({ tutor, data, setData }) {
                         placeholder="Homework / tasks set for next session" className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none"/>
                       <textarea rows={2} value={lbForm.notes} onChange={e=>setLbForm(f=>({...f,notes:e.target.value}))}
                         placeholder="Private tutor notes / observations…" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none"/>
-                      {/* Academy quota status indicator */}
+                      {/* Academy quota status indicator — only when logging an academy lesson */}
                       {(() => {
                         if (!lbForm.subjectId || !selStudentId) return null;
-                        if (getStudentLessonType(selStudentId, data) !== "academy") return null;
+                        if (lbForm.lessonCategory !== "academy") return null;
                         const calMonth = today().slice(0, 7);
                         const used = (data.logbook||[]).filter(
                           l => l.studentId===selStudentId && l.subjectId===lbForm.subjectId &&
-                               l.attended && l.date.slice(0,7)===calMonth
+                               l.attended && l.date.slice(0,7)===calMonth &&
+                               (l.lessonCategory === "academy" || !l.lessonCategory)
                         ).length;
                         const pool = getTopupPoolAtMonth(selStudentId, lbForm.subjectId, calMonth, data);
                         const quota = ACADEMY_INCLUDED_PER_MONTH + pool;
