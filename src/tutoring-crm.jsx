@@ -3783,14 +3783,98 @@ function TutorPortal({ tutor, data, setData }) {
                 <ChevronLeft size={14}/>Back to students
               </button>
 
-              <div className="bg-white rounded-xl border border-gray-100 p-4 mb-4 flex items-start justify-between">
-                <div>
-                  <h2 className="font-semibold text-gray-800">{selStudent.firstName} {selStudent.lastName}</h2>
-                  <p className="text-xs text-gray-400 mt-0.5">{selStudent.curriculum} · {selStudent.grade}</p>
+              <div className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h2 className="font-semibold text-gray-800">{selStudent.firstName} {selStudent.lastName}</h2>
+                    <p className="text-xs text-gray-400 mt-0.5">{selStudent.curriculum} · {selStudent.grade}</p>
+                  </div>
                 </div>
-                <div className={`px-3 py-1.5 rounded-full text-xs font-bold ${creditsFor(selStudentId)===0?"bg-red-50 text-red-600":"bg-green-50 text-green-700"}`}>
-                  <DollarSign size={10} className="inline mr-0.5"/>{creditsFor(selStudentId)} lesson{creditsFor(selStudentId)===1?"":"s"} remaining
-                </div>
+                {/* Lesson availability breakdown */}
+                {(() => {
+                  const sType = getStudentLessonType(selStudentId, data);
+                  const packCredits = creditsFor(selStudentId);
+                  const calMonth = today().slice(0, 7);
+
+                  if (sType === "academy") {
+                    // Per-subject included quota remaining this calendar month
+                    const subjectsForStudent = selLinks.map(l => l.subjectId);
+                    let totalIncludedRemaining = 0;
+                    let totalTopupRemaining = 0;
+                    subjectsForStudent.forEach(sid => {
+                      const usedThisMonth = (data.logbook||[]).filter(
+                        l => l.studentId===selStudentId && l.subjectId===sid && l.attended &&
+                             l.date.slice(0,7)===calMonth &&
+                             (l.lessonCategory==="academy" || !l.lessonCategory)
+                      ).length;
+                      const pool = getTopupPoolAtMonth(selStudentId, sid, calMonth, data);
+                      const includedRem = Math.max(0, ACADEMY_INCLUDED_PER_MONTH - usedThisMonth);
+                      const topupRem    = Math.max(0, pool - Math.max(0, usedThisMonth - ACADEMY_INCLUDED_PER_MONTH));
+                      totalIncludedRemaining += includedRem;
+                      totalTopupRemaining    += topupRem;
+                    });
+                    return (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-indigo-50 border border-indigo-100">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">🎓</span>
+                            <div>
+                              <p className="text-xs font-semibold text-indigo-700">Academy Included</p>
+                              <p className="text-xs text-indigo-400">2/subject/month — resets monthly</p>
+                            </div>
+                          </div>
+                          <span className={`text-sm font-bold ${totalIncludedRemaining===0?"text-red-500":"text-indigo-700"}`}>
+                            {totalIncludedRemaining} remaining
+                          </span>
+                        </div>
+                        {totalTopupRemaining > 0 && (
+                          <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-violet-50 border border-violet-100">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm">➕</span>
+                              <div>
+                                <p className="text-xs font-semibold text-violet-700">Parent Top-Ups</p>
+                                <p className="text-xs text-violet-400">Non-expiring, rolls over</p>
+                              </div>
+                            </div>
+                            <span className="text-sm font-bold text-violet-700">{totalTopupRemaining} remaining</span>
+                          </div>
+                        )}
+                        {packCredits > 0 && (
+                          <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-teal-50 border border-teal-100">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm">📦</span>
+                              <div>
+                                <p className="text-xs font-semibold text-teal-700">Lesson Pack Credits</p>
+                                <p className="text-xs text-teal-400">Parent-purchased lesson pack</p>
+                              </div>
+                            </div>
+                            <span className="text-sm font-bold text-teal-700">{packCredits} remaining</span>
+                          </div>
+                        )}
+                        {totalIncludedRemaining===0 && totalTopupRemaining===0 && packCredits===0 && (
+                          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-100">
+                            <span className="text-sm">⚠️</span>
+                            <p className="text-xs font-semibold text-red-600">No lessons available — top-up required</p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // Non-academy student — just show pack credits
+                  return (
+                    <div className={`flex items-center justify-between px-3 py-2 rounded-lg border ${packCredits===0?"bg-red-50 border-red-100":"bg-green-50 border-green-100"}`}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">📦</span>
+                        <div>
+                          <p className={`text-xs font-semibold ${packCredits===0?"text-red-600":"text-green-700"}`}>Lesson Pack Credits</p>
+                          <p className={`text-xs ${packCredits===0?"text-red-400":"text-green-400"}`}>Parent-purchased lessons</p>
+                        </div>
+                      </div>
+                      <span className={`text-sm font-bold ${packCredits===0?"text-red-600":"text-green-700"}`}>{packCredits} remaining</span>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Sub-tabs */}
