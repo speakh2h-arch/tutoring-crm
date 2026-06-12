@@ -4127,7 +4127,18 @@ function TutorPortal({ tutor, data, setData }) {
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Log a Session</p>
                     </div>
                     <div className="p-4 space-y-3">
-                      {/* Lesson type selector — only shown when BOTH the student is academy AND the tutor is an academy tutor */}
+                      {/* ① Subject + duration — first field so nothing else is blocked */}
+                      <div className="flex gap-2 flex-wrap">
+                        <select value={lbForm.subjectId} onChange={e=>{setLbForm(f=>({...f,subjectId:e.target.value}));setAcademyLimitError(null);}}
+                          className={`border rounded-lg px-3 py-1.5 text-sm focus:outline-none bg-white ${lbForm.subjectId ? "border-gray-200" : "border-red-300"}`}>
+                          <option value="">Subject *</option>
+                          {selLinks.map(l=><option key={l.subjectId} value={l.subjectId}>{subjectName(l.subjectId)}</option>)}
+                        </select>
+                        <input type="number" value={lbForm.duration} onChange={e=>setLbForm(f=>({...f,duration:e.target.value}))}
+                          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none w-24" min="15" step="15" placeholder="Mins"/>
+                      </div>
+
+                      {/* ② Lesson type selector — only shown when BOTH the student is academy AND the tutor is an academy tutor */}
                       {tutor.isAcademyTutor && getStudentLessonType(selStudentId, data) === "academy" && (
                         <div>
                           <p className="text-xs text-gray-500 mb-1.5 font-medium">Lesson Type</p>
@@ -4146,7 +4157,8 @@ function TutorPortal({ tutor, data, setData }) {
                           </div>
                         </div>
                       )}
-                      {/* Session status — replaces the old Attended checkbox */}
+
+                      {/* ③ Session status */}
                       <div>
                         <p className="text-xs text-gray-500 mb-1.5 font-medium">Session Status</p>
                         <div className="grid grid-cols-3 gap-2">
@@ -4170,15 +4182,6 @@ function TutorPortal({ tutor, data, setData }) {
                             <p className="text-xs text-blue-600"><strong>Cancellation policy:</strong> 24 hours notice is required to cancel a planned lesson without charge. Late cancellations (under 24 hrs) are charged at the full lesson rate.</p>
                           </div>
                         )}
-                      </div>
-                      <div className="flex gap-2 flex-wrap">
-                        <select value={lbForm.subjectId} onChange={e=>{setLbForm(f=>({...f,subjectId:e.target.value}));setAcademyLimitError(null);}}
-                          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none bg-white">
-                          <option value="">Subject *</option>
-                          {selLinks.map(l=><option key={l.subjectId} value={l.subjectId}>{subjectName(l.subjectId)}</option>)}
-                        </select>
-                        <input type="number" value={lbForm.duration} onChange={e=>setLbForm(f=>({...f,duration:e.target.value}))}
-                          className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none w-24" min="15" step="15" placeholder="Mins"/>
                       </div>
                       {/* Cancellation reason — required; visible to parent */}
                       {(lbForm.status==="cancelled_charged"||lbForm.status==="cancelled_free") && (
@@ -4244,16 +4247,24 @@ function TutorPortal({ tutor, data, setData }) {
                           <button onClick={()=>setAcademyLimitError(null)} className="text-red-400 hover:text-red-600 text-xs font-bold">✕</button>
                         </div>
                       )}
-                      <button onClick={addLog}
-                        disabled={
-                          !lbForm.subjectId ||
-                          (lbForm.status==="attended" && !lbForm.topicsCovered.trim()) ||
-                          ((lbForm.status==="cancelled_charged"||lbForm.status==="cancelled_free") && !lbForm.cancellationReason.trim())
-                        }
-                        className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold text-white disabled:opacity-40"
-                        style={{background: lbForm.status==="cancelled_charged"?"#d97706": lbForm.status==="cancelled_free"?"#6b7280":B.tealDark}}>
-                        <Plus size={14}/> {lbForm.status==="attended" ? "Add to Logbook" : "Log Cancellation"}
-                      </button>
+                      {(()=>{
+                        const isCancelStatus = lbForm.status==="cancelled_charged"||lbForm.status==="cancelled_free";
+                        const missingSubject = !lbForm.subjectId;
+                        const missingReason  = isCancelStatus && !lbForm.cancellationReason.trim();
+                        const missingTopics  = lbForm.status==="attended" && !lbForm.topicsCovered.trim();
+                        const hint = missingSubject ? "Select a subject first" : missingReason ? "Add a cancellation reason above" : missingTopics ? "Add topics covered above" : null;
+                        return (
+                          <>
+                            {hint && <p className="text-xs text-red-500 font-medium">⬆ {hint}</p>}
+                            <button onClick={addLog}
+                              disabled={missingSubject || missingReason || missingTopics}
+                              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-semibold text-white disabled:opacity-40"
+                              style={{background: lbForm.status==="cancelled_charged"?"#d97706": lbForm.status==="cancelled_free"?"#6b7280":B.tealDark}}>
+                              <Plus size={14}/> {lbForm.status==="attended" ? "Add to Logbook" : "Log Cancellation"}
+                            </button>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
 
