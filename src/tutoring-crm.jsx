@@ -4180,11 +4180,24 @@ function TutorPortal({ tutor, data, setData }) {
                         <input type="number" value={lbForm.duration} onChange={e=>setLbForm(f=>({...f,duration:e.target.value}))}
                           className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none w-24" min="15" step="15" placeholder="Mins"/>
                       </div>
-                      {/* Cancellation reason — required for any cancelled status */}
+                      {/* Cancellation reason — required; visible to parent */}
                       {(lbForm.status==="cancelled_charged"||lbForm.status==="cancelled_free") && (
-                        <textarea rows={2} value={lbForm.cancellationReason} onChange={e=>setLbForm(f=>({...f,cancellationReason:e.target.value}))}
-                          placeholder={lbForm.status==="cancelled_charged" ? "Reason for late cancellation (required) — e.g. 'Student cancelled 2 hrs before session'" : "Reason for cancellation (required) — e.g. 'Student was ill with doctor's note'"}
-                          className="w-full border border-amber-200 rounded-lg px-3 py-2 text-sm focus:outline-none resize-none bg-amber-50"/>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-xs font-semibold text-gray-600">
+                              Cancellation reason <span className="text-red-500">*</span>
+                            </label>
+                            <span className="text-xs text-amber-600 font-medium">👁 Visible to parent</span>
+                          </div>
+                          <textarea rows={3} value={lbForm.cancellationReason} onChange={e=>setLbForm(f=>({...f,cancellationReason:e.target.value}))}
+                            placeholder={lbForm.status==="cancelled_charged"
+                              ? "e.g. Student cancelled 2 hours before the session with no prior notice."
+                              : "e.g. Student was unwell — doctor's note provided. Lesson to be rescheduled."}
+                            className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none resize-none ${lbForm.cancellationReason.trim() ? "border-amber-300 bg-amber-50" : "border-red-200 bg-red-50"}`}/>
+                          {!lbForm.cancellationReason.trim() && (
+                            <p className="text-xs text-red-500 mt-1">A reason is required before this cancellation can be saved. The parent will see this reason.</p>
+                          )}
+                        </div>
                       )}
                       {/* Topics / homework / notes — only for attended lessons */}
                       {lbForm.status==="attended" && (<>
@@ -5037,10 +5050,10 @@ function ParentPortal({ student, data, setData }) {
         );
       })()}
 
-      {/* Cancellation Policy Notice + Charged Cancellations */}
+      {/* Cancellation Policy + ALL cancelled lessons (charged & free) */}
       {(()=>{
-        const chargedCancels = (data.logbook||[])
-          .filter(l => l.studentId === student.id && l.status === "cancelled_charged")
+        const allCancels = (data.logbook||[])
+          .filter(l => l.studentId === student.id && (l.status === "cancelled_charged" || l.status === "cancelled_free"))
           .sort((a,b) => b.date.localeCompare(a.date));
 
         const submitQuery = () => {
@@ -5067,36 +5080,50 @@ function ParentPortal({ student, data, setData }) {
 
         return (
           <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-amber-50">
-              <h2 className="text-base font-semibold text-amber-800">Cancellation Policy 📋</h2>
+            {/* Policy header */}
+            <div className="px-5 py-3 border-b border-amber-100 bg-amber-50">
+              <h2 className="text-base font-semibold text-amber-800">Cancelled Lessons 📋</h2>
               <p className="text-xs text-amber-700 mt-1 leading-relaxed">
-                <strong>24 hours notice</strong> is required for any planned missed lesson. Cancellations made with less than 24 hours' notice may be charged at the tutor's discretion. If you believe a charged cancellation was applied unfairly, you can raise a query with our admin team below.
+                <strong>24 hours notice</strong> is required for any planned missed lesson. Cancellations with less than 24 hours' notice may be charged at the tutor's discretion. Review the tutor's reason below — if a charged cancellation seems unfair, you can raise a query with our team.
               </p>
             </div>
 
-            {chargedCancels.length === 0 ? (
-              <div className="px-5 py-4 text-sm text-gray-400">No charged cancellations on record.</div>
+            {allCancels.length === 0 ? (
+              <div className="px-5 py-4 text-sm text-gray-400">No cancelled lessons on record.</div>
             ) : (
               <div className="divide-y divide-gray-50">
-                {chargedCancels.map(l => {
-                  const tutor   = data.tutors.find(t => t.id === l.tutorId);
-                  const subject = data.subjects.find(s => s.id === l.subjectId);
+                {allCancels.map(l => {
+                  const tutorObj   = data.tutors.find(t => t.id === l.tutorId);
+                  const subjectObj = data.subjects.find(s => s.id === l.subjectId);
+                  const isCharged  = l.status === "cancelled_charged";
                   const existingQuery = myQueries.find(q => q.logId === l.id);
                   const justSent = cqSent === l.id;
                   return (
-                    <div key={l.id} className="px-5 py-4">
+                    <div key={l.id} className={`px-5 py-4 ${isCharged ? "bg-amber-50/40" : ""}`}>
+                      {/* Row header */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-2 flex-wrap mb-2">
                             <span className="text-sm font-semibold text-gray-800">{fmtDate(l.date)}</span>
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">Charged</span>
-                            {subject && <span className="text-xs text-gray-500">{subject.name}</span>}
-                            {tutor && <span className="text-xs text-gray-400">with {tutor.firstName} {tutor.lastName}</span>}
+                            {isCharged
+                              ? <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-semibold border border-amber-200">⚠️ Charged</span>
+                              : <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">🙌 Not charged</span>
+                            }
+                            {subjectObj && <span className="text-xs text-gray-500">{subjectObj.name}</span>}
+                            {tutorObj && <span className="text-xs text-gray-400">with {tutorObj.firstName} {tutorObj.lastName}</span>}
                           </div>
-                          {l.cancellationReason && (
-                            <p className="text-xs text-gray-500 mt-1">Reason logged: <em>{l.cancellationReason}</em></p>
-                          )}
-                          {existingQuery && (
+
+                          {/* Reason — prominently displayed */}
+                          <div className={`p-3 rounded-lg border ${isCharged ? "bg-white border-amber-200" : "bg-gray-50 border-gray-200"}`}>
+                            <p className="text-xs font-semibold text-gray-500 mb-0.5">Tutor's reason for cancellation:</p>
+                            {l.cancellationReason
+                              ? <p className="text-sm text-gray-800">"{l.cancellationReason}"</p>
+                              : <p className="text-sm text-gray-400 italic">No reason logged.</p>
+                            }
+                          </div>
+
+                          {/* Query status for charged cancellations */}
+                          {isCharged && existingQuery && (
                             <div className="mt-2 p-2.5 rounded-lg bg-gray-50 border border-gray-200">
                               <p className="text-xs font-semibold text-gray-600">Your query:</p>
                               <p className="text-xs text-gray-600 mt-0.5">{existingQuery.parentNote}</p>
@@ -5113,13 +5140,15 @@ function ParentPortal({ student, data, setData }) {
                               )}
                             </div>
                           )}
-                          {justSent && !existingQuery && (
-                            <p className="text-xs text-teal-600 font-medium mt-1.5">✓ Query submitted — admin will review shortly.</p>
+                          {isCharged && justSent && !existingQuery && (
+                            <p className="text-xs text-teal-600 font-medium mt-2">✓ Query submitted — admin will review shortly.</p>
                           )}
                         </div>
-                        {!existingQuery && !justSent && setData && (
+
+                        {/* Query button — only for charged cancellations with no existing query */}
+                        {isCharged && !existingQuery && !justSent && setData && (
                           <button onClick={() => { setCqLogId(l.id); setCqNote(""); }}
-                            className="shrink-0 text-xs px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors font-medium">
+                            className="shrink-0 text-xs px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 bg-white hover:bg-amber-50 transition-colors font-medium mt-1">
                             Query this
                           </button>
                         )}
@@ -5132,13 +5161,20 @@ function ParentPortal({ student, data, setData }) {
 
             {/* Query modal */}
             {cqLogId && (()=>{
-              const l = chargedCancels.find(x => x.id === cqLogId);
+              const l = allCancels.find(x => x.id === cqLogId);
               if (!l) return null;
               return (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
                   <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
                     <h3 className="text-base font-bold text-gray-800 mb-1">Query Charged Cancellation</h3>
-                    <p className="text-xs text-gray-400 mb-4">Lesson on <strong>{fmtDate(l.date)}</strong>. Describe why you believe this charge is incorrect — admin will review and respond.</p>
+                    <p className="text-xs text-gray-500 mb-2">Lesson on <strong>{fmtDate(l.date)}</strong>.</p>
+                    {l.cancellationReason && (
+                      <div className="mb-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                        <p className="text-xs font-semibold text-amber-700 mb-0.5">Tutor's reason:</p>
+                        <p className="text-sm text-amber-800 italic">"{l.cancellationReason}"</p>
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-400 mb-3">Describe why you believe this charge is incorrect — admin will review and respond.</p>
                     <textarea rows={4} value={cqNote} onChange={e => setCqNote(e.target.value)}
                       placeholder="e.g. I gave more than 24 hours notice via WhatsApp on the morning of the 10th…"
                       className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:outline-none resize-none mb-4"/>
